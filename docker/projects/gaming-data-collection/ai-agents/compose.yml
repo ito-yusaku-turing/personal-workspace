@@ -11,14 +11,12 @@ services:
     environment:
       - TZ=Asia/Tokyo
       - HOME=/usr/home
-      - HOST_ADDR=${HOST_ADDR}
-      - PORT_CONFIGS=${PORT_CONFIGS}
     volumes:
       - "/etc/passwd:/etc/passwd:ro"
       - "/etc/group:/etc/group:ro"
       - "../../../../:/usr/workspace"
       - "../../../../user-home:/usr/home"
-      - "../../../../../gaming-data-collection:/usr/app/gaming-data-collection"
+      - "../../../../../gaming-data-collection/gaming-data-collection:/usr/app/gaming-data-collection"
     networks:
       turing-net:
     command: /bin/bash
