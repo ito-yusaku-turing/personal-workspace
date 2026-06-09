@@ -17,3 +17,4 @@ include:
   - projects/gaming-data-collection/ai-agents/compose.yml
   # JADD STUDIO & DriversApp
   - projects/jadd-studio/ai-agents/compose.yml
+  - projects/jadd-studio/jadd-studio3/compose.yml
