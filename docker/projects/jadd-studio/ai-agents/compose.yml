@@ -1,0 +1,24 @@
+#====================================================================================================================
+# AI Agents for JADD STUDIO Project
+#====================================================================================================================
+services:
+  ai-agents-jadd-studio:
+    build: .
+    image: ai-agents-node:latest
+    container_name: ai-agents-jadd-studio
+    user: ${USER_ID?err}:${GROUP_ID?err}
+    working_dir: "/usr/workspace/ai-agents/jadd-studio"
+    environment:
+      - TZ=Asia/Tokyo
+      - HOME=/usr/home
+    volumes:
+      - "/etc/passwd:/etc/passwd:ro"
+      - "/etc/group:/etc/group:ro"
+      - "../../../../:/usr/workspace"
+      - "../../../../user-home:/usr/home"
+      - "../../../../../jadd-studio/jadd_studio3:/usr/app/jadd_studio3"
+      - "../../../../../drivers-app/drivers-app2:/usr/app/drivers-app2"
+      - "../../../../../drivers-app/drivers-app3:/usr/app/drivers-app3"
+    networks:
+      jadd-studio-net:
+    command: /bin/bash

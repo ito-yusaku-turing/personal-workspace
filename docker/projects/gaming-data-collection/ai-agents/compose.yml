@@ -18,5 +18,5 @@ services:
       - "../../../../user-home:/usr/home"
       - "../../../../../gaming-data-collection/gaming-data-collection:/usr/app/gaming-data-collection"
     networks:
-      turing-net:
+      gdc-net:
     command: /bin/bash

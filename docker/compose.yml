@@ -6,12 +6,14 @@
 
 # ネットワーク定義
 networks:
-  turing-net:
-    name: turing_net
+  gdc-net:
+    name: gdc_net
+  jadd-studio-net:
+    name: jadd_studio_net
 
 # サービス分割（projects/<project>/<name>/compose.yml）
 include:
   # Gaming Data Collection
   - projects/gaming-data-collection/ai-agents/compose.yml
   # JADD STUDIO & DriversApp
-  # - services/jadd-studio/ai-agents/compose.yml
+  - projects/jadd-studio/ai-agents/compose.yml
