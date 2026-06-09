@@ -1,0 +1,17 @@
+# Jetbrains
+.idea
+
+# user-home
+/user-home/*
+
+# storage
+/storage/*
+
+# bin (個人設定)
+/bin/config.sh
+
+# tmp
+/tmp/*
+
+# node_modules（npm 成果物）
+node_modules/

@@ -1,0 +1,17 @@
+# ====================================================================================================================
+# 開発環境 Docker Compose エントリポイント
+#   各サービス定義は services/<name>/compose.yml に分割。下記 include 一覧が稼働サービスの目次。
+#   操作は bin/ 配下のスクリプト（引数不要）から行う。
+# ====================================================================================================================
+
+# ネットワーク定義
+networks:
+  turing-net:
+    name: turing_net
+
+# サービス分割（projects/<project>/<name>/compose.yml）
+include:
+  # Gaming Data Collection
+  - projects/gaming-data-collection/ai-agents/compose.yml
+  # JADD STUDIO & DriversApp
+  # - services/jadd-studio/ai-agents/compose.yml
