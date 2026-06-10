@@ -17,6 +17,7 @@ services:
       - "../../../../:/usr/workspace"
       - "../../../../user-home:/usr/home"
       - "../../../../../gaming-data-collection/gaming-data-collection:/usr/app/gaming-data-collection"
+      - "../../../../../mlops/cdk-apps:/usr/app/cdk-apps"
     networks:
       gdc-net:
     command: /bin/bash

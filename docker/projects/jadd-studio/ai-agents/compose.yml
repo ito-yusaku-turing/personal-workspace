@@ -19,6 +19,7 @@ services:
       - "../../../../../jadd-studio/jadd_studio3:/usr/app/jadd_studio3"
       - "../../../../../drivers-app/drivers-app2:/usr/app/drivers-app2"
       - "../../../../../drivers-app/drivers-app3:/usr/app/drivers-app3"
+      - "../../../../../mlops/cdk-apps:/usr/app/cdk-apps"
     networks:
       jadd-studio-net:
     command: /bin/bash

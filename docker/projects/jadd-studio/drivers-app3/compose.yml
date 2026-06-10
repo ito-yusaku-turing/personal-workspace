@@ -1,0 +1,51 @@
+# サービス定義
+services:
+  #====================================================================================================================
+  # Drivers APP 3 / node 24 https://hub.docker.com/_/node
+  #====================================================================================================================
+  # フロントエンド/サーバー サービス
+  drivers_app3:
+    image: node:24.6.0-bullseye
+    container_name: drivers_app3
+    user: ${USER_ID?err}:${GROUP_ID?err}
+    working_dir: "/usr/app/drivers-app3"
+    init: true
+    environment:
+      - TZ=UTC
+      - ENV_NAME=development
+      - HOME=/usr/home
+      - NODE_OPTIONS=--no-deprecation
+      - REFINE_DEVTOOLS_PORT=5001
+      - PORT=${PORT_DRIVERS_APP3_NEXT:-3000}
+    volumes:
+      - "/etc/passwd:/etc/passwd:ro"
+      - "/etc/group:/etc/group:ro"
+      - "../../../../user-home:/usr/home"
+      - "../../../../../drivers-app/drivers-app3:/usr/app/drivers-app3"
+    ports:
+      - "${PORT_DRIVERS_APP3_NEXT:-3000}:${PORT_DRIVERS_APP3_NEXT:-3000}"
+    networks:
+      jadd-studio-net:
+        aliases:
+          - drivers_app3-host
+    command: sh -c "npm run dev"
+  #--------------------------------------------------------------------------------------------------------------------
+  # フロントエンド/サーバー CLI
+  drivers_app3-cli:
+    image: node:24.6.0-bullseye
+    container_name: drivers_app3-cli
+    user: ${USER_ID?err}:${GROUP_ID?err}
+    working_dir: "/usr/app/drivers-app3"
+    environment:
+      - TZ=Asia/Tokyo
+      - ENV_NAME=development
+      - NODE_OPTIONS=--no-deprecation
+      - HOME=/usr/home
+    volumes:
+      - "/etc/passwd:/etc/passwd:ro"
+      - "/etc/group:/etc/group:ro"
+      - "../../../../user-home:/usr/home"
+      - "../../../../../drivers-app/drivers-app3:/usr/app/drivers-app3"
+    networks:
+      jadd-studio-net:
+    command: /bin/bash
