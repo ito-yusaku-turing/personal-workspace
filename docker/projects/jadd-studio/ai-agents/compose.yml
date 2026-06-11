@@ -17,6 +17,7 @@ services:
       - "../../../../:/usr/workspace"
       - "../../../../user-home:/usr/home"
       - "../../../../../jadd-studio/jadd_studio3:/usr/app/jadd_studio3"
+      - "../../../../../jadd-studio/digital-signage:/usr/app/digital-signage"
       - "../../../../../drivers-app/drivers-app2:/usr/app/drivers-app2"
       - "../../../../../drivers-app/drivers-app3:/usr/app/drivers-app3"
       - "../../../../../mlops/cdk-apps:/usr/app/cdk-apps"

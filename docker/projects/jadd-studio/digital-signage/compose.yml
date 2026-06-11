@@ -1,0 +1,50 @@
+#====================================================================================================================
+# Digital Signage / node 24 https://hub.docker.com/_/node
+#   開発用URL: http://digital-signage.localhost:3006
+#====================================================================================================================
+services:
+  # フロントエンド/サーバー サービス
+  digital_signage:
+    image: node:24.13.0-bullseye
+    container_name: digital_signage
+    user: ${USER_ID?err}:${GROUP_ID?err}
+    working_dir: "/usr/app/digital-signage"
+    init: true
+    environment:
+      - TZ=Asia/Tokyo
+      - ENV_NAME=development
+      - HOME=/usr/home
+      - NODE_OPTIONS=--no-deprecation
+      - PORT=${PORT_DIGITAL_SIGNAGE:-3006}
+    volumes:
+      - "/etc/passwd:/etc/passwd:ro"
+      - "/etc/group:/etc/group:ro"
+      - "../../../../user-home:/usr/home"
+      - "../../../../../jadd-studio/digital-signage:/usr/app/digital-signage"
+    ports:
+      - "${PORT_DIGITAL_SIGNAGE:-3006}:${PORT_DIGITAL_SIGNAGE:-3006}"
+    networks:
+      jadd-studio-net:
+        aliases:
+          - digital-signage-host
+    command: sh -c "npm run dev"
+  #--------------------------------------------------------------------------------------------------------------------
+  # フロントエンド/サーバー CLI
+  digital_signage-cli:
+    image: node:24.13.0-bullseye
+    container_name: digital_signage-cli
+    user: ${USER_ID?err}:${GROUP_ID?err}
+    working_dir: "/usr/app/digital-signage"
+    environment:
+      - TZ=Asia/Tokyo
+      - ENV_NAME=development
+      - NODE_OPTIONS=--no-deprecation
+      - HOME=/usr/home
+    volumes:
+      - "/etc/passwd:/etc/passwd:ro"
+      - "/etc/group:/etc/group:ro"
+      - "../../../../user-home:/usr/home"
+      - "../../../../../jadd-studio/digital-signage:/usr/app/digital-signage"
+    networks:
+      jadd-studio-net:
+    command: /bin/bash

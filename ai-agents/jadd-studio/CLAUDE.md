@@ -7,6 +7,8 @@
     - `/usr/app/jadd_studio3/CLAUDE.md`
 - `DRIVERS_APP`: ドライバーズアプリ
     - `/usr/app/drivers-app3/CLAUDE.md`
+- `DIGITAL_SIGNAGE`: デジタルサイネージ
+    - `/usr/app/digital-signage/CLAUDE.md`
 
 # Git運用ルール
 
