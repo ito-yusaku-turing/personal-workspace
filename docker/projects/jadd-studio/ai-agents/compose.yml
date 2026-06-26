@@ -21,6 +21,7 @@ services:
       - "../../../../../drivers-app/drivers-app2:/usr/app/drivers-app2"
       - "../../../../../drivers-app/drivers-app3:/usr/app/drivers-app3"
       - "../../../../../mlops/cdk-apps:/usr/app/cdk-apps"
+      - "../../../../../mlops/mono-e2e:/usr/app/mono-e2e"
     networks:
       jadd-studio-net:
     command: /bin/bash
