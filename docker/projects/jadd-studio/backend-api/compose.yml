@@ -1,0 +1,43 @@
+#====================================================================================================================
+# Backend API (FastAPI) ローカル常駐サービス
+#   mono-e2e の backend-api を Dockerfile.dev でビルドし、ローカル backend-db に接続する。
+#   STUDIO はこのサービスへ proxy する（jadd_studio3 の BACKEND_API_URL=http://backend-api-host:8000）。
+#   ソースはマウントしてホットリロード（--reload）。db-models はイメージに COPY される点に注意
+#   （モデル変更時は再ビルド要）。navi_route テーブルは backend-db に適用済み・永続。
+#====================================================================================================================
+services:
+  backend-api:
+    platform: linux/amd64
+    build:
+      context: ../../../../../mlops/mono-e2e
+      dockerfile: projects/api/backend-api/Dockerfile.dev
+    image: jadd-studio-backend-api:latest
+    container_name: jadd-studio-backend-api
+    environment:
+      - TZ=Asia/Tokyo
+      # ローカル backend-db に接続（未設定だと AWS Secrets Manager=本番へフォールバックするため必須）
+      - DATABASE_URL=postgresql://postgres:postgres@backend-db-host:5432/backend_local
+      - SECRET_NAME=unused-local
+    volumes:
+      # ソースをマウントしてホットリロード（Dockerfile.dev はソースを COPY しない）
+      - "../../../../../mlops/mono-e2e/projects/api/backend-api/index.py:/app/index.py"
+      - "../../../../../mlops/mono-e2e/projects/api/backend-api/helpers.py:/app/helpers.py"
+      - "../../../../../mlops/mono-e2e/projects/api/backend-api/db.py:/app/db.py"
+      - "../../../../../mlops/mono-e2e/projects/api/backend-api/s3_zip_downloader.py:/app/s3_zip_downloader.py"
+      - "../../../../../mlops/mono-e2e/projects/api/backend-api/routers:/app/routers"
+      - "../../../../../mlops/mono-e2e/projects/api/backend-api/schemas:/app/schemas"
+      - "../../../../../mlops/mono-e2e/projects/api/backend-api/services:/app/services"
+      - "../../../../../mlops/mono-e2e/projects/api/backend-api/deps:/app/deps"
+      - "../../../../../mlops/mono-e2e/projects/api/backend-api/core:/app/core"
+      - "../../../../../mlops/mono-e2e/projects/api/backend-api/application:/app/application"
+      - "../../../../../mlops/mono-e2e/projects/api/backend-api/infrastructure:/app/infrastructure"
+    networks:
+      jadd-studio-net:
+        aliases:
+          - backend-api-host
+    depends_on:
+      backend-db:
+        condition: service_healthy
+    # ホストからも直接叩きたい場合のみ公開（既定はコンテナ間のみ）
+    # ports:
+    #   - "${PORT_BACKEND_API:-8000}:8000"

@@ -1,0 +1,37 @@
+#====================================================================================================================
+# Backend 用ローカル Postgres
+#   mono-e2e db-models のマイグレーション検証 / backend-api・jadd-cli のローカル動作用。
+#   backend-prod スキーマのローカル複製（本番 Supabase とは無関係）。
+#   データ実体は /usr/workspace/storage/backend-db-data/pgdata に永続化する。
+#====================================================================================================================
+services:
+  backend-db:
+    image: postgres:16-alpine          # db-models-ci / 既存 docker-compose と同じ 16
+    container_name: jadd-studio-backend-db
+    user: ${USER_ID?err}:${GROUP_ID?err}
+    environment:
+      - TZ=Asia/Tokyo
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=backend_local
+      # PGDATA をサブディレクトリにし、非 root ユーザー実行でも初期化できるようにする
+      # （storage/practice-postgres-data/pgdata と同じ流儀）
+      - PGDATA=/var/lib/postgresql/data/pgdata
+      # 非 root ユーザー実行で home が無いと psql 履歴等が書けないため、
+      # ai-agents コンテナと同じ user-home をマウントして HOME にする
+      - HOME=/usr/home
+    volumes:
+      - "../../../../storage/backend-db-data:/var/lib/postgresql/data"
+      - "../../../../user-home:/usr/home"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      jadd-studio-net:
+        aliases:
+          - backend-db-host
+    # ホストからも psql / GUI で繋ぎたい場合のみ開ける（既定はコンテナ間のみ）
+    # ports:
+    #   - "${PORT_BACKEND_DB:-5432}:5432"

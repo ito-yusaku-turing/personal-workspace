@@ -15,6 +15,10 @@ services:
       - HOME=/usr/home
       - NODE_OPTIONS=--no-deprecation
       - PORT=${PORT_JADD_STUDIO3_NEXT:-3001}
+      # ローカル backend-api へ proxy（未設定なら navi-routes はモックにフォールバック）。
+      # ローカル FastAPI は /v1 を付けないため PREFIX は空にする。
+      - BACKEND_API_URL=http://backend-api-host:8000
+      - BACKEND_API_PREFIX=
     volumes:
       - "/etc/passwd:/etc/passwd:ro"
       - "/etc/group:/etc/group:ro"

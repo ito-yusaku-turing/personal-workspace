@@ -3,8 +3,12 @@
 このワークスペースは複数のプロジェクトを管理しています。
 プロジェクトごとに`CLAUDE.md`が存在しています。
 
-- `JADD_STUDIO3`: JADD STUDIO
-    - `/usr/app/jadd_studio3/CLAUDE.md`
+特に指定がなかった場合、対象プロジェクトは `JADD_STUDIO3` となります。
+
+- `JADD_STUDIO3`: JADD STUDIO 3
+  - `/usr/app/jadd_studio3/CLAUDE.md`
+- `JADD_STUDIO3-alpha`: JADD STUDIO 3 平行開発用レーンalpha
+  - `/usr/app/jadd_studio3-alpha/CLAUDE.md`
 - `DRIVERS_APP`: ドライバーズアプリ
     - `/usr/app/drivers-app3/CLAUDE.md`
 - `DIGITAL_SIGNAGE`: デジタルサイネージ

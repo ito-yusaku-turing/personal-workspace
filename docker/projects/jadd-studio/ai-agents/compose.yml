@@ -11,17 +11,21 @@ services:
     environment:
       - TZ=Asia/Tokyo
       - HOME=/usr/home
+      # ローカル backend-db を指す。未設定だと alembic 等が本番シークレットにフォールバックするため必ず固定する
+      - DATABASE_URL=postgresql://postgres:postgres@backend-db-host:5432/backend_local
     volumes:
       - "/etc/passwd:/etc/passwd:ro"
       - "/etc/group:/etc/group:ro"
       - "../../../../:/usr/workspace"
       - "../../../../user-home:/usr/home"
       - "../../../../../jadd-studio/jadd_studio3:/usr/app/jadd_studio3"
+      - "../../../../../jadd-studio/jadd_studio3-alpha:/usr/app/jadd_studio3-alpha"
       - "../../../../../jadd-studio/digital-signage:/usr/app/digital-signage"
       - "../../../../../drivers-app/drivers-app2:/usr/app/drivers-app2"
       - "../../../../../drivers-app/drivers-app3:/usr/app/drivers-app3"
       - "../../../../../mlops/cdk-apps:/usr/app/cdk-apps"
       - "../../../../../mlops/mono-e2e:/usr/app/mono-e2e"
+      - "../../../../../mlops/jadd-cli:/usr/app/jadd-cli"
     networks:
       jadd-studio-net:
     command: /bin/bash
