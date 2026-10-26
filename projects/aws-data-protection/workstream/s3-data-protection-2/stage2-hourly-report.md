@@ -1,6 +1,6 @@
 # ステージ 2: 原本バケットの削除の毎時の報告（設計）
 
-- 状態: 1 本目の PR をレビュー中（[cdk-apps#2267](https://github.com/turingmotors/cdk-apps/pull/2267)、2026-10-22）。カナリアと記録の仕組みまで。確認はカナリアで deploy の後に行う
+- 状態: 1 本目の PR（[cdk-apps#2267](https://github.com/turingmotors/cdk-apps/pull/2267)、カナリアと記録の仕組み）は 2026-10-26 にマージし、deploy した。カナリアでの確認の 4 点のうち 3 点が済み、失効の確認だけが残っている（下の「カナリアでの確認の結果」）。次は毎時の集計と報告の PR
 - 親: [S3 バケットのデータ保護 第二弾](../s3-data-protection-2.md) のステージ 2
 - 置き場所: cdk-apps の新しいアプリ `apps/original-bucket-audit`（tuscenes-prod、us-west-2）
 
@@ -123,6 +123,38 @@ CDK は、自分が作ったバケット（`s3.Bucket`）の通知の設定を *
 2. 一括削除（`DeleteObjects`）が、S3 のイベント（オブジェクトごとか）と CloudTrail（キーが載るか）にどう出るか。
 3. 読み込んだバケットで `enableEventBridgeNotification()` を呼んだとき、既存の通知が残るか。カナリアには Databricks の代わりに SNS の通知（`canary-external`）を付けてある。
 4. 古い版の削除・削除マーカー・失効のそれぞれで、`deletion-type`・`reason`・`version-id` がどう出るか。
+
+## カナリアでの確認の結果（2026-10-26）
+
+[cdk-apps#2267](https://github.com/turingmotors/cdk-apps/pull/2267) を 06:37 UTC にマージした（deploy は 06:42 UTC に完了）。06:48:25 UTC に伊藤が exerciser を 1 回起動した（run `20261026T064825Z`）。07:04 UTC にログのバケットを ReadOnly で読んだ。分析に使ったスクリプトは、エージェントの一時ディレクトリの `analyze-canary.py`（残していない）。
+
+起こした操作:
+
+| 操作 | exerciser の結果 | S3 のイベント（`events/`） | CloudTrail（`trail/`） |
+| --- | --- | --- | --- |
+| 作成 7 件（a を 2 版・b・c・d・expire を 2 版） | 成功 | `Object Created` 7 件。`size` と `version-id` が載る | `PutObject` 7 件 |
+| 削除マーカー（a） | 成功 | `Object Deleted` 1 件。`deletion-type=Delete Marker Created`、`reason=DeleteObject` | `DeleteObject` 1 件。`requestID` がイベントと同じ |
+| 古い版の削除（a） | AccessDenied | 出ない | `DeleteObject` 1 件、`errorCode=AccessDenied` |
+| 一括削除（b・c・d） | 成功 | `Object Deleted` 3 件。3 件とも同じ `request-id`（一括削除の要求の ID）。`reason` は `DeleteObjects` ではなく `DeleteObject` | 本体の `DeleteObjects` 1 件（キーは載らない。`resources` は `ARNPrefix` だけ）＋ オブジェクトごとの `DeleteObject` 3 件 |
+| 一括での古い版の削除（b） | 一部エラー（b が AccessDenied） | 出ない | 本体の `DeleteObjects` は**エラーなし**（HTTP 200）。オブジェクトごとの `DeleteObject` に `errorCode=AccessDenied` |
+
+確認の 4 点の答え:
+
+1. **request-id はつながる。** S3 のイベントの `request-id` 9 種は、すべて CloudTrail の `requestID` にあった。
+2. **一括削除は、オブジェクトごとに記録される。**
+   - S3 のイベントは、オブジェクトごとに 1 件。`request-id` は一括削除の要求の ID。
+   - CloudTrail は、本体の `DeleteObjects` 1 件と、オブジェクトごとの `DeleteObject` に分かれる。オブジェクトごとの記録には `requestID` が無く、`additionalEventData.parentRequestID` に本体の ID が入る。キーは `resources` の `AWS::S3::Object` の ARN にある。
+   - 今のトレイルの条件（`resources.ARN` の前方一致）で、本体もオブジェクトごとの記録も残った（レビューの指摘 3 は解消）。
+3. **既存の通知は残る。** カナリアの通知に、SNS（`canary-external`）と `EventBridgeConfiguration` の両方があった。
+4. **`deletion-type`・`reason`:** 削除マーカーは `Delete Marker Created`、`reason=DeleteObject`（一括削除でも同じ）。古い版の削除は守りで拒否されたので、`Permanently Deleted` はまだ見ていない。**失効（`expire/`。1 日で失効、古い版は 3 日で掃除）は、2026-10-27〜28 に確かめる。**
+
+設計に反映すること:
+
+- **「誰が」は CloudTrail からしか取れない。** S3 のイベントの `requester` はアカウント ID（`767397804933`）で、主体が分からない。
+- **つなぎ方を 2 通りにする。** 単発の削除は `request-id` = `requestID`。一括削除は、`request-id` = `parentRequestID` かつ `resources` のキーで、オブジェクトごとの記録とつなぐ。
+- **削除のイベントには `size` が載らない。** 設計どおり、`Object Created` と Inventory から引く。
+- **拒否された削除は、CloudTrail にしか出ない。** 一括のときは、本体がエラーなし（HTTP 200）で、オブジェクトごとの記録にだけ AccessDenied が出る。拒否の試みを報告に載せるなら、オブジェクトごとの記録の `errorCode` を見る（今の要件では報告の対象外。即時のアラートを考えるときの材料）。
+- **トレイルを削除系に絞るとき**（12 本を足す前）は、`eventName` に `DeleteObject` と `DeleteObjects` の両方を入れる。オブジェクトごとの記録の `eventName` は `DeleteObject` なので、`DeleteObjects` だけでは「誰が・どのキー」が取れない。
 
 ## 後で決めること
 

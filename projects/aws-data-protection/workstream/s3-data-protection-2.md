@@ -1,7 +1,7 @@
 # S3 バケットのデータ保護 第二弾（権限設計のアップグレード）
 
 - 開始: 2026-10-20
-- 状態: **ステージ 1 の残りの 11 本とステージ 2 の 1 本目を、再レビューに出す前の最終確認まで済ませた**（2026-10-26）。[cdk-apps#2252](https://github.com/turingmotors/cdk-apps/pull/2252)（共通部と denso-raw）は 2026-10-23 にマージし、denso-raw に入れた。[cdk-apps#2253](https://github.com/turingmotors/cdk-apps/pull/2253)（残りの 11 本）・[cdk-apps#2267](https://github.com/turingmotors/cdk-apps/pull/2267)（ステージ 2 のカナリアと記録の仕組み）は、2026-10-26 に main を取り込み、[cdk-apps#2267](https://github.com/turingmotors/cdk-apps/pull/2267) には Firehose のロールの修正を足した。チームの承認待ち。レビューで見つかった問題の対応は伊藤が決める（「進捗と引き継ぎ」の 10-26）
+- 状態: **ステージ 1 は 12 本すべてに入った。ステージ 2 の 1 本目（カナリアと記録の仕組み）も入った**（2026-10-26）。[cdk-apps#2252](https://github.com/turingmotors/cdk-apps/pull/2252)（共通部と denso-raw、10-23）・[cdk-apps#2253](https://github.com/turingmotors/cdk-apps/pull/2253)（残りの 11 本、10-26 05:40 UTC）・[cdk-apps#2267](https://github.com/turingmotors/cdk-apps/pull/2267)（カナリア、10-26 06:37 UTC）をマージした。カナリアの確認は失効の 1 点だけが残る（10-27〜28）。次はステージ 2 の毎時の集計と報告の PR
 - 所属: project:aws-data-protection（2026-10-26 に `~/docs/workstream/` から移した）
 - 前段（第一弾、完了）:
   - [走行データ消失リスクへの対応](done/raw-data-security.md)（バケットの種別と処遇、裁定の正本）
@@ -56,7 +56,7 @@
    - ~~deploy の経路（cfn-exec-role）は、B3 の datalake の PR で `tuscenes-calibration-test` に入れて確かめる。~~ → 済み。`tuscenes-calibration-test` では試さず、本番で確かめた（2026-10-22 にシミュレーターで cfn-exec-role が書き換えられることを確認（TODO 7）。2026-10-23 に [cdk-apps#2252](https://github.com/turingmotors/cdk-apps/pull/2252) の deploy で cfn-exec-role が denso-raw に `PutBucketPolicy` し、スタックの更新も完了した（「進捗と引き継ぎ」の 10-23））。
 5. ~~**Databricks**: 直近 90 日に、Databricks のロールによるライフサイクルの読み書きは 0 件（`GetBucketLifecycle` 約 4.5 万件・`PutBucketLifecycle` 15 件を確認。2026-10-21）。別の検証は立てず、本番の 1 本目で Unity Catalog が動くかを見る。~~ → 済み（2026-10-23。denso-raw に入れた前後で、Databricks の `denso.default.raw` から書き込みと削除ができた。「進捗と引き継ぎ」の 10-23）。
 6. ~~**本番の 1 本目に入れる**（[cdk-apps#2252](https://github.com/turingmotors/cdk-apps/pull/2252)）~~ → 済み（2026-10-23。結果は「進捗と引き継ぎ」の 10-23）。denso-raw。共通部 `packages/original-bucket-guard` もこの PR で足す。マージ後 30 分〜1 時間、Unity Catalog の読み書きと CloudTrail の AccessDenied を見る。
-7. **残りの 11 本に入れる**（[cdk-apps#2253](https://github.com/turingmotors/cdk-apps/pull/2253)。今は main 向け。チームの承認待ち）。
+7. ~~**残りの 11 本に入れる**（[cdk-apps#2253](https://github.com/turingmotors/cdk-apps/pull/2253)）~~ → 済み（2026-10-26。結果は「進捗と引き継ぎ」の 10-26）。
    - 2026-10-22 の方針の変更（伊藤が決定）:
      - **手で作った 3 本（td1-rlog・tuscenes-calibration（旧）・denso-raw）も CDK で持つ。** datalake の `CfnBucketPolicy` として持ち、バケット自体は管理外のまま。例外の主体を 1 か所で変えられるようにするため。3 本ともどのスタックにも属さず、今のポリシーも無いので、ぶつかる文は無い。
      - **様子を見る期間は 1 週間でなく、同じ日のうちの 30 分〜1 時間にする。**
@@ -224,4 +224,18 @@
     6. denso-nx に CDK のテストが無い。
     7. [cdk-apps#2231](https://github.com/turingmotors/cdk-apps/pull/2231) を閉じるか。
   - 作業場所: worktree は scratchpad の cdk-2253・cdk-2267（push 済み）。
+- 2026-10-26: [cdk-apps#2253](https://github.com/turingmotors/cdk-apps/pull/2253) と [cdk-apps#2267](https://github.com/turingmotors/cdk-apps/pull/2267) をマージした（マージは伊藤）。
+  - **[cdk-apps#2253](https://github.com/turingmotors/cdk-apps/pull/2253)**（05:40 UTC）: 4 アプリの deploy はすべて成功した。12 本の `get-bucket-policy`（ReadOnly）で、2 文が雛形どおりに入り、既存の文も残っていることを確かめた。
+    - 1 時間（〜06:45 UTC）、CloudTrail の S3 の管理イベントを 15 分おきに見た。**原本バケットへの AccessDenied は 0 件。** 原本バケットへの書き込みは、cfn-exec-role の `PutBucketPolicy` だけだった。
+    - ほかの AccessDenied は、どれも原本ではないバケットへの読み取りで、前からあるもの（Databricks のロールの `GetBucketNotification`（wm-data・dev のバケット）、diff のロールなどの assets のバケットの `GetBucketLocation`）。
+    - main に入った `package-lock.json` の変更で、ota・tern・feature-cache の deploy も走ったが、すべて成功した。
+  - **[cdk-apps#2267](https://github.com/turingmotors/cdk-apps/pull/2267)**: マージ前に main（[cdk-apps#2253](https://github.com/turingmotors/cdk-apps/pull/2253) の後）と競合していた。`packages/original-bucket-guard/README.md` の利用アプリの一覧で、main の一覧にカナリアの行を足して解いた（42103e07。CI 13 件通過）。PR 本文の守りの表を「12 本すべて済み」に直した。
+    - 06:37 UTC にマージした。9 本の deploy（共通部の変更で原本バケットのアプリも再 deploy）はすべて成功し、12 本のポリシーも変わっていない。
+    - カナリアの通知に SNS と EventBridge の両方があり、ポリシーは SSL 以外の拒否＋守りの 2 文。
+    - 06:48 UTC に伊藤が exerciser を起動した。記録の突き合わせの結果と設計への反映は、[stage2-hourly-report.md](s3-data-protection-2/stage2-hourly-report.md) の「カナリアでの確認の結果」。要点: request-id はつながる。一括削除はオブジェクトごとの記録に `parentRequestID` が付く。古い版の削除は拒否され、CloudTrail にだけ出る。
+  - 次にやること:
+    - 2026-10-27〜28: カナリアの失効（`expire/`）のイベントを確かめる。`aws s3 ls` でログのバケットの `events/2026/10/27/` 以降を読み、`reason=Lifecycle` の `Object Deleted` を探す。
+    - ステージ 2 の 2 本目の PR: トレイルを削除系（`DeleteObject`・`DeleteObjects`）に絞る、毎時の集計（Lambda・Athena）、12 本を足す。
+    - レビューで出た課題（10-26 の一覧の 1〜6）の対応を決める。
+  - 作業場所: cdk-apps の worktree は scratchpad の cdk-2267b（push 済み）。前の cdk-2253・cdk-2267 はディレクトリが消えている。
 - 2026-10-26: tuscenes-prod の CloudTrail の今の設定を ReadOnly で確かめた（全リージョン）。トレイルは 2 本のままで、S3 の削除のデータイベントはまだ記録されていない。`aws-controltower-BaselineCloudTrail`（us-west-2、マルチリージョン、ログは 617808723336 のバケット）は管理イベントだけで `DataResources` は空。`garuda-index-access`（us-west-2 だけ）は `*/index.json` の `GetObject` だけ。CloudTrail Lake のイベントデータストアも無い。`DeleteBucket`・`PutBucketLifecycle` などの管理イベントは記録されている。`DeleteObject`・`DeleteObjects` を記録するトレイル `original-bucket-audit` は [cdk-apps#2267](https://github.com/turingmotors/cdk-apps/pull/2267) で足す予定で、PR はまだ OPEN（レビュー待ち）。
