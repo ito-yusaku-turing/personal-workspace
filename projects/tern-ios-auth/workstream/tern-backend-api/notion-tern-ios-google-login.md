@@ -25,7 +25,7 @@ Tern の iOS アプリで、社員が Google アカウントでログインで�
 
 ## 前提条件
 
-- **【重大】撤廃が決まっている BFF を通して backend-api を呼ぶ。**
+- **【重要】撤廃が決まっている BFF を通して backend-api を呼ぶ。**
   - BFF（`api.turing-ai.dev`）は撤廃が決まっている。ただし今も動いていて、`/v1/{proxy+}` を backend-api へ中継している。backend-api の API Gateway は BFF からの中継しか受けないので、アプリが今 backend-api に届く道は BFF だけ。
   - **BFF の撤廃までは BFF を通し、撤廃の後は、撤廃の作業で決まる backend-api の入口に切り替える。** 撤廃の時期は決まっていない。
   - 撤廃で URL か `/v1` の接頭辞が変わると、アプリを作り直して配り直すまで backend-api を呼べなくなる。TestFlight で配った版は古い URL を呼び続ける。
@@ -63,7 +63,7 @@ Tern の iOS アプリで、社員が Google アカウントでログインで�
 | anon キー | backend-prod の anon キー。ビルドの設定で渡し、リポジトリに直接書かない |
 | URL スキーム | `turingnavi`（案）。`Config/AppInfo.plist` の `CFBundleURLTypes` に登録する |
 | 戻り先 | `turingnavi://auth-callback`（案）。backend-prod の Redirect URLs と一字一句同じにする |
-| backend-api の URL | `https://api.turing-ai.dev/v1`（BFF 経由。前提条件の【重大】を参照）。ビルドの設定で渡し、差し替えられるようにする |
+| backend-api の URL | `https://api.turing-ai.dev/v1`（BFF 経由。前提条件の【重要】を参照）。ビルドの設定で渡し、差し替えられるようにする |
 
 ## 今回の範囲
 
@@ -87,7 +87,7 @@ R1 ができた後の機能（R3 のフィードバックなど）は、中身�
 
 ## 注意点・留意点
 
-- **BFF の撤廃に追随する。** 前提条件の【重大】のとおり。撤廃の作業の動きを追い、URL とパスが変わるなら、撤廃より前にアプリの版を出し直す。
+- **BFF の撤廃に追随する。** 前提条件の【重要】のとおり。撤廃の作業の動きを追い、URL とパスが変わるなら、撤廃より前にアプリの版を出し直す。
 - **検証役も BFF にある。** BFF の authorizer に加え、backend-api 自身の検証も、BFF のスタックにある `supabase-authorizer-v3` に任せている。BFF を撤廃した後も、この検証役が残る必要がある。
 - **トークンの検証の結果は 2 段でキャッシュされる。** BFF の authorizer と backend-api が、それぞれ 5 分ずつ持つ。ログアウトや ban の反映は、最大でおよそ 10 分遅れる。
 - **anon キーがアプリのビルドに入る。** anon キーは公開を前提にした値なので入れてよいと考える。ただしログインした社員は backend-prod の PostgREST を直接呼べるので、`public` スキーマの RLS が「認証済みなら何でも読める」になっていないかを確かめる。

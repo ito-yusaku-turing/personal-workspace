@@ -69,19 +69,39 @@
 
 - **R1 に新しい Supabase プロジェクトは要らない見込み。** jadd-cli と同じく、backend-prod の Supabase に Google でログインすればよい。そのトークンは backend-api の検証（`token_verifier`。今は BFF のスタックの authorizer を invoke する）をもう通るので、**鍵の登録も検証の改修も要らない**。iOS では `ASWebAuthenticationSession` で Supabase の認可の画面を開き、アプリの URL スキームへ戻す（supabase-swift の OAuth のログインがこれを包んでいる）。設定の手作業は、backend-prod の Supabase の Redirect URLs にアプリの戻り先を足すことだけ。ただし backend-prod の anon キーがアプリのビルドに入るので、`public` スキーマの RLS を確かめる（説明用の資料の「新しく生じること」）。
 - **R3 は、既存の Tern 用の API と同じ作りで足せる。** backend-api にフィードバックの受付を足し、backend-prod の Postgres に書く（Databricks からは federation で読む。下の「フィードバックの保存先」）。認可も同じく「検証済みの `@turing-motors.com` の利用者」にでき、送った人を JWT の `sub`・email で記録できる。JADD_SERVICE_KEY は使わない。
-- **R2 は別の作業になる。** Tern API は backend-api の後ろにいないので、ログインしても API キーは消えない。共有のキーを外すには、Tern API にトークンを検証する入口を足す必要がある（下の案）。β テストの間は、キーを残したまま R1・R3 を先に進めてもよい。
+- **R2 は別の作業になる。** Tern API は backend-api の後ろにいないので、ログインしても API キーは消えない。共有のキーを外すには、Tern API にトークンを検証する入口を足すか、backend-api に中継を足す必要がある（下の案）。β テストの間は、キーを残したまま R1・R3 を先に進めてもよい。
 
 ## R2（Tern API の API キーをやめる）の案
 
-| 案 | 中身 | 良い点 | 気になる点 |
-|---|---|---|---|
-| a. Tern API に authorizer を付ける | アプリ向けの入口（ステージか API）を足し、backend-api と同じ検証役（今は BFF のスタックの `supabase-authorizer-v3`。BFF の撤廃で行き先が変わる）を Lambda authorizer として使う。車両向けの API キーの入口は残す | 経路の計算は今と同じ道を通る。authorizer の結果のキャッシュで、呼び出しのたびの検証も軽い | cdk-apps の改修が要る。authorizer は `@turing-motors.com` を見ないので、絞るなら authorizer か入口で足す |
-| b. backend-api を経由する | backend-api に経路の計算の中継を足す（backend-api は既に Tern の GET の権限を持つ） | 認証の入口が backend-api 1 つにまとまる | 経路の計算の遅延と Lambda の費用が増える。経路の計算の道が 2 つになる |
-| c. キーを残す | β の間は今のまま | 作業ゼロ | 要件の「API キーから脱却」は満たさない |
+2026-10-26: a と b の両方を残して比べる（どちらに決めるかは未定）。
 
-推奨は **a**（ただし R1・R3 の後でよい）。
+| 案 | 中身 |
+|---|---|
+| a. Tern API に authorizer を付ける | Tern API の同じ REST API に `/auth/{proxy+}` を足し、Supabase の JWT で受ける。既に PR がある（[cdk-apps#2220](https://github.com/turingmotors/cdk-apps/pull/2220)） |
+| b. backend-api を経由する | backend-api に Tern API への中継を足す。アプリは `https://api.turing-ai.dev/v1/...`（BFF 経由）を R1 と同じトークンで呼ぶ。先例は `/valhalla/lane-semantic-map/*` |
+| c. キーを残す | β の間は今のまま。作業はゼロだが、要件の「API キーから脱却」は満たさない |
 
-既に a の形の PR がある（[cdk-apps#2220](https://github.com/turingmotors/cdk-apps/pull/2220)、未マージ、10/19 更新）。`tern-api.apps.turing-ai.dev/auth/*` を Supabase の JWT で受ける。ただし受ける `iss` は **JADD STUDIO3 の Supabase**（`ebdfwtvfpemzevdpxmek`）で、検証は BFF の `supabase-authorizer-v3` に任せている。R1 で backend-prod を使うと決めたこと、BFF を使わないことと食い違うので、R2 に着手するときに見直しが要る。
+### a と b の比較
+
+| 観点 | a. Tern API に authorizer | b. backend-api を経由 |
+|---|---|---|
+| 今の進み具合 | PR がある。Approve 済みだが Draft、main と conflict。10/19 から止まっている（三輪さんが Devin に作らせたもの） | 手を付けていない。ただし同じ作りの先例が backend-api で動いている |
+| 残りの作業 | `ALLOWED_ISSUERS` に backend-prod（`lvngtemehmcxemnurgwb`）を足す、conflict を解く、deploy 後に `AWS_LWA_REMOVE_BASE_PATH` が効くか実機で確かめる | backend-api に Tern API 用の中継を足す。先例は POST の `/route` などと `GET /status`・`/map-info` だけで、アプリが呼ぶ `GET /mapbox/directions/v5/...` は無い。Tern API の キーを取る IAM 権限も要る |
+| どのリポジトリか | cdk-apps（`apps/tern-api`）だけ | mono-e2e（backend-api）。必要なら cdk-apps（キーの権限） |
+| アプリから見た入口 | 2 つ（backend-api と Tern API の `/auth/*`）。どちらも同じトークン | backend-api の 1 つだけ |
+| BFF への依存 | 検証を BFF のスタックの `supabase-authorizer-v3` に任せる。BFF の道（`/v1`）は通らない | 検証も `/v1` の道も BFF に頼る。BFF の撤廃が経路の計算にも及ぶ |
+| 遅延 | 今の道と同じ。authorizer の結果は 5 分キャッシュ | BFF → backend-api の Lambda → Tern API と 2 段増える。どこまで許せるかは未確認 |
+| 上限 | `/auth/*` は 20 rps / burst 50（API キー版は 100 / 1000）。authorizer の同時実行は 10 | backend-api の Lambda の上限と、上流との通信の期限（先例は 26 秒）。応答の大きさも先例は 4 MiB まで |
+| 費用 | authorizer の Lambda（キャッシュで少ない） | 経路の計算 1 回ごとに backend-api の Lambda が 1 回動く |
+| 認可の判定 | authorizer の中で、`iss`・`role`・匿名でないこと・`@turing-motors.com`・`app_metadata.provider == google` を見る | backend-api の既存の判定（`get_verified_user`、`tern_agent.py` の `writer`）を使える |
+| 失効の反映 | 最大 5 分（authorizer のキャッシュ） | 最大およそ 10 分（BFF と backend-api の 2 段のキャッシュ） |
+| R1 との関係 | R1a（ログイン）だけがあればよい | R1a と R1b（backend-api の呼び出し）の上に乗る |
+
+### 判断の材料
+
+- a は「動きかけの PR を進める」話で、決めるべきは issuer に backend-prod を足すかどうかだけ。止まっている理由は PR の本文にある「iOS がどの Supabase project でログインするか」で、R1 で backend-prod に決めたので、それを伝えれば動き出せる見込み。
+- b は入口が 1 つにまとまるのが利点だが、経路の計算まで BFF の撤廃の影響を受け、遅延と費用も増える。経路の計算は走行中の再計算もあるので、呼ぶ回数と許せる遅延を三輪さんに確かめてから選ぶ。
+- どちらも BFF のスタックの `supabase-authorizer-v3` に頼る点は同じ。BFF の撤廃では、どちらの案でも検証役の引き継ぎが要る。
 
 ## こちらの作業（R1）
 
@@ -102,7 +122,7 @@
 - [x] **ログインには backend-prod の Supabase を使う。** jadd-cli で Supabase Auth の実績がある
   - jadd-cli と共存できる。Redirect URLs は複数登録でき、アプリは `redirect_to` で戻り先を指定するので、Site URL も jadd-cli の戻り先も変えない。Google の Client ID もカンマ区切りで足せる（ネイティブの Sign-In にする場合）。同じ社員は jadd-cli と iOS で同じ `sub` になる
 - [x] **iOS への組み込みは三輪さんが行う**（分担の表）。navi-ios-app は三輪さんのリポなので、PR も三輪さんが出す
-- [x] **BFF の撤廃までは BFF（`https://api.turing-ai.dev/v1`）を通して backend-api を呼ぶ**（2026-10-26。同日に一度「BFF を使わない」としたのを改めた）。BFF は撤廃が決まっているが今も動いていて、backend-api に届く道は BFF だけ。撤廃の作業には同じ URL とパスを引き継いでもらうよう頼む（jadd-cli も同じ URL）。資料の前提条件の先頭に【重大】として書いた
+- [x] **BFF の撤廃までは BFF（`https://api.turing-ai.dev/v1`）を通して backend-api を呼ぶ**（2026-10-26。同日に一度「BFF を使わない」としたのを改めた）。BFF は撤廃が決まっているが今も動いていて、backend-api に届く道は BFF だけ。撤廃の作業には同じ URL とパスを引き継いでもらうよう頼む（jadd-cli も同じ URL）。資料の前提条件の先頭に【重要】として書いた
 - [x] **フィードバックの保存先・テーブル・受付の API は今回の範囲外（三輪さんの裁量）**（2026-10-26 に改めた）。今回は backend-prod の DB のスキーマに手を入れない。下の「フィードバックの保存先」は、三輪さんへの参考として残す（当初は A に決めたと書いていた）
 
 ## 決めること
@@ -152,5 +172,7 @@
 - 2026-10-26: 説明用の資料を MLOps 1チームの「ドキュメント置き場」に Notion のページとして作った（[Notion のページ](https://app.notion.com/p/405a93b3e6f281208011c7ccdb174536)、Status は `下書き(Draft)`）。原本はローカルの資料のままで、冒頭に URL を書いた。上げる前に PR 番号をフル URL にし、Notion で崩れた太字（`**…）**を` の形）を原本ごと直した。
 - 2026-10-26: BFF の撤廃が決まっているので、アプリは BFF を使わず backend-api だけを呼ぶ形に説明用の資料を直した。main を見ると、まだ `api.turing-ai.dev` は BFF にあり、backend-api は API Gateway の IP からしか受けず、検証も BFF のスタックの authorizer に頼っている。入口の用意と検証役の移設は BFF の撤廃の作業の前提として、資料の「作業の順番」の 3' と「合意したいこと」の 7 に書いた。R2 の既存の PR（[cdk-apps#2220](https://github.com/turingmotors/cdk-apps/pull/2220)）が STUDIO の Supabase と BFF の authorizer に頼っていることも見つけた。
 - 2026-10-26: 説明用の資料を手元で組み直した（Notion には未反映）。提案の形をやめ、要件（今のアプリの整理を含む）・前提条件・仕様・今回の範囲・注意点の順にした。図とコードは外し、人の情報は最小限にした。今回の範囲は R1 まで（Redirect URLs の追加・anon キーの受け渡し・iOS への組み込み・疎通の確認）で、DB のスキーマ・API の追加・Databricks は範囲外（R1 の後は三輪さんの裁量）とした。Google Cloud の OAuth クライアントは作らない（Supabase の画面でのログインにするため）。
-- 2026-10-26: BFF は撤廃まで動くので、撤廃までは BFF を通す前提に資料を組み替えた。廃止予定の BFF に頼ることは前提条件の先頭に【重大】として書いた。BFF の authorizer は期限切れのトークンにも 403 を返す（`supabase-authorizer-v3.ts:112`、HTTP API の simple response）ので、応答の扱いを「401・403 なら 1 回更新して送り直す」に改めた。R2・R3 は「範囲外」にそろえた。
-- 次: 手元の資料を揉み、仕上がったら Notion のページを更新する（列幅を直した表があったので、全体を置き換えるときは表の列幅が戻ることを伝える）。人の情報（担当）は最後に必要な分だけ足す。そのあと Status を `提案中(Proposed)` にして共有する
+- 2026-10-26: BFF は撤廃まで動くので、撤廃までは BFF を通す前提に資料を組み替えた。廃止予定の BFF に頼ることは前提条件の先頭に【重要】として書いた。BFF の authorizer は期限切れのトークンにも 403 を返す（`supabase-authorizer-v3.ts:112`、HTTP API の simple response）ので、応答の扱いを「401・403 なら 1 回更新して送り直す」に改めた。R2・R3 は「範囲外」にそろえた。
+- 2026-10-26: R2 の案 a（[cdk-apps#2220](https://github.com/turingmotors/cdk-apps/pull/2220)）と案 b（backend-api を経由）を両方残して比べることにした。b には backend-api の `/valhalla/lane-semantic-map/*` という先例がある。#2220 は 10/19 から止まっていて、Draft のまま main と conflict している。比較は「R2 の案」の節に書いた。
+- 2026-10-26: 組み直した説明用の資料で Notion のページを同期した（本文をまるごと置き換え。表の列の幅は既定に戻った）。Notion の側でタイトルの末尾に「(ドラフト)」が足されていたので、プロパティには触らずに残した。コメントは無かった。R2 の a・b の比較は workstream にだけ書き、説明用の資料には入れていない。
+- 次: Notion は 2026-10-26 の版で同期済み。人の情報（担当）を最後に必要な分だけ足し、R2 の a・b を資料に載せるかを決める。そのあと Status を `提案中(Proposed)` にして共有する。直すときは原本を直してから Notion を更新する（その前に Notion の人の編集とコメントを確かめる）
