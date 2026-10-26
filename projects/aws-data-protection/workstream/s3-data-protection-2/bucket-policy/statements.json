@@ -1,0 +1,50 @@
+{
+  "_comment": "原本バケットに足す 2 文。${BUCKET} をバケット名に置き換える。例外は暫定で SSO の FullAccess と AWSAdministratorAccess（BreakGlass ができたら差し替える）。",
+  "Statement": [
+    {
+      "Sid": "DenyIrreversibleDelete",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": [
+        "s3:DeleteObjectVersion",
+        "s3:DeleteBucket",
+        "s3:PutBucketObjectLockConfiguration"
+      ],
+      "Resource": [
+        "arn:aws:s3:::${BUCKET}",
+        "arn:aws:s3:::${BUCKET}/*"
+      ],
+      "Condition": {
+        "ArnNotLike": {
+          "aws:PrincipalArn": [
+            "arn:aws:iam::767397804933:role/aws-reserved/sso.amazonaws.com/*/AWSReservedSSO_FullAccess_*",
+            "arn:aws:iam::767397804933:role/aws-reserved/sso.amazonaws.com/*/AWSReservedSSO_AWSAdministratorAccess_*"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "DenyProtectionRemoval",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": [
+        "s3:PutBucketVersioning",
+        "s3:PutLifecycleConfiguration",
+        "s3:PutBucketPolicy",
+        "s3:DeleteBucketPolicy",
+        "s3:PutBucketOwnershipControls",
+        "s3:PutBucketAcl"
+      ],
+      "Resource": "arn:aws:s3:::${BUCKET}",
+      "Condition": {
+        "ArnNotLike": {
+          "aws:PrincipalArn": [
+            "arn:aws:iam::767397804933:role/aws-reserved/sso.amazonaws.com/*/AWSReservedSSO_FullAccess_*",
+            "arn:aws:iam::767397804933:role/aws-reserved/sso.amazonaws.com/*/AWSReservedSSO_AWSAdministratorAccess_*",
+            "arn:aws:iam::767397804933:role/cdk-hnb659fds-cfn-exec-role-767397804933-*"
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -18,7 +18,11 @@ personal-workspace/
 ├── docker/      # devbox（エージェント用の作業環境）。説明は docs/development-environment.md
 ├── docs/        # 開発環境・GitHub 認証・個人プリファレンス・Git 運用の文書
 ├── projects/    # 案件ごとの資料置き場（下記「projects/（案件ごとの資料）」）
-│   └── gaming-data-collection/   # project:gaming-data-collection。BeamNG の MOD と資料
+│   ├── aws-data-protection/      # project:aws-data-protection。S3 原本バケットの保護
+│   ├── gaming-data-collection/   # project:gaming-data-collection。BeamNG の MOD と資料
+│   ├── idp-broker/               # project:idp-broker。社内アプリの認証の入口（IdP）の選定
+│   ├── m2m-auth/                 # project:m2m-auth。車載装置・CI 用マシンの認証
+│   └── tern-ios-auth/            # project:tern-ios-auth。Tern iOS アプリの認証
 ├── .claude/commands/   # /commit /push /pr
 └── ai-agents/   # 旧構成の残り（git 管理外の作業ファイルだけ）
 ```

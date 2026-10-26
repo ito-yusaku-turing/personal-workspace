@@ -1,0 +1,1 @@
+{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"AWS":["arn:aws:iam::586794486929:root","arn:aws:iam::471112873671:root"]},"Action":["s3:Get*","s3:List*"],"Resource":["arn:aws:s3:::tuscenes-raw-767397804933","arn:aws:s3:::tuscenes-raw-767397804933/*"]}]}

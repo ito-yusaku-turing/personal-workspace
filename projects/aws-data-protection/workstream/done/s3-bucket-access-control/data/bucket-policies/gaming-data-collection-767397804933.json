@@ -1,0 +1,1 @@
+{"Version":"2012-10-17","Statement":[{"Effect":"Deny","Principal":{"AWS":"*"},"Action":"s3:*","Resource":["arn:aws:s3:::gaming-data-collection-767397804933","arn:aws:s3:::gaming-data-collection-767397804933/*"],"Condition":{"Bool":{"aws:SecureTransport":"false"}}}]}

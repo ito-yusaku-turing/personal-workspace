@@ -1,0 +1,67 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": [
+          "arn:aws:iam::586794486929:root",
+          "arn:aws:iam::471112873671:root"
+        ]
+      },
+      "Action": [
+        "s3:Get*",
+        "s3:List*"
+      ],
+      "Resource": [
+        "arn:aws:s3:::tuscenes-calibration-767397804933",
+        "arn:aws:s3:::tuscenes-calibration-767397804933/*"
+      ]
+    },
+    {
+      "Sid": "DenyIrreversibleDelete",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": [
+        "s3:DeleteObjectVersion",
+        "s3:DeleteBucket",
+        "s3:PutBucketObjectLockConfiguration"
+      ],
+      "Resource": [
+        "arn:aws:s3:::tuscenes-calibration-767397804933",
+        "arn:aws:s3:::tuscenes-calibration-767397804933/*"
+      ],
+      "Condition": {
+        "ArnNotLike": {
+          "aws:PrincipalArn": [
+            "arn:aws:iam::767397804933:role/aws-reserved/sso.amazonaws.com/*/AWSReservedSSO_FullAccess_*",
+            "arn:aws:iam::767397804933:role/aws-reserved/sso.amazonaws.com/*/AWSReservedSSO_AWSAdministratorAccess_*"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "DenyProtectionRemoval",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": [
+        "s3:PutBucketVersioning",
+        "s3:PutLifecycleConfiguration",
+        "s3:PutBucketPolicy",
+        "s3:DeleteBucketPolicy",
+        "s3:PutBucketOwnershipControls",
+        "s3:PutBucketAcl"
+      ],
+      "Resource": "arn:aws:s3:::tuscenes-calibration-767397804933",
+      "Condition": {
+        "ArnNotLike": {
+          "aws:PrincipalArn": [
+            "arn:aws:iam::767397804933:role/aws-reserved/sso.amazonaws.com/*/AWSReservedSSO_FullAccess_*",
+            "arn:aws:iam::767397804933:role/aws-reserved/sso.amazonaws.com/*/AWSReservedSSO_AWSAdministratorAccess_*",
+            "arn:aws:iam::767397804933:role/cdk-hnb659fds-cfn-exec-role-767397804933-*"
+          ]
+        }
+      }
+    }
+  ]
+}

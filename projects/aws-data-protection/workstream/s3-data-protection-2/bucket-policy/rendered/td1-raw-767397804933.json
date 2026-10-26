@@ -1,0 +1,89 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::994354357515:root"
+      },
+      "Action": [
+        "s3:GetBucketLocation",
+        "s3:GetObject",
+        "s3:ListBucket"
+      ],
+      "Resource": [
+        "arn:aws:s3:::td1-raw-767397804933",
+        "arn:aws:s3:::td1-raw-767397804933/*"
+      ],
+      "Condition": {
+        "ArnEquals": {
+          "aws:PrincipalArn": "arn:aws:iam::994354357515:role/feature-cache-job-role"
+        }
+      }
+    },
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": [
+          "arn:aws:iam::505728817009:user/devin/devin-investigator",
+          "arn:aws:iam::471112873671:root",
+          "arn:aws:iam::586794486929:root",
+          "arn:aws:iam::767397804933:root"
+        ]
+      },
+      "Action": [
+        "s3:Get*",
+        "s3:List*"
+      ],
+      "Resource": [
+        "arn:aws:s3:::td1-raw-767397804933",
+        "arn:aws:s3:::td1-raw-767397804933/*"
+      ]
+    },
+    {
+      "Sid": "DenyIrreversibleDelete",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": [
+        "s3:DeleteObjectVersion",
+        "s3:DeleteBucket",
+        "s3:PutBucketObjectLockConfiguration"
+      ],
+      "Resource": [
+        "arn:aws:s3:::td1-raw-767397804933",
+        "arn:aws:s3:::td1-raw-767397804933/*"
+      ],
+      "Condition": {
+        "ArnNotLike": {
+          "aws:PrincipalArn": [
+            "arn:aws:iam::767397804933:role/aws-reserved/sso.amazonaws.com/*/AWSReservedSSO_FullAccess_*",
+            "arn:aws:iam::767397804933:role/aws-reserved/sso.amazonaws.com/*/AWSReservedSSO_AWSAdministratorAccess_*"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "DenyProtectionRemoval",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": [
+        "s3:PutBucketVersioning",
+        "s3:PutLifecycleConfiguration",
+        "s3:PutBucketPolicy",
+        "s3:DeleteBucketPolicy",
+        "s3:PutBucketOwnershipControls",
+        "s3:PutBucketAcl"
+      ],
+      "Resource": "arn:aws:s3:::td1-raw-767397804933",
+      "Condition": {
+        "ArnNotLike": {
+          "aws:PrincipalArn": [
+            "arn:aws:iam::767397804933:role/aws-reserved/sso.amazonaws.com/*/AWSReservedSSO_FullAccess_*",
+            "arn:aws:iam::767397804933:role/aws-reserved/sso.amazonaws.com/*/AWSReservedSSO_AWSAdministratorAccess_*",
+            "arn:aws:iam::767397804933:role/cdk-hnb659fds-cfn-exec-role-767397804933-*"
+          ]
+        }
+      }
+    }
+  ]
+}

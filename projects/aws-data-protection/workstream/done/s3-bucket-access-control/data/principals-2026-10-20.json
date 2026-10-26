@@ -1,0 +1,3809 @@
+[
+ {
+  "name": "role/service-role/AmazonEMRStudio_RuntimeRole",
+  "ops": {
+   "バージョニング": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ライフサイクル": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ポリシー": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ポリシー削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "Object Lock": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "バケット削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "版の削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "上書き": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ]
+  },
+  "pfx": [],
+  "last": "2024-08-28",
+  "trust": [
+   "emr-serverless"
+  ]
+ },
+ {
+  "name": "role/service-role/AmazonSageMaker-ExecutionRole-20240315T103566",
+  "ops": {
+   "削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "上書き": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ]
+  },
+  "pfx": [],
+  "last": "2024-04-01",
+  "trust": [
+   "sagemaker"
+  ]
+ },
+ {
+  "name": "role/aws-controltower-AdministratorExecutionRole",
+  "ops": {
+   "バージョニング": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ライフサイクル": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ポリシー": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ポリシー削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "Object Lock": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "バケット削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "版の削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "上書き": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ]
+  },
+  "pfx": [],
+  "last": "",
+  "trust": [
+   "494249021538:role/aws-controltower-AuditAdministratorRole"
+  ]
+ },
+ {
+  "name": "role/AWSControlTowerExecution",
+  "ops": {
+   "バージョニング": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ライフサイクル": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ポリシー": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ポリシー削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "Object Lock": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "バケット削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "版の削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "上書き": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ]
+  },
+  "pfx": [],
+  "last": "2025-09-12",
+  "trust": [
+   "210332786925:root"
+  ]
+ },
+ {
+  "name": "sso/AWSReservedSSO_AWSAdministratorAccess_619c2f8a913e315a",
+  "ops": {
+   "バージョニング": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ライフサイクル": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ポリシー": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ポリシー削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "Object Lock": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "バケット削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "版の削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "上書き": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ]
+  },
+  "pfx": [],
+  "last": "2026-10-19",
+  "trust": [
+   "767397804933"
+  ]
+ },
+ {
+  "name": "sso/AWSReservedSSO_FullAccess_ed608317ee39a850",
+  "ops": {
+   "バージョニング": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ライフサイクル": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ポリシー": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ポリシー削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "Object Lock": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "バケット削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "版の削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model"
+   ],
+   "削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model"
+   ],
+   "上書き": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ]
+  },
+  "pfx": [],
+  "last": "2026-10-20",
+  "trust": [
+   "767397804933"
+  ]
+ },
+ {
+  "name": "sso/AWSReservedSSO_GamingDataCollection_9adea50411ddd80c",
+  "ops": {
+   "削除": [
+    "gaming-data-collection"
+   ],
+   "上書き": [
+    "gaming-data-collection"
+   ]
+  },
+  "pfx": [],
+  "last": "2026-08-30",
+  "trust": [
+   "767397804933"
+  ]
+ },
+ {
+  "name": "sso/AWSReservedSSO_JADDViewer_0467b1be8aab6820",
+  "ops": {
+   "削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "上書き": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ]
+  },
+  "pfx": [],
+  "last": "2026-04-02",
+  "trust": [
+   "767397804933"
+  ]
+ },
+ {
+  "name": "sso/AWSReservedSSO_TeamDataPlanning_444d280ac21a7bf4",
+  "ops": {
+   "削除": [
+    "calibration(新)"
+   ],
+   "上書き": [
+    "calibration(新)"
+   ]
+  },
+  "pfx": [],
+  "last": "2025-12-21",
+  "trust": [
+   "767397804933"
+  ]
+ },
+ {
+  "name": "sso/AWSReservedSSO_TeamDrivingSoftware_23a1540096234650",
+  "ops": {
+   "上書き": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ]
+  },
+  "pfx": [],
+  "last": "2026-10-20",
+  "trust": [
+   "767397804933"
+  ]
+ },
+ {
+  "name": "sso/AWSReservedSSO_TeamE2E_87b32d413e7af329",
+  "ops": {
+   "バージョニング": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ライフサイクル": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ポリシー": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ポリシー削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "Object Lock": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "バケット削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "版の削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model"
+   ],
+   "上書き": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model"
+   ]
+  },
+  "pfx": [],
+  "last": "2026-10-20",
+  "trust": [
+   "767397804933"
+  ]
+ },
+ {
+  "name": "sso/AWSReservedSSO_TeamFundamentalAI_e4d4f9bb5ff5d3da",
+  "ops": {
+   "削除": [
+    "tu-model"
+   ],
+   "上書き": [
+    "tu-model"
+   ]
+  },
+  "pfx": [],
+  "last": "2026-10-20",
+  "trust": [
+   "767397804933"
+  ]
+ },
+ {
+  "name": "role/BackendApi-BackendApiBackendApiHandlerServiceRole36-U2mAFH1GhWbG",
+  "ops": {
+   "版の削除": [
+    "tu-model"
+   ],
+   "削除": [
+    "tu-model"
+   ],
+   "上書き": [
+    "calibration(新)",
+    "tu-model"
+   ]
+  },
+  "pfx": [
+   "tuscenes-calibration-…/calibration_results/*"
+  ],
+  "last": "2026-10-20",
+  "trust": [
+   "lambda"
+  ]
+ },
+ {
+  "name": "role/cdk-hnb659fds-cfn-exec-role-767397804933-ap-northeast-1",
+  "ops": {
+   "バージョニング": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ライフサイクル": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ポリシー": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ポリシー削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "Object Lock": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "バケット削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "版の削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "上書き": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ]
+  },
+  "pfx": [],
+  "last": "2026-10-15",
+  "trust": [
+   "cloudformation"
+  ]
+ },
+ {
+  "name": "role/cdk-hnb659fds-cfn-exec-role-767397804933-us-east-1",
+  "ops": {
+   "バージョニング": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ライフサイクル": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ポリシー": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ポリシー削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "Object Lock": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "バケット削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "版の削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "上書き": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ]
+  },
+  "pfx": [],
+  "last": "2026-01-27",
+  "trust": [
+   "cloudformation"
+  ]
+ },
+ {
+  "name": "role/cdk-hnb659fds-cfn-exec-role-767397804933-us-east-2",
+  "ops": {
+   "バージョニング": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ライフサイクル": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ポリシー": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ポリシー削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "Object Lock": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "バケット削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "版の削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "上書き": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ]
+  },
+  "pfx": [],
+  "last": "2025-07-15",
+  "trust": [
+   "cloudformation"
+  ]
+ },
+ {
+  "name": "role/cdk-hnb659fds-cfn-exec-role-767397804933-us-west-2",
+  "ops": {
+   "バージョニング": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ライフサイクル": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ポリシー": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ポリシー削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "Object Lock": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "バケット削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "版の削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "上書き": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ]
+  },
+  "pfx": [],
+  "last": "2026-10-20",
+  "trust": [
+   "cloudformation"
+  ]
+ },
+ {
+  "name": "role/service-role/CodeCatalystWorkflowDevelopmentRole-tuscenes-prod",
+  "ops": {
+   "バージョニング": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ライフサイクル": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ポリシー": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ポリシー削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "Object Lock": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "バケット削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "版の削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "上書き": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ]
+  },
+  "pfx": [],
+  "last": "2024-03-14",
+  "trust": [
+   "codecatalyst",
+   "codecatalyst-runner"
+  ]
+ },
+ {
+  "name": "role/Coder-WorkspaceRole736431E1-QNn6za9CHBGQ",
+  "ops": {
+   "削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "上書き": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ]
+  },
+  "pfx": [],
+  "last": "2026-10-20",
+  "trust": [
+   "ec2"
+  ]
+ },
+ {
+  "name": "role/CoderWorkspace-ClusterWorkspaceRoleCB6131B7-soWYRnYcQ7Vo",
+  "ops": {
+   "削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "上書き": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ]
+  },
+  "pfx": [],
+  "last": "",
+  "trust": [
+   "pods.eks"
+  ]
+ },
+ {
+  "name": "role/CoderWorkspace-ClusterWorkspaceRoleCB6131B7-vGvHsN3RkavH",
+  "ops": {
+   "削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "上書き": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ]
+  },
+  "pfx": [],
+  "last": "2025-02-26",
+  "trust": [
+   "pods.eks"
+  ]
+ },
+ {
+  "name": "role/CoderWorkspaceRole",
+  "ops": {
+   "削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "上書き": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ]
+  },
+  "pfx": [],
+  "last": "2025-10-08",
+  "trust": [
+   "ec2"
+  ]
+ },
+ {
+  "name": "role/databricks-s3-ingest-20363-db_s3_iam",
+  "ops": {
+   "ライフサイクル": [
+    "tu-raw"
+   ],
+   "削除": [
+    "tu-raw"
+   ],
+   "上書き": [
+    "tu-raw"
+   ]
+  },
+  "pfx": [],
+  "last": "2026-10-19",
+  "trust": [
+   "414351767826:role/unity-catalog-prod-UCMasterRole-14S5ZJVKOTYTL",
+   "767397804933:role/databricks-s3-ingest-20363-db_s3_iam"
+  ]
+ },
+ {
+  "name": "role/databricks-s3-ingest-25d30-db_s3_iam",
+  "ops": {
+   "ライフサイクル": [
+    "tu-annotation"
+   ],
+   "削除": [
+    "tu-annotation"
+   ],
+   "上書き": [
+    "tu-annotation"
+   ]
+  },
+  "pfx": [],
+  "last": "2026-10-20",
+  "trust": [
+   "414351767826:role/unity-catalog-prod-UCMasterRole-14S5ZJVKOTYTL",
+   "767397804933:role/databricks-s3-ingest-25d30-db_s3_iam"
+  ]
+ },
+ {
+  "name": "role/databricks-s3-ingest-3090e-db_s3_iam",
+  "ops": {
+   "ライフサイクル": [
+    "td1-raw"
+   ],
+   "削除": [
+    "td1-raw"
+   ],
+   "上書き": [
+    "td1-raw"
+   ]
+  },
+  "pfx": [],
+  "last": "2026-10-20",
+  "trust": [
+   "414351767826:role/unity-catalog-prod-UCMasterRole-14S5ZJVKOTYTL",
+   "767397804933:role/databricks-s3-ingest-3090e-db_s3_iam"
+  ]
+ },
+ {
+  "name": "role/databricks-s3-ingest-3ecc9-db_s3_iam",
+  "ops": {
+   "ライフサイクル": [
+    "tu-model"
+   ],
+   "削除": [
+    "tu-model"
+   ],
+   "上書き": [
+    "tu-model"
+   ]
+  },
+  "pfx": [],
+  "last": "2026-10-20",
+  "trust": [
+   "414351767826:role/unity-catalog-prod-UCMasterRole-14S5ZJVKOTYTL",
+   "767397804933:role/databricks-s3-ingest-3ecc9-db_s3_iam"
+  ]
+ },
+ {
+  "name": "role/databricks-s3-ingest-782bc-db_s3_iam",
+  "ops": {
+   "ライフサイクル": [
+    "denso-taxi-processed"
+   ],
+   "削除": [
+    "denso-taxi-processed"
+   ],
+   "上書き": [
+    "denso-taxi-processed"
+   ]
+  },
+  "pfx": [],
+  "last": "2026-10-20",
+  "trust": [
+   "414351767826:role/unity-catalog-prod-UCMasterRole-14S5ZJVKOTYTL",
+   "767397804933:role/databricks-s3-ingest-782bc-db_s3_iam"
+  ]
+ },
+ {
+  "name": "role/databricks-s3-ingest-90299-db_s3_iam",
+  "ops": {
+   "ライフサイクル": [
+    "calibration(新)"
+   ],
+   "削除": [
+    "calibration(新)"
+   ],
+   "上書き": [
+    "calibration(新)"
+   ]
+  },
+  "pfx": [],
+  "last": "2026-10-20",
+  "trust": [
+   "414351767826:role/unity-catalog-prod-UCMasterRole-14S5ZJVKOTYTL",
+   "767397804933:role/databricks-s3-ingest-90299-db_s3_iam"
+  ]
+ },
+ {
+  "name": "role/databricks-s3-ingest-9bf18-db_s3_iam",
+  "ops": {
+   "ライフサイクル": [
+    "denso-raw"
+   ],
+   "削除": [
+    "denso-raw"
+   ],
+   "上書き": [
+    "denso-raw"
+   ]
+  },
+  "pfx": [],
+  "last": "2026-10-09",
+  "trust": [
+   "414351767826:role/unity-catalog-prod-UCMasterRole-14S5ZJVKOTYTL",
+   "767397804933:role/databricks-s3-ingest-9bf18-db_s3_iam"
+  ]
+ },
+ {
+  "name": "role/databricks-s3-ingest-d9a0f-db_s3_iam",
+  "ops": {
+   "ライフサイクル": [
+    "gaming-data-collection"
+   ],
+   "削除": [
+    "gaming-data-collection"
+   ],
+   "上書き": [
+    "gaming-data-collection"
+   ]
+  },
+  "pfx": [],
+  "last": "2026-10-20",
+  "trust": [
+   "414351767826:role/unity-catalog-prod-UCMasterRole-14S5ZJVKOTYTL",
+   "767397804933:role/databricks-s3-ingest-d9a0f-db_s3_iam"
+  ]
+ },
+ {
+  "name": "role/databricks-s3-ingest-denso-nx-raw-767397804933-db_s3_iam",
+  "ops": {
+   "ライフサイクル": [
+    "denso-nx-raw"
+   ],
+   "削除": [
+    "denso-nx-raw"
+   ],
+   "上書き": [
+    "denso-nx-raw"
+   ]
+  },
+  "pfx": [],
+  "last": "2026-10-20",
+  "trust": [
+   "414351767826:role/unity-catalog-prod-UCMasterRole-14S5ZJVKOTYTL",
+   "767397804933:role/databricks-s3-ingest-denso-nx-raw-767397804933-db_s3_iam"
+  ]
+ },
+ {
+  "name": "role/databricks-s3-ingest-fb5a6-db_s3_iam",
+  "ops": {
+   "ライフサイクル": [
+    "td1-rlog"
+   ],
+   "削除": [
+    "td1-rlog"
+   ],
+   "上書き": [
+    "td1-rlog"
+   ]
+  },
+  "pfx": [],
+  "last": "2026-10-09",
+  "trust": [
+   "414351767826:role/unity-catalog-prod-UCMasterRole-14S5ZJVKOTYTL",
+   "767397804933:role/databricks-s3-ingest-fb5a6-db_s3_iam"
+  ]
+ },
+ {
+  "name": "role/Datalake-RlogDecoderFunctionServiceRole3490568D-5khAyjjQtMUm",
+  "ops": {
+   "上書き": [
+    "td1-raw"
+   ]
+  },
+  "pfx": [],
+  "last": "2026-10-20",
+  "trust": [
+   "lambda"
+  ]
+ },
+ {
+  "name": "role/DensoNx-ExtractorJobRole12098145-t9PUpx6T64wG",
+  "ops": {
+   "版の削除": [
+    "td1-raw"
+   ],
+   "削除": [
+    "td1-raw"
+   ],
+   "上書き": [
+    "td1-raw"
+   ]
+  },
+  "pfx": [],
+  "last": "2026-10-02",
+  "trust": [
+   "ecs-tasks"
+  ]
+ },
+ {
+  "name": "role/DensoTaxiStack-AzureDataSyncGeniac4TaskS3AccessRole-RM4A0yMSQ1xo",
+  "ops": {
+   "削除": [
+    "denso-taxi-processed"
+   ],
+   "上書き": [
+    "denso-taxi-processed"
+   ]
+  },
+  "pfx": [],
+  "last": "2026-09-23",
+  "trust": [
+   "datasync"
+  ]
+ },
+ {
+  "name": "role/DensoTaxiStack-AzureDataSyncGeniac4VideoTaskS3Acces-q2fveLPD5iZe",
+  "ops": {
+   "削除": [
+    "denso-taxi-video"
+   ],
+   "上書き": [
+    "denso-taxi-video"
+   ]
+  },
+  "pfx": [],
+  "last": "2026-09-23",
+  "trust": [
+   "datasync"
+  ]
+ },
+ {
+  "name": "role/DensoTaxiStack-AzureDataSyncTaskS3AccessRole79A6781-RJdZqYMLle5i",
+  "ops": {
+   "削除": [
+    "denso-taxi-processed"
+   ],
+   "上書き": [
+    "denso-taxi-processed"
+   ]
+  },
+  "pfx": [],
+  "last": "2026-08-05",
+  "trust": [
+   "datasync"
+  ]
+ },
+ {
+  "name": "role/DensoTaxiStack-AzureDataSyncVideoTaskS3AccessRole54-RTCoLpLsKCUO",
+  "ops": {
+   "削除": [
+    "denso-taxi-video"
+   ],
+   "上書き": [
+    "denso-taxi-video"
+   ]
+  },
+  "pfx": [],
+  "last": "2026-08-05",
+  "trust": [
+   "datasync"
+  ]
+ },
+ {
+  "name": "role/ecsTaskExecutionRole",
+  "ops": {
+   "バージョニング": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ライフサイクル": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ポリシー": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ポリシー削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "Object Lock": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "バケット削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "版の削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "上書き": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ]
+  },
+  "pfx": [],
+  "last": "2025-03-25",
+  "trust": [
+   "ecs-tasks"
+  ]
+ },
+ {
+  "name": "role/ModelcoreBuild-TaskRole30FC0FBB-xYjuPsSIn1et",
+  "ops": {
+   "版の削除": [
+    "tu-model"
+   ],
+   "削除": [
+    "tu-model"
+   ],
+   "上書き": [
+    "tu-model"
+   ]
+  },
+  "pfx": [],
+  "last": "2026-10-20",
+  "trust": [
+   "ecs-tasks"
+  ]
+ },
+ {
+  "name": "role/service-role/SageMaker-ExecutionRole-20240206T192166",
+  "ops": {
+   "削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "上書き": [
+    "calibration(新)",
+    "calibration(旧)",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ]
+  },
+  "pfx": [],
+  "last": "2024-05-07",
+  "trust": [
+   "sagemaker"
+  ]
+ },
+ {
+  "name": "role/sfn-auto-labeling-AwsBatchPreprocessFunctionService-fn3Nf1jGLQTc",
+  "ops": {
+   "バージョニング": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ライフサイクル": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ポリシー": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ポリシー削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "Object Lock": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "バケット削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "版の削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "上書き": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ]
+  },
+  "pfx": [],
+  "last": "2024-10-11",
+  "trust": [
+   "lambda"
+  ]
+ },
+ {
+  "name": "role/skypilot-v1",
+  "ops": {
+   "バージョニング": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ライフサイクル": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ポリシー": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ポリシー削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "Object Lock": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "バケット削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "版の削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "上書き": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ]
+  },
+  "pfx": [],
+  "last": "2026-08-14",
+  "trust": [
+   "ec2"
+  ]
+ },
+ {
+  "name": "role/SkypilotApiServer-ApiServerRole23EFC621-Js44pHrEGokd",
+  "ops": {
+   "上書き": [
+    "calibration(新)",
+    "calibration(旧)",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ]
+  },
+  "pfx": [],
+  "last": "2026-10-19",
+  "trust": [
+   "pods.eks"
+  ]
+ },
+ {
+  "name": "role/stacksets-exec-ff6bf58b4ea65bd878839a71faebc74a",
+  "ops": {
+   "バージョニング": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ライフサイクル": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ポリシー": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ポリシー削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "Object Lock": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "バケット削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "版の削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "上書き": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ]
+  },
+  "pfx": [],
+  "last": "2026-02-02",
+  "trust": [
+   "210332786925:role/aws-service-role/stacksets.cloudformation/AWSServiceRoleForCloudFormationStackSetsOrgAdmin"
+  ]
+ },
+ {
+  "name": "role/Train3dGs-Train3dGsBatchJobRoleD8E342C8-LvarjhHVu7AE",
+  "ops": {
+   "上書き": [
+    "tu-model"
+   ]
+  },
+  "pfx": [],
+  "last": "2026-10-16",
+  "trust": [
+   "ecs-tasks"
+  ]
+ },
+ {
+  "name": "role/tuscenes-processing",
+  "ops": {
+   "バージョニング": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ライフサイクル": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ポリシー": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ポリシー削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "Object Lock": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "バケット削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "版の削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "上書き": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ]
+  },
+  "pfx": [],
+  "last": "2024-07-16",
+  "trust": [
+   "ec2"
+  ]
+ },
+ {
+  "name": "role/service-role/tuscenes-sampler-test-role-n1huu9jg",
+  "ops": {
+   "バージョニング": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ライフサイクル": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ポリシー": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ポリシー削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "Object Lock": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "バケット削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "版の削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "上書き": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ]
+  },
+  "pfx": [],
+  "last": "2024-07-10",
+  "trust": [
+   "lambda"
+  ]
+ },
+ {
+  "name": "user/gaming-data-collection-uploader",
+  "ops": {
+   "上書き": [
+    "gaming-data-collection"
+   ]
+  },
+  "pfx": [],
+  "last": "",
+  "trust": []
+ },
+ {
+  "name": "user/jadd-datasync",
+  "ops": {
+   "バージョニング": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ライフサイクル": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ポリシー": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ポリシー削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "Object Lock": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "バケット削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "版の削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "上書き": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ]
+  },
+  "pfx": [],
+  "last": "",
+  "trust": []
+ },
+ {
+  "name": "user/jadd-remote-sync-kohei.watanabe",
+  "ops": {
+   "バージョニング": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ライフサイクル": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ポリシー": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ポリシー削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "Object Lock": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "バケット削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "版の削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "上書き": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ]
+  },
+  "pfx": [],
+  "last": "",
+  "trust": []
+ },
+ {
+  "name": "user/jadd_studio_amplify",
+  "ops": {
+   "バージョニング": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ライフサイクル": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ポリシー": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ポリシー削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "Object Lock": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "バケット削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "版の削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "上書き": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ]
+  },
+  "pfx": [],
+  "last": "",
+  "trust": []
+ },
+ {
+  "name": "user/shio-secretsmanager_GetSecretValue",
+  "ops": {
+   "バージョニング": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ライフサイクル": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ポリシー": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "ポリシー削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "Object Lock": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "バケット削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "版の削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "上書き": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ]
+  },
+  "pfx": [],
+  "last": "",
+  "trust": []
+ },
+ {
+  "name": "user/tokyo30-dataupload-pc-01",
+  "ops": {
+   "バージョニング": [
+    "td1-raw",
+    "td1-rlog",
+    "tu-raw"
+   ],
+   "ライフサイクル": [
+    "td1-raw",
+    "td1-rlog",
+    "tu-raw"
+   ],
+   "Object Lock": [
+    "td1-raw",
+    "td1-rlog",
+    "tu-raw"
+   ],
+   "バケット削除": [
+    "td1-raw",
+    "td1-rlog",
+    "tu-raw"
+   ],
+   "版の削除": [
+    "td1-raw",
+    "td1-rlog",
+    "tu-raw"
+   ],
+   "削除": [
+    "td1-raw",
+    "td1-rlog",
+    "tu-raw"
+   ],
+   "上書き": [
+    "td1-raw",
+    "td1-rlog",
+    "tu-raw"
+   ]
+  },
+  "pfx": [],
+  "last": "",
+  "trust": []
+ },
+ {
+  "name": "user/tsukamoto",
+  "ops": {
+   "上書き": [
+    "td1-raw"
+   ]
+  },
+  "pfx": [],
+  "last": "",
+  "trust": []
+ },
+ {
+  "name": "role/DensoNx-AzureDataSyncTaskS3AccessRole79A67816-KKtOwwv6ohQX",
+  "ops": {
+   "削除": [
+    "denso-nx-raw"
+   ],
+   "上書き": [
+    "denso-nx-raw"
+   ]
+  },
+  "pfx": [
+   "denso-nx-raw-…/azure-mlops1/dcorp-inbound/*"
+  ],
+  "last": "2026-10-19",
+  "trust": [
+   "datasync"
+  ]
+ },
+ {
+  "name": "role/GlueRole",
+  "ops": {
+   "削除": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ],
+   "上書き": [
+    "calibration(新)",
+    "calibration(旧)",
+    "denso-nx-raw",
+    "denso-raw",
+    "denso-taxi-processed",
+    "denso-taxi-video",
+    "gaming-data-collection",
+    "td1-raw",
+    "td1-rlog",
+    "tu-annotation",
+    "tu-model",
+    "tu-raw"
+   ]
+  },
+  "pfx": [
+   "*/*aws-glue-*/*"
+  ],
+  "last": "2024-08-28",
+  "trust": [
+   "glue"
+  ]
+ },
+ {
+  "name": "role/LidarDeleter",
+  "ops": {
+   "削除": [
+    "td1-raw",
+    "tu-raw"
+   ]
+  },
+  "pfx": [
+   "td1-raw-…/*/lidar/*",
+   "tuscenes-raw-…/*/lidar/*"
+  ],
+  "last": "2026-09-03",
+  "trust": [
+   "767397804933:role/aws-reserved/sso/us-west-2/AWSReservedSSO_FullAccess_ed608317ee39a850"
+  ]
+ },
+ {
+  "name": "role/ModelConverter-EgpuModelConverterSfnModelConverterT-EO2AB7nPDtCZ",
+  "ops": {
+   "版の削除": [
+    "tu-model"
+   ],
+   "削除": [
+    "tu-model"
+   ],
+   "上書き": [
+    "tu-model"
+   ]
+  },
+  "pfx": [
+   "tuscenes-model-…/fullcombo/**"
+  ],
+  "last": "2026-10-16",
+  "trust": [
+   "ecs-tasks"
+  ]
+ },
+ {
+  "name": "role/ModelConverter-ModelConverterSfnModelConverterTaskD-yCGjcQxCWBXn",
+  "ops": {
+   "版の削除": [
+    "tu-model"
+   ],
+   "削除": [
+    "tu-model"
+   ],
+   "上書き": [
+    "tu-model"
+   ]
+  },
+  "pfx": [
+   "tuscenes-model-…/fullcombo/**"
+  ],
+  "last": "2026-10-20",
+  "trust": [
+   "ecs-tasks"
+  ]
+ },
+ {
+  "name": "role/PerceptionDetection-BatchJobRole8F5EADCB-0ejEyW9bmAZx",
+  "ops": {
+   "削除": [
+    "tu-annotation"
+   ],
+   "上書き": [
+    "tu-annotation"
+   ]
+  },
+  "pfx": [
+   "tuscenes-annotation-…/object_detection/auto_label/0.1.0/*"
+  ],
+  "last": "2026-10-20",
+  "trust": [
+   "ecs-tasks"
+  ]
+ },
+ {
+  "name": "role/PerceptionDetection-LambdasPlanJobsServiceRoleF843E-61eCQWrhW0iC",
+  "ops": {
+   "上書き": [
+    "tu-annotation"
+   ]
+  },
+  "pfx": [
+   "tuscenes-annotation-…/object_detection/auto_label/0.1.0/*"
+  ],
+  "last": "2026-10-20",
+  "trust": [
+   "lambda"
+  ]
+ },
+ {
+  "name": "role/PerceptionDetection-LaneBatchJobRoleF578B392-hRSyGHW0N507",
+  "ops": {
+   "上書き": [
+    "tu-annotation"
+   ]
+  },
+  "pfx": [
+   "tuscenes-annotation-…/lane_master_kun/auto_label/v0.3.0/*"
+  ],
+  "last": "2026-10-20",
+  "trust": [
+   "ecs-tasks"
+  ]
+ },
+ {
+  "name": "role/PerceptionDetection-LaneLambdasPlanJobsServiceRoleB-UI8qBfenvEAz",
+  "ops": {
+   "上書き": [
+    "tu-annotation"
+   ]
+  },
+  "pfx": [
+   "tuscenes-annotation-…/lane_master_kun/auto_label/v0.3.0/*"
+  ],
+  "last": "2026-10-20",
+  "trust": [
+   "lambda"
+  ]
+ },
+ {
+  "name": "role/S3BatchDeleteLidar",
+  "ops": {
+   "削除": [
+    "td1-raw",
+    "tu-raw"
+   ]
+  },
+  "pfx": [
+   "td1-raw-…/*/lidar/*",
+   "tuscenes-raw-…/*/lidar/*"
+  ],
+  "last": "",
+  "trust": [
+   "batchoperations.s3"
+  ]
+ },
+ {
+  "name": "user/gaggle-shared-user",
+  "ops": {
+   "上書き": [
+    "tu-model"
+   ]
+  },
+  "pfx": [
+   "tuscenes-model-…/bevfusion/*"
+  ],
+  "last": "",
+  "trust": []
+ }
+]
