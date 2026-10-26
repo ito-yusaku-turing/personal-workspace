@@ -112,6 +112,7 @@
     - `tokyo30-dataupload-pc-01`：td1-raw ほか 3 本でバケットの削除まで可能。今も使用中なので、持ち主に確認する。
     - `AmazonS3FullAccess` の 4 本：jadd-datasync、jadd-remote-sync-kohei.watanabe、jadd_studio_amplify、shio-secretsmanager_GetSecretValue。
     - **jadd_studio_amplify**（2026-10-23 に正体を調べた）。Amplify CLI の時代（2024-11-22、初代 jadd_studio）に `amplify configure` で作ったユーザー。`AmazonS3FullAccess`・`AdministratorAccess-Amplify`・`AmplifyBackendDeployFullAccess`・`secretsmanager_GetSecretValue` を持つ。cfn-exec-role を名乗れるので、ステージ 1 の守りを外せる（[cdk-apps#2252](https://github.com/turingmotors/cdk-apps/pull/2252) のレビュー）。
+      - **2026-10-26 にユーザーを削除した**（伊藤）。cfn-exec-role を名乗れる抜け穴の主体の 1 つが消えた。[cdk-apps#2252](https://github.com/turingmotors/cdk-apps/pull/2252) のレビューへの返答はまだ。
       - **別の資料に切り出した: [jadd_studio_amplify を削除する](jadd-studio-amplify-removal.md)**（2026-10-23）。利用元の調査の結果・削除の手順・Amplify の一式の扱いはそちらが正本。
       - 要点: キーは 2 本とも 2026-10-23 に無効化した（伊藤）。利用元の最有力は、jadd_studio3 の開発者の手元の `.env.local`（3 月に配った秘密情報のパッケージにこのキーが入っていた）。Devin の線は取り下げた。削除を妨げる依存は無い。
       - PR には、キーが漏れていることを書かない（「ステージ 4 で片付ける」とだけ書いた）。

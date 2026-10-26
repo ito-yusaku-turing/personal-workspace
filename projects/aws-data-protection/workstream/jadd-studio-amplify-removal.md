@@ -1,7 +1,7 @@
 # IAM ユーザー jadd_studio_amplify を削除する
 
 - 開始: 2026-10-23
-- 状態: **起票した**。キーは 2 本とも無効にした。削除は未着手
+- 状態: **ユーザーを削除した**（2026-10-26 17:58 JST）。残りは苦情への対応・第二弾への反映・Amplify の一式の判断
 - 所属: project:aws-data-protection（2026-10-26 に `~/docs/workstream/` から移した）
 - 実施: 伊藤（書き込みは Full の権限で CLI。このユーザーは CDK の管理外）
 - 経緯: [S3 バケットのデータ保護 第二弾](s3-data-protection-2.md) の TODO 13 から切り出した。[cdk-apps#2252](https://github.com/turingmotors/cdk-apps/pull/2252) のレビューで犬塚さん（graph226）が「cfn-exec-role を名乗れる主体」として挙げたユーザー
@@ -46,21 +46,8 @@ tuscenes-prod（767397804933）の IAM ユーザー `jadd_studio_amplify` は、
 
 ## TODO
 
-1. **ユーザーを削除する**（伊藤、Full の権限）。管理ポリシーを外し、キーを消し、ユーザーを消す順:
-   ```bash
-   U=jadd_studio_amplify
-   for a in arn:aws:iam::767397804933:policy/secretsmanager_GetSecretValue \
-            arn:aws:iam::aws:policy/AmazonS3FullAccess \
-            arn:aws:iam::aws:policy/service-role/AmplifyBackendDeployFullAccess \
-            arn:aws:iam::aws:policy/AdministratorAccess-Amplify; do
-     aws iam detach-user-policy --user-name $U --policy-arn $a
-   done
-   for k in $(aws iam list-access-keys --user-name $U --query 'AccessKeyMetadata[].AccessKeyId' --output text); do
-     aws iam delete-access-key --user-name $U --access-key-id $k
-   done
-   aws iam delete-user --user-name $U
-   ```
-   - ARN は 2026-10-23 に `list-attached-user-policies` で確かめたもの。
+1. ~~**ユーザーを削除する**~~ → 済み（2026-10-26 17:58 JST、伊藤）。（伊藤、Full の権限）。手順は [delete-runbook.md](jadd-studio-amplify-removal/delete-runbook.md) を正本にする（1 行ずつ貼る形。ループや変数は使わない。実行前後の確認と戻し方つき）。順番は、管理ポリシーを外す → キーを消す → ユーザーを消す。
+   - ポリシーの ARN は 2026-10-23 と 10-26 に `list-attached-user-policies` で確かめたもの。
 2. **悲鳴への対応**。jadd_studio3 の開発者には、次の 2 点を案内する。
    - `.env.local` の AWS の行を、今の `jadd-studio` のキーに差し替える。
    - tern は `AWS_PROFILE` に SSO のプロファイルを入れて動かす。
@@ -76,4 +63,6 @@ tuscenes-prod（767397804933）の IAM ユーザー `jadd_studio_amplify` は、
 ## 進捗と引き継ぎ
 
 - 2026-10-23: 利用元を調べた（上記）。伊藤がキー 2 本を無効化した。削除を妨げる依存が無いことを確かめ、起票した。
-- **次にやること**: TODO の 1（削除）。今日はやらない。
+- 2026-10-26: 削除の前に ReadOnly で見直した。10-23 から変わりなし。管理ポリシーは同じ 4 本、キーは 2 本とも Inactive、ログイン・MFA・証明書・SSH 鍵・サービス用の資格情報・インラインポリシー・グループは 0。`secretsmanager_GetSecretValue` の付け先は 3（このユーザーを外すと 2 が残る）。キーの最終利用は 1 本目の 10-23 02:30 UTC（無効化の 07:05 UTC より前）で、2 本目は未使用。無効化の後、us-west-2・us-east-1・ap-northeast-1 の CloudTrail にこのユーザーやキーの記録は無い（S3 の失敗はデータイベントなので記録されない。手がかりにならない）。ロール・ポリシー・バケットポリシーからの参照の再スキャンはしていない。
+- 2026-10-26: 伊藤が [delete-runbook.md](jadd-studio-amplify-removal/delete-runbook.md) のとおりに削除した（17:57〜17:58 JST）。ReadOnly で、`get-user` が NoSuchEntity になること、`secretsmanager_GetSecretValue` の付け先が 2 になったことを確かめた。CloudTrail（us-east-1、09:00 UTC 時点）に `DetachUserPolicy` 4 件（4 本すべて）・`DeleteAccessKey`（…GHTY）・`DeleteUser` が出ていて、どれもエラーは無い。2 本目（…XTTO）の `DeleteAccessKey` はまだ届いていなかった。`DeleteUser` が成功したので、ポリシーとキーは残っていない（残っていれば `DeleteConflict` になる）。
+- **次にやること**: TODO 2（苦情が出たら案内する）、TODO 3（第二弾の TODO 13 を済みにし、[cdk-apps#2252](https://github.com/turingmotors/cdk-apps/pull/2252) で返答する）、TODO 4（Amplify の一式を片付けるか決める）。
