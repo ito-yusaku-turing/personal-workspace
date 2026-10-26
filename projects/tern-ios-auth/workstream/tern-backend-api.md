@@ -1,7 +1,7 @@
 # Tern iOS アプリの認証と、フィードバックの送信
 
 - 開始: 2026-10-23
-- 状態: **方針と分担が決まり、説明用の資料でレビューを受ける段階（2026-10-23）**。こちらは「Google ログインと、ログインした利用者が backend-api を呼ぶ経路」を用意し、iOS への組み込み方を示すまで。iOS への組み込みとフィードバックの機能は三輪さんが作る。説明用の資料（[`notion-tern-ios-google-login.md`](tern-backend-api/notion-tern-ios-google-login.md)）を Notion に取り込み、三輪さんと MLOps チームにレビューしてもらう
+- 状態: **方針と分担が決まり、説明用の資料でレビューを受ける段階（2026-10-23）**。こちらは「Google ログインと、ログインした利用者が backend-api を呼ぶ経路」を用意し、iOS への組み込み方を示すまで。iOS への組み込みとフィードバックの機能は三輪さんが作る。説明用の資料（[`notion-tern-ios-google-login.md`](tern-backend-api/notion-tern-ios-google-login.md)）を Notion に上げた（2026-10-26、[Notion のページ](https://app.notion.com/p/405a93b3e6f281208011c7ccdb174536)。Status は下書き）。三輪さんと MLOps チームにレビューしてもらう
 - 所属: project:tern-ios-auth（作業先は navi-ios-app・mono-e2e・cdk-apps にまたがる。2026-10-26 に `~/docs/workstream/` から移した）
 - 関連: [backend-api・JADD STUDIO・CLI の認証（補足資料）](../../idp-broker/documents/backend-api-auth-supplement.md)、[M2M 認証](../../m2m-auth/workstream/m2m-auth.md)
 
@@ -128,7 +128,7 @@
 - [ ] supabase-swift の OAuth のログイン（PKCE）が、backend-prod の設定のままで使えるか
 - [ ] backend-prod の Supabase の Google のログインが、社外の Google アカウントを弾くか（OAuth の同意画面が「内部」か）。弾かないなら、受付の API 側で `@turing-motors.com` に絞る（jadd-cli の経路でも同じ事情）
 - [ ] backend-prod の Supabase で、退職者がどう止まるか（JADD Studio のプロジェクトは STUDIO の cron が ban する）
-  - 分かったこと: backend-prod にもオフボーディングの同期（mono-e2e #6139）があり、10/9 に本番で有効になった。15 分ごとに、Google で停止・削除された人を ban し、API キーの再発行を止める（[IdP の役割分担の検討](../../idp-broker/workstream/idp-auth0-role-division.md)の「backend-api の課題と、今の動き」）
+  - 分かったこと: backend-prod にもオフボーディングの同期（[mono-e2e#6139](https://github.com/turingmotors/mono-e2e/pull/6139)）があり、10/9 に本番で有効になった。15 分ごとに、Google で停止・削除された人を ban し、API キーの再発行を止める（[IdP の役割分担の検討](../../idp-broker/workstream/idp-auth0-role-division.md)の「backend-api の課題と、今の動き」）
   - 残り: ban のあと、発行済みのトークンがいつまで使えるか
 - [ ] backend-prod の `public` スキーマの RLS が「認証済みなら何でも読める」になっていないか（anon キーをアプリのビルドに入れるため。説明用の資料の「新しく生じること」）
 - [ ] 疎通の確認に使う、既存の backend-api の読み取りのエンドポイント（副作用が無く、利用者の身元が返るもの）
@@ -144,4 +144,5 @@
 - 2026-10-23: 分担が決まった。こちらは R1（Google ログインと backend-api を呼ぶ経路の用意）まで、フィードバックの機能（テーブル・受付・画面）は三輪さん、R2 は範囲外。次は「調べること」の Supabase の設定（Redirect URLs・社外アカウント）を確かめ、iOS のログインに着手する。
 - 2026-10-23: 「backend-prod の認証を使うと iOS 専用になるか」を確認し、Redirect URLs を足すだけで jadd-cli と共存できると整理した。backend-prod の Redirect URLs にアプリの戻り先を足す方向で進める。
 - 2026-10-23: 三輪さんと MLOps チームに共有する説明用の資料を [`tern-backend-api/notion-tern-ios-google-login.md`](tern-backend-api/notion-tern-ios-google-login.md) に作った（Notion に取り込んでレビューしてもらう）。iOS への組み込みは三輪さんが行う。
-- 次: 説明用の資料へのレビューを待つ（MLOps チームの「合意したいこと」への回答と、三輪さんの確認）。並行して、URL スキーム名を三輪さんと決め、「調べること」を確かめる。
+- 2026-10-26: 説明用の資料を MLOps 1チームの「ドキュメント置き場」に Notion のページとして作った（[Notion のページ](https://app.notion.com/p/405a93b3e6f281208011c7ccdb174536)、Status は `下書き(Draft)`）。原本はローカルの資料のままで、冒頭に URL を書いた。上げる前に PR 番号をフル URL にし、Notion で崩れた太字（`**…）**を` の形）を原本ごと直した。
+- 次: Notion のページの Status を `提案中(Proposed)` にして、三輪さんと MLOps チームに共有する（まだ共有していない）。そのあと説明用の資料へのレビューを待つ（MLOps チームの「合意したいこと」への回答と、三輪さんの確認）。並行して、URL スキーム名を三輪さんと決め、「調べること」を確かめる。

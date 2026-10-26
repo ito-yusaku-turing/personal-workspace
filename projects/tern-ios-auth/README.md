@@ -9,4 +9,4 @@
 ## workstream/ — 進行中の作業記録
 
 - [workstream/tern-backend-api.md](./workstream/tern-backend-api.md): **Tern iOS アプリの認証と、フィードバックの送信**。要件 R1〜R3、分担、調べた事実、決めたこと・決めること
-  - [workstream/tern-backend-api/notion-tern-ios-google-login.md](./workstream/tern-backend-api/notion-tern-ios-google-login.md): 三輪さんと MLOps チーム向けの説明用の資料（Notion に取り込んでレビューしてもらう）
+  - [workstream/tern-backend-api/notion-tern-ios-google-login.md](./workstream/tern-backend-api/notion-tern-ios-google-login.md): 三輪さんと MLOps チーム向けの説明用の資料。[Notion のページ](https://app.notion.com/p/405a93b3e6f281208011c7ccdb174536)の原本
