@@ -1,7 +1,7 @@
 # IAM ユーザー jadd_studio_amplify を削除する
 
 - 開始: 2026-10-23
-- 状態: **ユーザーを削除した**（2026-10-26 17:58 JST）。残りは苦情への対応・第二弾への反映・Amplify の一式の判断
+- 状態: **ユーザーと Amplify の一式を削除した**（2026-10-26）。残りは苦情への対応と、[cdk-apps#2252](https://github.com/turingmotors/cdk-apps/pull/2252) での返答
 - 所属: project:aws-data-protection（2026-10-26 に `~/docs/workstream/` から移した）
 - 実施: 伊藤（書き込みは Full の権限で CLI。このユーザーは CDK の管理外）
 - 経緯: [S3 バケットのデータ保護 第二弾](s3-data-protection-2.md) の TODO 13 から切り出した。[cdk-apps#2252](https://github.com/turingmotors/cdk-apps/pull/2252) のレビューで犬塚さん（graph226）が「cfn-exec-role を名乗れる主体」として挙げたユーザー
@@ -53,7 +53,7 @@ tuscenes-prod（767397804933）の IAM ユーザー `jadd_studio_amplify` は、
    - tern は `AWS_PROFILE` に SSO のプロファイルを入れて動かす。
    - 古いキーが残っているかは、次のコマンドで確かめられる（値は出ない）: `grep -l HOC2HR6GHTY ~/.aws/credentials ~/.aws/config /usr/app/jadd_studio3/.env.local /usr/app/jadd_studio3/docker/.env 2>/dev/null`
 3. **s3-data-protection-2 に反映する**。TODO 13 の jadd_studio_amplify を済みにする。[cdk-apps#2252](https://github.com/turingmotors/cdk-apps/pull/2252) のレビューへの返答で、この主体が消えたことを伝える。
-4. **Amplify の一式を片付けるか決める**（2026-10-26 に片付けることにした。対象は下の「Amplify の一式の洗い出し」、手順書は [amplify-cleanup-runbook.md](jadd-studio-amplify-removal/amplify-cleanup-runbook.md)）（別に判断する。ユーザーを消しても残る）。対象は、アプリ 2 つ（`jadd_studio` d34n309gf2fupw・`jaddstudio` d37k44pfh0i4bm）、スタック `amplify-jaddstudio-dev-2b103` と子 2 つ、Cognito のユーザープール `us-west-2_jb7jCOO9q` と ID プール、IAM のロール 4 本、Lambda 1 つ、S3 のバケット（deployment と storage）。使われていないことを確かめてから消す（Cognito のユーザー数、ID プールと Lambda の最終利用など）。
+4. ~~**Amplify の一式を片付けるか決める**~~ → 済み（2026-10-26 に消した）。（2026-10-26 に片付けることにした。対象は下の「Amplify の一式の洗い出し」、手順書は [amplify-cleanup-runbook.md](jadd-studio-amplify-removal/amplify-cleanup-runbook.md)）（別に判断する。ユーザーを消しても残る）。対象は、アプリ 2 つ（`jadd_studio` d34n309gf2fupw・`jaddstudio` d37k44pfh0i4bm）、スタック `amplify-jaddstudio-dev-2b103` と子 2 つ、Cognito のユーザープール `us-west-2_jb7jCOO9q` と ID プール、IAM のロール 4 本、Lambda 1 つ、S3 のバケット（deployment と storage）。使われていないことを確かめてから消す（Cognito のユーザー数、ID プールと Lambda の最終利用など）。
 
 ## Amplify の一式の洗い出し（2026-10-26、ReadOnly、us-west-2）
 
@@ -85,4 +85,9 @@ TODO 4 の対象。どれも 2024-11-22〜23 に作られたまま、更新さ�
 - 2026-10-23: 利用元を調べた（上記）。伊藤がキー 2 本を無効化した。削除を妨げる依存が無いことを確かめ、起票した。
 - 2026-10-26: 削除の前に ReadOnly で見直した。10-23 から変わりなし。管理ポリシーは同じ 4 本、キーは 2 本とも Inactive、ログイン・MFA・証明書・SSH 鍵・サービス用の資格情報・インラインポリシー・グループは 0。`secretsmanager_GetSecretValue` の付け先は 3（このユーザーを外すと 2 が残る）。キーの最終利用は 1 本目の 10-23 02:30 UTC（無効化の 07:05 UTC より前）で、2 本目は未使用。無効化の後、us-west-2・us-east-1・ap-northeast-1 の CloudTrail にこのユーザーやキーの記録は無い（S3 の失敗はデータイベントなので記録されない。手がかりにならない）。ロール・ポリシー・バケットポリシーからの参照の再スキャンはしていない。
 - 2026-10-26: 伊藤が [delete-runbook.md](jadd-studio-amplify-removal/delete-runbook.md) のとおりに削除した（17:57〜17:58 JST）。ReadOnly で、`get-user` が NoSuchEntity になること、`secretsmanager_GetSecretValue` の付け先が 2 になったことを確かめた。CloudTrail（us-east-1、09:00 UTC 時点）に `DetachUserPolicy` 4 件（4 本すべて）・`DeleteAccessKey`（…GHTY）・`DeleteUser` が出ていて、どれもエラーは無い。2 本目（…XTTO）の `DeleteAccessKey` はまだ届いていなかった。`DeleteUser` が成功したので、ポリシーとキーは残っていない（残っていれば `DeleteConflict` になる）。
-- **次にやること**: TODO 2（苦情が出たら案内する）、TODO 3（第二弾の TODO 13 を済みにし、[cdk-apps#2252](https://github.com/turingmotors/cdk-apps/pull/2252) で返答する）、TODO 4（Amplify の一式を片付けるか決める）。
+- 2026-10-26: 伊藤が [amplify-cleanup-runbook.md](jadd-studio-amplify-removal/amplify-cleanup-runbook.md) のとおりに Amplify の一式を消した。ReadOnly で確かめた結果:
+  - スタック 3 つは DELETE_COMPLETE（09:14 UTC）。失敗は無く、DELETE_SKIPPED は `Retain` のバケット 2 本だけ（想定どおり）。エクスポートも消えた。
+  - Amplify のアプリは us-west-2 に 0。Cognito のユーザープール・ID プール、IAM ロール 4 本、Lambda はどれも見つからない。
+  - バケット 2 本は `head-bucket` が 404。Lambda のロググループも無い。
+  - 消さない `amplify-turingapps-main-127f9` は CREATE_COMPLETE のまま。
+- **次にやること**: TODO 2（苦情が出たら案内する）、TODO 3 の残り（[cdk-apps#2252](https://github.com/turingmotors/cdk-apps/pull/2252) のレビューへの返答で、この主体が消えたことを伝える）。返答の投稿は伊藤の了承を取ってから。

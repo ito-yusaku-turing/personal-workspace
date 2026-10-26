@@ -1,7 +1,7 @@
 # jadd_studio の Amplify の一式の削除の手順書（AWS CLI）
 
 - 作成: 2026-10-26
-- 実施: 未
+- **実施: 2026-10-26**（伊藤。スタックの削除完了は 09:14 UTC = 18:14 JST）。消えたことを ReadOnly で確かめた（親資料の「進捗と引き継ぎ」の 10-26）
 - 対象: tuscenes-prod（767397804933）、us-west-2 の Amplify の一式（初代 jadd_studio。2024-11-22〜23 に作られたまま）
 - やること: CloudFormation のスタックを消し、Amplify のアプリ 2 つを消し、スタックを消しても残るバケット 2 本とロググループ 1 つを消す
 - 実行する人: 書き込みの権限を持つ人（SSO の FullAccess など）。ReadOnly ではできない
