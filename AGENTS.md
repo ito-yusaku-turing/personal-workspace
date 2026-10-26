@@ -89,6 +89,21 @@ personal-workspace/
 - 操作は `docker/bin/`（ホストから実行）と `docker/container-bin/`（コンテナ内で実行）に分かれている。取り違えると警告を出して止まる。
 - コンテナ HOME（`/usr/home`）は jadd_studio3 の devbox と共有している。
 
+## Notion
+
+Notion の MCP は、personal-workspace で起動したセッションにだけ登録している（登録と範囲は [`docs/development-environment.md`](docs/development-environment.md) の「Notion（MCP）」）。使ってよい操作は次の 4 つだけ。`.claude/hooks/notion-guard.py` がそれ以外を止める。
+
+- 指定された URL のページを読む。
+- ページを新しく作る。親ページが指定されたら、その下に作る。
+- 指定された URL のページの内容を更新する。**原則として、ローカルの原本との同期だけ**に使う。
+- 指定された URL のページのコメントを読む。
+
+**原本は常にローカルに置く**（`projects/` の資料）。
+
+- Notion に上げた資料は、ローカルの原本の冒頭に、Notion のページの URL を書く。
+- 直すときは、先にローカルの原本を直し、その内容で Notion のページを更新する。Notion の上で直接書き換えない。
+- Notion の側で人が直した・コメントが付いたときは、読んでローカルの原本に取り込んでから、更新する。人の編集を黙って上書きしない。
+
 ## 関連リポジトリ
 
 devbox は、`docker/config/repos.conf` に登録したリポジトリを **`/usr/app/<名前>` という固定パス**でマウントする。パスが存在しなければ、そのリポジトリは未マウント。

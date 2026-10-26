@@ -173,7 +173,12 @@ Claude Code / Codex は **devbox コンテナの中でだけ動かす**。
   - 登録: `cd /usr/app/personal-workspace && claude mcp add --scope local --transport http notion https://mcp.notion.com/mcp`。認証は personal-workspace のセッションの `/mcp` から OAuth で行う。
   - claude.ai のコネクタには Notion を足さない。コネクタはアカウント全体に効き、ほかのリポジトリや claude.ai の会話からも操作できてしまう。
   - 効く範囲は「起動した場所」で決まる。personal-workspace で起動したセッションなら、ほかのリポジトリの作業中でも使える。jadd_studio3 の devbox でも、`/usr/app/personal-workspace` で起動すれば効く（HOME を共有しているため）。
-  - 認証のトークンは HOME に保存される。触れるページは、OAuth のときに Notion 側で絞る。
+  - 認証のトークンは HOME に保存される。Notion 公式の MCP は本人の権限で動き、触れるページを Notion 側で絞れない（本人が見られるページはすべて読める）。
+  - そのため、使えるツールを Claude Code 側で絞っている（`.claude/settings.json`）。`--dangerously-skip-permissions` で起動しても効く。
+    - PreToolUse フック `.claude/hooks/notion-guard.py` が、許可リスト（`notion-fetch`・`notion-create-pages`・`notion-update-page`・`notion-get-comments`）以外の Notion のツールを止める。Notion が後から足したツールも止まる。フックが失敗したときも止める（`onFailure: block`）。
+    - 許可したツールでも、範囲外の使い方は止める。Notion のメモリの読み書き、スキル化、テンプレートの適用、検証済みの設定、子ページを消す更新（`allow_deleting_content`）が対象。
+    - フックが読み込まれなかったときの備えとして、`permissions.deny` にも削除と移動のツールを並べている。
+    - 許可する操作を変えるときは、`notion-guard.py` の `ALLOWED` を直す。運用のルールは `AGENTS.md` の「Notion」。
   - 外すとき: `cd /usr/app/personal-workspace && claude mcp remove notion -s local`
 
 ## 注意点・トラブルシュート

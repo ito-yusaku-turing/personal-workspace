@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "deny": [
+      "mcp__notion__notion-delete-pages",
+      "mcp__notion__notion-delete-databases",
+      "mcp__notion__notion-delete-comment",
+      "mcp__notion__notion-move-pages"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "mcp__notion__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -I \"$CLAUDE_PROJECT_DIR/.claude/hooks/notion-guard.py\"",
+            "timeout": 10,
+            "onFailure": "block"
+          }
+        ]
+      }
+    ]
+  }
+}
