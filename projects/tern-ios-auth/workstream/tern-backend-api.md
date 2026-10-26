@@ -88,8 +88,8 @@
 1. **backend-prod の Supabase の設定**（手動）: Redirect URLs にアプリの戻り先（URL スキーム。例: `turingnavi://auth-callback`）を足す
 2. **iOS への組み込み方を示す**（実装は三輪さん。説明用の資料の「iOS アプリへの組み込み」）
    - ログイン: supabase-swift で、Google の OAuth（PKCE）のログインを `ASWebAuthenticationSession` で行う。セッションは Keychain に置き、トークンの更新とログアウトも用意する。設定画面にログインの状態を出す
-   - backend-api のクライアント: ベースの URL は **BFF の撤廃の後の backend-api の入口**（未定。`api.turing-ai.dev` の BFF は使わない）。ビルドの設定で差し替えられるようにする。`Authorization: Bearer <access_token>` を付け、期限切れのときは更新してから送る。この上に受付の呼び出しを足せる形にする
-3. **疎通の確認**: ログインした実機から、既存の backend-api のエンドポイントを呼び、backend-api の入口に直接届き、`token_verifier` を通ることを確かめる（入口が用意できてから）
+   - backend-api のクライアント: ベースの URL は `https://api.turing-ai.dev/v1`（BFF 経由）。BFF の撤廃に備え、ビルドの設定で差し替えられるようにする。BFF の authorizer は無効なトークンにも 403 を返すので、401・403 のどちらでも 1 回だけ更新して送り直す。`Authorization: Bearer <access_token>` を付け、期限切れのときは更新してから送る。この上に受付の呼び出しを足せる形にする
+3. **疎通の確認**: ログインした実機から、既存の backend-api のエンドポイントを呼び、BFF の authorizer と backend-api の `token_verifier` を通ることを確かめる（`/v1/tern-dev-agent/map-errors/capabilities`）
 4. **引き渡し**: 三輪さんに、組み込み方と、受付の API 側で `@turing-motors.com` に絞る方法（既存の tern-agent と同じ）を伝える
 
 三輪さんの側（参考）: iOS にログインと backend-api の呼び出しを組み込む。フィードバックの中身を決め、db-models にテーブルを足し、backend-api に受付を足し、iOS に送信の画面を足す。R2 は今回の範囲外。
@@ -102,14 +102,14 @@
 - [x] **ログインには backend-prod の Supabase を使う。** jadd-cli で Supabase Auth の実績がある
   - jadd-cli と共存できる。Redirect URLs は複数登録でき、アプリは `redirect_to` で戻り先を指定するので、Site URL も jadd-cli の戻り先も変えない。Google の Client ID もカンマ区切りで足せる（ネイティブの Sign-In にする場合）。同じ社員は jadd-cli と iOS で同じ `sub` になる
 - [x] **iOS への組み込みは三輪さんが行う**（分担の表）。navi-ios-app は三輪さんのリポなので、PR も三輪さんが出す
-- [x] **アプリは BFF を使わず、backend-api だけを呼ぶ**（2026-10-26）。BFF は撤廃が決まっている。撤廃の後の backend-api の入口に合わせ、作り直しを避ける
+- [x] **BFF の撤廃までは BFF（`https://api.turing-ai.dev/v1`）を通して backend-api を呼ぶ**（2026-10-26。同日に一度「BFF を使わない」としたのを改めた）。BFF は撤廃が決まっているが今も動いていて、backend-api に届く道は BFF だけ。撤廃の作業には同じ URL とパスを引き継いでもらうよう頼む（jadd-cli も同じ URL）。資料の前提条件の先頭に【重大】として書いた
 - [x] **フィードバックの保存先・テーブル・受付の API は今回の範囲外（三輪さんの裁量）**（2026-10-26 に改めた）。今回は backend-prod の DB のスキーマに手を入れない。下の「フィードバックの保存先」は、三輪さんへの参考として残す（当初は A に決めたと書いていた）
 
 ## 決めること
 
 - [ ] **ログインは必須か任意か**（三輪さんと決める）。オフラインの経路の計算は今もキー無しで使えるので、「フィードバックを送るときだけログイン」もありうる
 - [ ] 【未決】idp-broker の方針「Supabase のトークンはどの段でも扱わない」（2026-10-16、[補足資料](../../idp-broker/documents/backend-api-auth-supplement.md)）との関係。Tern は backend-prod の Supabase のトークンに頼る利用者を足す。一時的な例外とするか、ブローカーへの移行で置き換える対象に入れるかが決まっていない
-- [ ] BFF の撤廃（安本さん）の後の backend-api の入口ができる時期と URL。アプリは BFF を使わず、この入口だけを呼ぶと決めた（下の「決めたこと」）。入口が実機から届くこと（今は API Gateway の IP だけ）と、検証役が BFF のスタックの外でも残ることが前提（[M2M 認証](../../m2m-auth/workstream/m2m-auth.md)の「1. BFF」）
+- [ ] BFF の撤廃（安本さん）で、`https://api.turing-ai.dev/v1` の URL とパスを引き継いでもらえるか。引き継げないなら、撤廃より前にアプリの版を出し直す必要がある。検証役（`supabase-authorizer-v3`）の行き先も同じ作業で決まる（[M2M 認証](../../m2m-auth/workstream/m2m-auth.md)の「1. BFF」）
 
 三輪さんの側で決めること（参考）: フィードバックの中身（経路・地点・自由記述・スクリーンショット？）と読み方。**座標を含むので、ログには出さない**（既存の tern-agent の方針と同じ）。R2 は担当・時期とも未定。
 
@@ -152,4 +152,5 @@
 - 2026-10-26: 説明用の資料を MLOps 1チームの「ドキュメント置き場」に Notion のページとして作った（[Notion のページ](https://app.notion.com/p/405a93b3e6f281208011c7ccdb174536)、Status は `下書き(Draft)`）。原本はローカルの資料のままで、冒頭に URL を書いた。上げる前に PR 番号をフル URL にし、Notion で崩れた太字（`**…）**を` の形）を原本ごと直した。
 - 2026-10-26: BFF の撤廃が決まっているので、アプリは BFF を使わず backend-api だけを呼ぶ形に説明用の資料を直した。main を見ると、まだ `api.turing-ai.dev` は BFF にあり、backend-api は API Gateway の IP からしか受けず、検証も BFF のスタックの authorizer に頼っている。入口の用意と検証役の移設は BFF の撤廃の作業の前提として、資料の「作業の順番」の 3' と「合意したいこと」の 7 に書いた。R2 の既存の PR（[cdk-apps#2220](https://github.com/turingmotors/cdk-apps/pull/2220)）が STUDIO の Supabase と BFF の authorizer に頼っていることも見つけた。
 - 2026-10-26: 説明用の資料を手元で組み直した（Notion には未反映）。提案の形をやめ、要件（今のアプリの整理を含む）・前提条件・仕様・今回の範囲・注意点の順にした。図とコードは外し、人の情報は最小限にした。今回の範囲は R1 まで（Redirect URLs の追加・anon キーの受け渡し・iOS への組み込み・疎通の確認）で、DB のスキーマ・API の追加・Databricks は範囲外（R1 の後は三輪さんの裁量）とした。Google Cloud の OAuth クライアントは作らない（Supabase の画面でのログインにするため）。
+- 2026-10-26: BFF は撤廃まで動くので、撤廃までは BFF を通す前提に資料を組み替えた。廃止予定の BFF に頼ることは前提条件の先頭に【重大】として書いた。BFF の authorizer は期限切れのトークンにも 403 を返す（`supabase-authorizer-v3.ts:112`、HTTP API の simple response）ので、応答の扱いを「401・403 なら 1 回更新して送り直す」に改めた。R2・R3 は「範囲外」にそろえた。
 - 次: 手元の資料を揉み、仕上がったら Notion のページを更新する（列幅を直した表があったので、全体を置き換えるときは表の列幅が戻ることを伝える）。人の情報（担当）は最後に必要な分だけ足す。そのあと Status を `提案中(Proposed)` にして共有する
