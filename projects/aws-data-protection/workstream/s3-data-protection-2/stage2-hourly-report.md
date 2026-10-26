@@ -3,6 +3,7 @@
 - 状態: 1 本目の PR（[cdk-apps#2267](https://github.com/turingmotors/cdk-apps/pull/2267)、カナリアと記録の仕組み）は 2026-10-26 にマージし、deploy した。カナリアでの確認の 4 点のうち 3 点が済み、失効の確認だけが残っている（下の「カナリアでの確認の結果」）。次は毎時の集計と報告の PR
 - 親: [S3 バケットのデータ保護 第二弾](../s3-data-protection-2.md) のステージ 2
 - 置き場所: cdk-apps の新しいアプリ `apps/original-bucket-audit`（tuscenes-prod、us-west-2）
+- 構想での位置づけ: 「今日なに消したかわかる君」（原本バケットの戻せない削除などを、規則で必ず知らせる部品）。集める部分は、構想全体の「事実の層」の最初でもある。構想は [project:what-did-i-do の構想](../../../what-did-i-do/documents/notion-what-did-i-do-concept.md)（2026-10-26）。段階 3（毎時の報告）は、構想に合わせて設計し直す
 
 ## 要件（2026-10-22 伊藤が決定）
 
