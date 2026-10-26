@@ -62,10 +62,12 @@
 | jadd-cli は、**backend-prod の Supabase に Google でログイン**している（Supabase の `/auth/v1/authorize?provider=google` → ローカルへのリダイレクト） | jadd-cli `src/jadd/supabase_oauth.py:12-13,79` |
 | **backend-api には既に Tern 用の API がある**（`/tern-dev-agent/map-errors/*`）。社内の JWT か `jadd_*` キーで呼べ、`@turing-motors.com` の検証済みの利用者だけに許す。保存先は **Databricks の `e2e.tern_agent`** | mono-e2e `projects/api/backend-api/docs/tern-agent.md:5-26,173`、cdk-apps `apps/backend-api/TERN_AGENT.md` |
 | JADD_SERVICE_KEY（`sk_*`）は CI 用。有効期限が無く、利用者を表さない | mono-e2e `.github/workflows/*`、authorizer `:13-19` |
+| （2026-10-26 確認）`api.turing-ai.dev` はまだ BFF の `$default` に割り当てられている。backend-api の API Gateway は API Gateway の IP からの呼び出ししか受けないので、**実機から直接は届かない** | cdk-apps `aef8ad08`: `apps/bff/lib/bff-stack.ts:199`、`apps/backend-api/lib/api.ts:1321-1350` |
+| （同）backend-api は公開経路のトークンを自分で検証する（`TOKEN_VERIFICATION_MODE=enforce`）。検証は BFF のスタックの `supabase-authorizer-v3` を invoke して行うので、**BFF のスタックを消すと検証役も消える** | mono-e2e `53264c67f`: `deps/token_verifier.py:1-40`、cdk-apps `apps/backend-api/lib/api.ts:23-29,160-166,298-320` |
 
 ## 視点を引いた整理
 
-- **R1 に新しい Supabase プロジェクトは要らない見込み。** jadd-cli と同じく、backend-prod の Supabase に Google でログインすればよい。そのトークンは BFF の authorizer をもう通るので、**鍵の登録も authorizer の改修も要らない**。iOS では `ASWebAuthenticationSession` で Supabase の認可の画面を開き、アプリの URL スキームへ戻す（supabase-swift の OAuth のログインがこれを包んでいる）。設定の手作業は、backend-prod の Supabase の Redirect URLs にアプリの戻り先を足すことだけ。ただし backend-prod の anon キーがアプリのビルドに入るので、`public` スキーマの RLS を確かめる（説明用の資料の「新しく生じること」）。
+- **R1 に新しい Supabase プロジェクトは要らない見込み。** jadd-cli と同じく、backend-prod の Supabase に Google でログインすればよい。そのトークンは backend-api の検証（`token_verifier`。今は BFF のスタックの authorizer を invoke する）をもう通るので、**鍵の登録も検証の改修も要らない**。iOS では `ASWebAuthenticationSession` で Supabase の認可の画面を開き、アプリの URL スキームへ戻す（supabase-swift の OAuth のログインがこれを包んでいる）。設定の手作業は、backend-prod の Supabase の Redirect URLs にアプリの戻り先を足すことだけ。ただし backend-prod の anon キーがアプリのビルドに入るので、`public` スキーマの RLS を確かめる（説明用の資料の「新しく生じること」）。
 - **R3 は、既存の Tern 用の API と同じ作りで足せる。** backend-api にフィードバックの受付を足し、backend-prod の Postgres に書く（Databricks からは federation で読む。下の「フィードバックの保存先」）。認可も同じく「検証済みの `@turing-motors.com` の利用者」にでき、送った人を JWT の `sub`・email で記録できる。JADD_SERVICE_KEY は使わない。
 - **R2 は別の作業になる。** Tern API は backend-api の後ろにいないので、ログインしても API キーは消えない。共有のキーを外すには、Tern API にトークンを検証する入口を足す必要がある（下の案）。β テストの間は、キーを残したまま R1・R3 を先に進めてもよい。
 
@@ -73,19 +75,21 @@
 
 | 案 | 中身 | 良い点 | 気になる点 |
 |---|---|---|---|
-| a. Tern API に authorizer を付ける | アプリ向けの入口（ステージか API）を足し、BFF の authorizer（同じアカウント・リージョン）を Lambda authorizer として使う。車両向けの API キーの入口は残す | 経路の計算は今と同じ道を通る。authorizer の結果のキャッシュで、呼び出しのたびの検証も軽い | cdk-apps の改修が要る。authorizer は `@turing-motors.com` を見ないので、絞るなら authorizer か入口で足す |
+| a. Tern API に authorizer を付ける | アプリ向けの入口（ステージか API）を足し、backend-api と同じ検証役（今は BFF のスタックの `supabase-authorizer-v3`。BFF の撤廃で行き先が変わる）を Lambda authorizer として使う。車両向けの API キーの入口は残す | 経路の計算は今と同じ道を通る。authorizer の結果のキャッシュで、呼び出しのたびの検証も軽い | cdk-apps の改修が要る。authorizer は `@turing-motors.com` を見ないので、絞るなら authorizer か入口で足す |
 | b. backend-api を経由する | backend-api に経路の計算の中継を足す（backend-api は既に Tern の GET の権限を持つ） | 認証の入口が backend-api 1 つにまとまる | 経路の計算の遅延と Lambda の費用が増える。経路の計算の道が 2 つになる |
 | c. キーを残す | β の間は今のまま | 作業ゼロ | 要件の「API キーから脱却」は満たさない |
 
 推奨は **a**（ただし R1・R3 の後でよい）。
+
+既に a の形の PR がある（[cdk-apps#2220](https://github.com/turingmotors/cdk-apps/pull/2220)、未マージ、10/19 更新）。`tern-api.apps.turing-ai.dev/auth/*` を Supabase の JWT で受ける。ただし受ける `iss` は **JADD STUDIO3 の Supabase**（`ebdfwtvfpemzevdpxmek`）で、検証は BFF の `supabase-authorizer-v3` に任せている。R1 で backend-prod を使うと決めたこと、BFF を使わないことと食い違うので、R2 に着手するときに見直しが要る。
 
 ## こちらの作業（R1）
 
 1. **backend-prod の Supabase の設定**（手動）: Redirect URLs にアプリの戻り先（URL スキーム。例: `turingnavi://auth-callback`）を足す
 2. **iOS への組み込み方を示す**（実装は三輪さん。説明用の資料の「iOS アプリへの組み込み」）
    - ログイン: supabase-swift で、Google の OAuth（PKCE）のログインを `ASWebAuthenticationSession` で行う。セッションは Keychain に置き、トークンの更新とログアウトも用意する。設定画面にログインの状態を出す
-   - backend-api のクライアント: ベースの URL は `https://api.turing-ai.dev`（jadd-cli の既定）。`Authorization: Bearer <access_token>` を付け、期限切れのときは更新してから送る。この上に受付の呼び出しを足せる形にする
-3. **疎通の確認**: ログインした実機から、既存の backend-api のエンドポイントを呼び、BFF の authorizer と backend-api の `token_verifier` を通ることを確かめる
+   - backend-api のクライアント: ベースの URL は **BFF の撤廃の後の backend-api の入口**（未定。`api.turing-ai.dev` の BFF は使わない）。ビルドの設定で差し替えられるようにする。`Authorization: Bearer <access_token>` を付け、期限切れのときは更新してから送る。この上に受付の呼び出しを足せる形にする
+3. **疎通の確認**: ログインした実機から、既存の backend-api のエンドポイントを呼び、backend-api の入口に直接届き、`token_verifier` を通ることを確かめる（入口が用意できてから）
 4. **引き渡し**: 三輪さんに、組み込み方と、受付の API 側で `@turing-motors.com` に絞る方法（既存の tern-agent と同じ）を伝える
 
 三輪さんの側（参考）: iOS にログインと backend-api の呼び出しを組み込む。フィードバックの中身を決め、db-models にテーブルを足し、backend-api に受付を足し、iOS に送信の画面を足す。R2 は今回の範囲外。
@@ -98,13 +102,14 @@
 - [x] **ログインには backend-prod の Supabase を使う。** jadd-cli で Supabase Auth の実績がある
   - jadd-cli と共存できる。Redirect URLs は複数登録でき、アプリは `redirect_to` で戻り先を指定するので、Site URL も jadd-cli の戻り先も変えない。Google の Client ID もカンマ区切りで足せる（ネイティブの Sign-In にする場合）。同じ社員は jadd-cli と iOS で同じ `sub` になる
 - [x] **iOS への組み込みは三輪さんが行う**（分担の表）。navi-ios-app は三輪さんのリポなので、PR も三輪さんが出す
+- [x] **アプリは BFF を使わず、backend-api だけを呼ぶ**（2026-10-26）。BFF は撤廃が決まっている。撤廃の後の backend-api の入口に合わせ、作り直しを避ける
 - [x] **フィードバックの保存先は backend-prod の Postgres（下の表の A）。** Tern の回帰テストのテーブル（`tern_regression_test_cases`・`_runs`・`_results`・`_gts`）が既にあり、その並びに置く。定義は mono-e2e の db-models（alembic）、Databricks からは `supabase_backend_prod.public` で読む
 
 ## 決めること
 
 - [ ] **ログインは必須か任意か**（三輪さんと決める）。オフラインの経路の計算は今もキー無しで使えるので、「フィードバックを送るときだけログイン」もありうる
 - [ ] 【未決】idp-broker の方針「Supabase のトークンはどの段でも扱わない」（2026-10-16、[補足資料](../../idp-broker/documents/backend-api-auth-supplement.md)）との関係。Tern は backend-prod の Supabase のトークンに頼る利用者を足す。一時的な例外とするか、ブローカーへの移行で置き換える対象に入れるかが決まっていない
-- [ ] 【未決】BFF の撤廃（安本さん）の後の経路。この資料は BFF の authorizer をそのまま通る前提で書いている。撤廃後の backend-api の入口でも backend-prod の JWT が通るか（[M2M 認証](../../m2m-auth/workstream/m2m-auth.md)の「1. BFF」）
+- [ ] BFF の撤廃（安本さん）の後の backend-api の入口ができる時期と URL。アプリは BFF を使わず、この入口だけを呼ぶと決めた（下の「決めたこと」）。入口が実機から届くこと（今は API Gateway の IP だけ）と、検証役が BFF のスタックの外でも残ることが前提（[M2M 認証](../../m2m-auth/workstream/m2m-auth.md)の「1. BFF」）
 
 三輪さんの側で決めること（参考）: フィードバックの中身（経路・地点・自由記述・スクリーンショット？）と読み方。**座標を含むので、ログには出さない**（既存の tern-agent の方針と同じ）。R2 は担当・時期とも未定。
 
@@ -145,4 +150,5 @@
 - 2026-10-23: 「backend-prod の認証を使うと iOS 専用になるか」を確認し、Redirect URLs を足すだけで jadd-cli と共存できると整理した。backend-prod の Redirect URLs にアプリの戻り先を足す方向で進める。
 - 2026-10-23: 三輪さんと MLOps チームに共有する説明用の資料を [`tern-backend-api/notion-tern-ios-google-login.md`](tern-backend-api/notion-tern-ios-google-login.md) に作った（Notion に取り込んでレビューしてもらう）。iOS への組み込みは三輪さんが行う。
 - 2026-10-26: 説明用の資料を MLOps 1チームの「ドキュメント置き場」に Notion のページとして作った（[Notion のページ](https://app.notion.com/p/405a93b3e6f281208011c7ccdb174536)、Status は `下書き(Draft)`）。原本はローカルの資料のままで、冒頭に URL を書いた。上げる前に PR 番号をフル URL にし、Notion で崩れた太字（`**…）**を` の形）を原本ごと直した。
+- 2026-10-26: BFF の撤廃が決まっているので、アプリは BFF を使わず backend-api だけを呼ぶ形に説明用の資料を直した。main を見ると、まだ `api.turing-ai.dev` は BFF にあり、backend-api は API Gateway の IP からしか受けず、検証も BFF のスタックの authorizer に頼っている。入口の用意と検証役の移設は BFF の撤廃の作業の前提として、資料の「作業の順番」の 3' と「合意したいこと」の 7 に書いた。R2 の既存の PR（[cdk-apps#2220](https://github.com/turingmotors/cdk-apps/pull/2220)）が STUDIO の Supabase と BFF の authorizer に頼っていることも見つけた。
 - 次: Notion のページの Status を `提案中(Proposed)` にして、三輪さんと MLOps チームに共有する（まだ共有していない）。そのあと説明用の資料へのレビューを待つ（MLOps チームの「合意したいこと」への回答と、三輪さんの確認）。並行して、URL スキーム名を三輪さんと決め、「調べること」を確かめる。
