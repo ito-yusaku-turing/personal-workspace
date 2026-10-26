@@ -224,3 +224,4 @@
     6. denso-nx に CDK のテストが無い。
     7. [cdk-apps#2231](https://github.com/turingmotors/cdk-apps/pull/2231) を閉じるか。
   - 作業場所: worktree は scratchpad の cdk-2253・cdk-2267（push 済み）。
+- 2026-10-26: tuscenes-prod の CloudTrail の今の設定を ReadOnly で確かめた（全リージョン）。トレイルは 2 本のままで、S3 の削除のデータイベントはまだ記録されていない。`aws-controltower-BaselineCloudTrail`（us-west-2、マルチリージョン、ログは 617808723336 のバケット）は管理イベントだけで `DataResources` は空。`garuda-index-access`（us-west-2 だけ）は `*/index.json` の `GetObject` だけ。CloudTrail Lake のイベントデータストアも無い。`DeleteBucket`・`PutBucketLifecycle` などの管理イベントは記録されている。`DeleteObject`・`DeleteObjects` を記録するトレイル `original-bucket-audit` は [cdk-apps#2267](https://github.com/turingmotors/cdk-apps/pull/2267) で足す予定で、PR はまだ OPEN（レビュー待ち）。
