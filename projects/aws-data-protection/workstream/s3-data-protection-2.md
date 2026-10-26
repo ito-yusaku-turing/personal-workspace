@@ -236,6 +236,7 @@
   - 次にやること:
     - 2026-10-27〜28: カナリアの失効（`expire/`）のイベントを確かめる。`aws s3 ls` でログのバケットの `events/2026/10/27/` 以降を読み、`reason=Lifecycle` の `Object Deleted` を探す。
     - ステージ 2 の 2 本目の PR: トレイルを削除系（`DeleteObject`・`DeleteObjects`）に絞る、毎時の集計（Lambda・Athena）、12 本を足す。
+    - 2026-10-26 追記: ステージ 2 は、構想「今日なにしたかわかる君」（[project:what-did-i-do の構想](../../what-did-i-do/documents/notion-what-did-i-do-concept.md)）の**フェーズ 1（今日なに消したかわかる君）**にあたる。段階 3・4 は、構想の 9 章のフェーズ 1 の中身（MLOps チームのチャンネルへの通知、出力を共通の記録の形にそろえる、1b の日次の突き合わせ・本人へのメンション・ログのバケットの Object Lock）に合わせて進める。フェーズ 2（今日なにしたかわかる君の毎日の DM）は、着手するときに project:what-did-i-do に workstream を作る。
     - レビューで出た課題（10-26 の一覧の 1〜6）の対応を決める。
   - 作業場所: cdk-apps の worktree は scratchpad の cdk-2267b（push 済み）。前の cdk-2253・cdk-2267 はディレクトリが消えている。
 - 2026-10-26: tuscenes-prod の CloudTrail の今の設定を ReadOnly で確かめた（全リージョン）。トレイルは 2 本のままで、S3 の削除のデータイベントはまだ記録されていない。`aws-controltower-BaselineCloudTrail`（us-west-2、マルチリージョン、ログは 617808723336 のバケット）は管理イベントだけで `DataResources` は空。`garuda-index-access`（us-west-2 だけ）は `*/index.json` の `GetObject` だけ。CloudTrail Lake のイベントデータストアも無い。`DeleteBucket`・`PutBucketLifecycle` などの管理イベントは記録されている。`DeleteObject`・`DeleteObjects` を記録するトレイル `original-bucket-audit` は [cdk-apps#2267](https://github.com/turingmotors/cdk-apps/pull/2267) で足す予定で、PR はまだ OPEN（レビュー待ち）。
