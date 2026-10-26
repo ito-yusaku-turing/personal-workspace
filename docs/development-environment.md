@@ -169,6 +169,12 @@ Claude Code / Codex は **devbox コンテナの中でだけ動かす**。
 - **更新**: 起動するたびに、前回の確認（`$HOME/.claude-last-updated`）から **04:00（`project.conf` の `TZ`）を跨いだか**を見る。跨いでいれば `claude update` を実行してから起動する。記録ファイルは jadd_studio3 と共有なので、どちらかで1日1回更新すれば済む。
 - **権限**: `--dangerously-skip-permissions` を既定で付ける。マウントしているのは、このリポジトリ・`USER_HOME_DIR`・repos.conf に登録したリポジトリだけなので、この既定で運用している。外すときは、権限系のオプションを明示するか、`DEVBOX_CLAUDE_SKIP_PERMISSIONS=0` を設定する。
 - **Remote Control**: セッション名を変えたいときは `DEVBOX_RC_SESSION=pw-hotfix docker/bin/remote-claude.sh` のように指定する。
+- **Notion（MCP）**: personal-workspace で起動したセッションからだけ操作する。Notion 公式の MCP サーバーを Claude Code の **local スコープ**で登録している（設定は `$HOME/.claude.json` の `/usr/app/personal-workspace` の欄。git 管理外）。
+  - 登録: `cd /usr/app/personal-workspace && claude mcp add --scope local --transport http notion https://mcp.notion.com/mcp`。認証は personal-workspace のセッションの `/mcp` から OAuth で行う。
+  - claude.ai のコネクタには Notion を足さない。コネクタはアカウント全体に効き、ほかのリポジトリや claude.ai の会話からも操作できてしまう。
+  - 効く範囲は「起動した場所」で決まる。personal-workspace で起動したセッションなら、ほかのリポジトリの作業中でも使える。jadd_studio3 の devbox でも、`/usr/app/personal-workspace` で起動すれば効く（HOME を共有しているため）。
+  - 認証のトークンは HOME に保存される。触れるページは、OAuth のときに Notion 側で絞る。
+  - 外すとき: `cd /usr/app/personal-workspace && claude mcp remove notion -s local`
 
 ## 注意点・トラブルシュート
 
