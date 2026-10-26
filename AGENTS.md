@@ -17,13 +17,34 @@ personal-workspace は、**特定のプロジェクトに依存しない個人�
 personal-workspace/
 ├── docker/      # devbox（エージェント用の作業環境）。説明は docs/development-environment.md
 ├── docs/        # 開発環境・GitHub 認証・個人プリファレンス・Git 運用の文書
-├── projects/    # 特定のリポジトリに属さない、プロジェクトごとの資料置き場
-│   └── gaming-data-collection/   # BeamNG の MOD と資料（指示は /usr/app/gaming-data-collection 側）
+├── projects/    # 案件ごとの資料置き場（下記「projects/（案件ごとの資料）」）
+│   └── gaming-data-collection/   # project:gaming-data-collection。BeamNG の MOD と資料
 ├── .claude/commands/   # /commit /push /pr
 └── ai-agents/   # 旧構成の残り（git 管理外の作業ファイルだけ）
 ```
 
 `user-home/` と `storage/` は旧構成のコンテナ HOME とデータ置き場（git 管理外）。いまの devbox は使っていない。**触らない**（整理は人間が行う）。
+
+## projects/（案件ごとの資料）
+
+`projects/` には、案件ごとに名前を付けたフォルダを作り、資料を整理する。
+
+- **指示の中の `project:<名前>` は `projects/<名前>/` を指す**（例: `project:gaming-data-collection` → `projects/gaming-data-collection/`）。プレフィクスのない名前はリポジトリ（`/usr/app/<名前>`）を指す。同じ名前のリポジトリがあっても別物として扱い、どちらか分からなければ確認する。
+- フォルダ名は案件名を kebab-case にする。
+- **Git の扱いは personal-workspace のルールに従う**（下記「Git運用ルール」）。同じ名前のリポジトリの Git 規約は適用しない。
+- 案件フォルダに `AGENTS.md` / `CLAUDE.md` があれば、その案件での作業の前に読む。
+
+### 目録
+
+**案件フォルダごとに、直下の `README.md` を目録として管理する。**
+
+- 案件フォルダを作るときは、最初に `README.md`（目録）を作る。
+- フォルダ内のファイルを追加・移動・削除・改名したら、**同じコミットで目録も更新する**。
+- 目録の構成:
+  - 冒頭に、案件の概要を1〜3行で書く。対応するリポジトリがあれば、そのパスも書く。
+  - 続けて、資料をサブフォルダごとに見出しで分けて並べる。1件は `- [相対パス](./相対パス): 内容の説明` の1行にする。
+- 資料（文書・画像・データなど）は1ファイル1件で載せる。MOD やスクリプトのようにまとまったコードは、フォルダ単位で1件にし、そのフォルダの `README.md` を指す。
+- 目録自身と `AGENTS.md` / `CLAUDE.md` は載せなくてよい。
 
 ## 開発環境（Docker / devbox）
 
