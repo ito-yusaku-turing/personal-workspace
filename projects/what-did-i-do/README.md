@@ -6,7 +6,7 @@
 
 ## documents/ — 資料
 
-- [documents/notion-what-did-i-do-concept.md](./documents/notion-what-did-i-do-concept.md): **システム操作の通知と見張りの構想**。チーム共有用（Notion に上げる）。4 つの部品・主体の振り分け・LLM の使い方と安全・Bedrock の費用の見積もり（2026-10-26）
+- [documents/notion-what-did-i-do-concept.md](./documents/notion-what-did-i-do-concept.md): **システム操作の通知と見張りの構想**。チーム共有用（Notion に上げる）。フェーズ 0〜5 の順に解説。フェーズ 0〜1 は伊藤が進め、2 以降はチームへの提案（2026-10-26）
 
 ## 関連する資料（ほかの project）
 
