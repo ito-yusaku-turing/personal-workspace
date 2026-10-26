@@ -55,6 +55,26 @@ tuscenes-prod（767397804933）の IAM ユーザー `jadd_studio_amplify` は、
 3. **s3-data-protection-2 に反映する**。TODO 13 の jadd_studio_amplify を済みにする。[cdk-apps#2252](https://github.com/turingmotors/cdk-apps/pull/2252) のレビューへの返答で、この主体が消えたことを伝える。
 4. **Amplify の一式を片付けるか決める**（別に判断する。ユーザーを消しても残る）。対象は、アプリ 2 つ（`jadd_studio` d34n309gf2fupw・`jaddstudio` d37k44pfh0i4bm）、スタック `amplify-jaddstudio-dev-2b103` と子 2 つ、Cognito のユーザープール `us-west-2_jb7jCOO9q` と ID プール、IAM のロール 4 本、Lambda 1 つ、S3 のバケット（deployment と storage）。使われていないことを確かめてから消す（Cognito のユーザー数、ID プールと Lambda の最終利用など）。
 
+## Amplify の一式の洗い出し（2026-10-26、ReadOnly、us-west-2）
+
+TODO 4 の対象。どれも 2024-11-22〜23 に作られたまま、更新されていない。
+
+| 種類 | 名前・ID | 使われているか |
+| --- | --- | --- |
+| Amplify アプリ | `jadd_studio`（d34n309gf2fupw） | ホスティングのみ。ブランチ `main` のビルドは 2024-11-23 の 1 回だけで、中身は create-react-app の雛形（`<title>React App`、644 バイト）。直近 90 日のリクエストは 3,501 件で 83% が 4xx、平均 400 バイト。ボットとみられる |
+| Amplify アプリ | `jaddstudio`（d37k44pfh0i4bm） | ブランチ無し。バックエンド環境 `dev` だけ。リクエスト 3,030 件で 80% が 4xx。ボットとみられる |
+| CFn スタック | `amplify-jaddstudio-dev-2b103` と、子の `…-authjaddstudioc386240f-…`・`…-storagejaddstudio-…` | 終了保護は無し。エクスポート 4 件は、どのスタックからも import されていない |
+| Cognito ユーザープール | `us-west-2_jb7jCOO9q` | ユーザー 0、削除保護は無効、トリガー無し。直近 90 日の CloudTrail は AWS Config の読み取りだけ |
+| Cognito ID プール | `us-west-2:cbda723b-956f-42ab-b71e-13cb59f28535` | ID 0、未認証は不可。直近 90 日の CloudTrail は Config の読み取りだけ |
+| IAM ロール | `amplify-jaddstudio-dev-2b103-authRole`・`-unauthRole`・`-authRole-idp`・`upClientLambdaRolec386240f2b103-dev` | `-authRole-idp` の最終利用が 2024-11-22（作成時の Lambda）。ほかの 3 本は利用記録が無い |
+| Lambda | `amplify-jaddstudio-dev-2b-UpdateRolesWithIDPFuncti-w97MZ0RwoviB`（nodejs18.x） | 直近 90 日の呼び出し 0 |
+| S3 | `amplify-jaddstudio-dev-2b103-deployment` | Amplify の設定ファイル 11 件（2024-11-23）。バージョニング無し |
+| S3 | `jaddstudioc20f7c0d8d4347b286666288f7a6c6d22b103-dev`（storage） | 空（版も削除マーカーも 0） |
+
+- 参照: 上の ID・バケット名・アプリ ID は、jadd_studio3（git 履歴を含む）・cdk-apps・mono-e2e・drivers-app3・fleet-ops・databricks-jobs のどれにも出てこない。ほかの IAM ポリシーやバケットポリシーからの参照はスキャンしていない。
+- 消すときの注意: バケット 2 本はテンプレートで `DeletionPolicy: Retain`。スタックを消しても残るので、中身を空にしてから別に消す。
+- 対象外: `amplify-turingapps-main-127f9`（2024-12-05、タグ `user:Application=turingapps`）は名前が似ているが別物。
+
 ## ついでに見つかったこと
 
 - `tuscenes-calibration-767397804933` は、cdk-apps の `apps/datalake/lib/datalake-stack.ts:399` では `S3_MANAGED` なのに、実物の既定の暗号化は `aws:kms`（`alias/aws/s3`）。オブジェクト 235 件のうち 228 件が KMS。CDK のコードと実物がずれている。
