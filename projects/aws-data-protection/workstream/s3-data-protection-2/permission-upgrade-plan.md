@@ -16,7 +16,7 @@
 
 ## 前提: これまでにやったこと
 
-- 12 本すべてでバージョニングを有効にした（cdk-apps #2211・#2215・#2216・#2217 と、手で作った 3 本は CLI）。古い版は失効させない。
+- 12 本すべてでバージョニングを有効にした（[cdk-apps#2211](https://github.com/turingmotors/cdk-apps/pull/2211)・[cdk-apps#2215](https://github.com/turingmotors/cdk-apps/pull/2215)・[cdk-apps#2216](https://github.com/turingmotors/cdk-apps/pull/2216)・[cdk-apps#2217](https://github.com/turingmotors/cdk-apps/pull/2217) と、手で作った 3 本は CLI）。古い版は失効させない。
 - 「誰が何をできるか」を、IAM ポリシーシミュレーターで全主体（ロール 686・ユーザー 38）について洗い出した。
 
 ## 現状: 何が問題か

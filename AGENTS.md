@@ -37,6 +37,7 @@ personal-workspace/
 - フォルダ名は案件名を kebab-case にする。
 - **Git の扱いは personal-workspace のルールに従う**（下記「Git運用ルール」）。同じ名前のリポジトリの Git 規約は適用しない。
 - 案件フォルダに `AGENTS.md` / `CLAUDE.md` があれば、その案件での作業の前に読む。
+- **ほかのリポジトリの PR・Issue は、番号だけ（`#2253`）で書かずにフル URL のリンクにする**（例: `[cdk-apps#2253](https://github.com/turingmotors/cdk-apps/pull/2253)`）。番号だけだと、Claude Code Desktop などが personal-workspace の PR へのリンクだと誤認する。資料にも、人間への報告にも適用する。
 
 ### 目録
 

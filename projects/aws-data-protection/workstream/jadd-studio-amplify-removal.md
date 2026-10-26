@@ -4,7 +4,7 @@
 - 状態: **起票した**。キーは 2 本とも無効にした。削除は未着手
 - 所属: project:aws-data-protection（2026-10-26 に `~/docs/workstream/` から移した）
 - 実施: 伊藤（書き込みは Full の権限で CLI。このユーザーは CDK の管理外）
-- 経緯: [S3 バケットのデータ保護 第二弾](s3-data-protection-2.md) の TODO 13 から切り出した。cdk-apps #2252 のレビューで犬塚さん（graph226）が「cfn-exec-role を名乗れる主体」として挙げたユーザー
+- 経緯: [S3 バケットのデータ保護 第二弾](s3-data-protection-2.md) の TODO 13 から切り出した。[cdk-apps#2252](https://github.com/turingmotors/cdk-apps/pull/2252) のレビューで犬塚さん（graph226）が「cfn-exec-role を名乗れる主体」として挙げたユーザー
 
 ## 背景
 
@@ -20,7 +20,7 @@ tuscenes-prod（767397804933）の IAM ユーザー `jadd_studio_amplify` は、
 - 最後の利用は 2026-10-23 11:30 JST（us-west-2 の S3）。KMS の記録が無いので、暗号化していないものの読み出しか、一覧の取得。
 - 3 月に開発者へ配った `jadd-studio-secrets.tgz` の `.env.local` は、`AWS_ACCESS_KEY_ID` がこのキーだった（キー ID の照合だけで確認）。
 - jadd_studio3 はキャリブレーションのバケットを、既定の資格情報（`.env.local` の `AWS_ACCESS_KEY_ID`）で直接読む。読む箇所は `lib/leverarm-calibration/server/ohkamiParametersStore.ts`、`lib/database/databricks/sql/repository/CalibrationRepository.ts`、`lib/wheel-base-calibration/server/wheelBaseCenterMerge.ts`。
-- 読み出しのあった 4 日すべてで、井上さん（inuex35）が `leverarm-calibration` をコミットしている（8/13 は 15:57〜19:11、8/14 は 15:50・17:36、9/28 は 17:33 の #1043、10/16 は 18:34 の #1190）。
+- 読み出しのあった 4 日すべてで、井上さん（inuex35）が `leverarm-calibration` をコミットしている（8/13 は 15:57〜19:11、8/14 は 15:50・17:36、9/28 は 17:33 の [cdk-apps#1043](https://github.com/turingmotors/cdk-apps/pull/1043)、10/16 は 18:34 の [cdk-apps#1190](https://github.com/turingmotors/cdk-apps/pull/1190)）。
 - 調べて外したもの:
   - jadd_studio3 の本番。別のユーザー `jadd-studio` を使っている。PR ごとのプレビュー環境も無い。
   - Databricks のキャリブレーション取り込み。別のユーザーで、ロールを経由する。
@@ -32,7 +32,7 @@ tuscenes-prod（767397804933）の IAM ユーザー `jadd_studio_amplify` は、
 ### 推測（未確認）
 
 - 8/13〜10/16 は、井上さんの手元の jadd_studio3 の開発サーバー。`.env.local` の AWS の行が 3 月のパッケージのまま、という筋。本人は「最近は触っていない」とのことで、10/16 より後の話なら矛盾しない。
-- 10/23 11:30 は別の人。候補は中村さん（yutyan0119）。11:15〜11:35 に tern の渋滞表示（#1244）を作業していた。手元の tern は `fromIni()` で資格情報を取るので、`AWS_PROFILE` が無いと `~/.aws/credentials` の `[default]` を使う。渋滞のバケット（`tern-traffic-767397804933-us-west-2`）は暗号化が AES256 でアクセスログも無く、記録では確かめられない。
+- 10/23 11:30 は別の人。候補は中村さん（yutyan0119）。11:15〜11:35 に tern の渋滞表示（[cdk-apps#1244](https://github.com/turingmotors/cdk-apps/pull/1244)）を作業していた。手元の tern は `fromIni()` で資格情報を取るので、`AWS_PROFILE` が無いと `~/.aws/credentials` の `[default]` を使う。渋滞のバケット（`tern-traffic-767397804933-us-west-2`）は暗号化が AES256 でアクセスログも無く、記録では確かめられない。
 - 一時は Devin を疑ったが、時刻の一致だけが根拠で、依頼者の 3 人（合田・三輪・横井）も知らないと答えたため取り下げた。
 
 ## 現状（2026-10-23）
@@ -65,7 +65,7 @@ tuscenes-prod（767397804933）の IAM ユーザー `jadd_studio_amplify` は、
    - `.env.local` の AWS の行を、今の `jadd-studio` のキーに差し替える。
    - tern は `AWS_PROFILE` に SSO のプロファイルを入れて動かす。
    - 古いキーが残っているかは、次のコマンドで確かめられる（値は出ない）: `grep -l HOC2HR6GHTY ~/.aws/credentials ~/.aws/config /usr/app/jadd_studio3/.env.local /usr/app/jadd_studio3/docker/.env 2>/dev/null`
-3. **s3-data-protection-2 に反映する**。TODO 13 の jadd_studio_amplify を済みにする。#2252 のレビューへの返答で、この主体が消えたことを伝える。
+3. **s3-data-protection-2 に反映する**。TODO 13 の jadd_studio_amplify を済みにする。[cdk-apps#2252](https://github.com/turingmotors/cdk-apps/pull/2252) のレビューへの返答で、この主体が消えたことを伝える。
 4. **Amplify の一式を片付けるか決める**（別に判断する。ユーザーを消しても残る）。対象は、アプリ 2 つ（`jadd_studio` d34n309gf2fupw・`jaddstudio` d37k44pfh0i4bm）、スタック `amplify-jaddstudio-dev-2b103` と子 2 つ、Cognito のユーザープール `us-west-2_jb7jCOO9q` と ID プール、IAM のロール 4 本、Lambda 1 つ、S3 のバケット（deployment と storage）。使われていないことを確かめてから消す（Cognito のユーザー数、ID プールと Lambda の最終利用など）。
 
 ## ついでに見つかったこと

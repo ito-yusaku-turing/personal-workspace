@@ -14,7 +14,7 @@
 
 | 段階 | 裁定の内容 | この workstream での扱い |
 |---|---|---|
-| いますぐやる | バージョニングを始める | 兄弟の workstream で PR を出した（cdk-apps #2211・#2215・#2216・#2217、レビュー中。2026-10-19 にすべてマージ・deploy 済み） |
+| いますぐやる | バージョニングを始める | 兄弟の workstream で PR を出した（[cdk-apps#2211](https://github.com/turingmotors/cdk-apps/pull/2211)・[cdk-apps#2215](https://github.com/turingmotors/cdk-apps/pull/2215)・[cdk-apps#2216](https://github.com/turingmotors/cdk-apps/pull/2216)・[cdk-apps#2217](https://github.com/turingmotors/cdk-apps/pull/2217)、レビュー中。2026-10-19 にすべてマージ・deploy 済み） |
 | **次にやる** | **バケットポリシーを設計して設定する。レビューと現状調査をしっかりやってから**（今週〜来週中） | **ここで行う。** 洗い出しは、この「現状調査」にあたる |
 | 焦らずじっくりやる | 削除権限を持つ主体の洗い出しと掃除（期限なし） | 洗い出しの結果は共有する。掃除（権限を外すこと）は急がない |
 
@@ -125,7 +125,7 @@
 4. **書き方**: IaC で管理しているバケットは cdk-apps に書く（手で書くと次の deploy で上書きされる）。手で作ったバケットの扱い（CLI か、import して CDK 管理にするか）。
 5. **root の制限**: Control Tower の root 制限を同じ時期に入れるか（手間は小。親のレビュー 3）。
 6. **検証**: 適用前に IAM Access Analyzer で構文を検証し、テスト用のバケットで試す（親のレビュー 4）。
-7. **LidarDeleter**: 周知か、信頼ポリシーを外すか（兄弟の workstream の「先に済ませること」。#2215 のマージ前に決める）。（2026-10-20 に後回しにした。第二弾の TODO 16）
+7. **LidarDeleter**: 周知か、信頼ポリシーを外すか（兄弟の workstream の「先に済ませること」。[cdk-apps#2215](https://github.com/turingmotors/cdk-apps/pull/2215) のマージ前に決める）。（2026-10-20 に後回しにした。第二弾の TODO 16）
 
 ## 進捗と引き継ぎ
 

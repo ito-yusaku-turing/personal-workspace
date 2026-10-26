@@ -1,6 +1,6 @@
 # ステージ 2: 原本バケットの削除の毎時の報告（設計）
 
-- 状態: 1 本目の PR をレビュー中（cdk-apps #2267、2026-10-22）。カナリアと記録の仕組みまで。確認はカナリアで deploy の後に行う
+- 状態: 1 本目の PR をレビュー中（[cdk-apps#2267](https://github.com/turingmotors/cdk-apps/pull/2267)、2026-10-22）。カナリアと記録の仕組みまで。確認はカナリアで deploy の後に行う
 - 親: [S3 バケットのデータ保護 第二弾](../s3-data-protection-2.md) のステージ 2
 - 置き場所: cdk-apps の新しいアプリ `apps/original-bucket-audit`（tuscenes-prod、us-west-2）
 
@@ -140,7 +140,7 @@ CDK は、自分が作ったバケット（`s3.Bucket`）の通知の設定を *
   - 監査のスタックの外にあること
 - 削除は、カナリアの Lambda（`original-bucket-canary-exerciser`）を手で起動して起こす。古い版の削除は守りのバケットポリシーで拒否されるはずなので、拒否されることも確かめる。
 - 段階:
-  1. カナリアと記録の仕組み（#2267）
+  1. カナリアと記録の仕組み（[cdk-apps#2267](https://github.com/turingmotors/cdk-apps/pull/2267)）
   2. カナリアで確認の 4 点
   3. 毎時の集計と報告
   4. 原本バケット 12 本を足す（その前にトレイルを削除系に絞る）

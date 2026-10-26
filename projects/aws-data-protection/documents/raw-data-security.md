@@ -81,7 +81,7 @@ CloudWatch の容量（2026-10-08 時点、全ストレージクラス合算、�
 | 6 | 所在不明の静的キー 5 本（AmazonS3FullAccess の IAM ユーザー 4） | 静的キー（MFA・IP 条件無し） | tuscenes-prod 全量 約 4,995。1 ユーザーはアカウント管理者に昇格可 | `aws s3 rm`、ライフサイクル、DeleteBucket | 記録されない／不可 | G05 |
 | 7 | Databricks の mlops-team 10 主体（人 9＋SP mono-e2e-ci） | UC 外部ロケーション（read only でなく、IAM ロールに DeleteObject） | td1-raw、tuscenes-raw、denso-nx-raw、td1-rlog、denso-raw（約 2,860） | `dbutils.fs.rm`／Files API | UC 監査に残るが通知無し。S3 側は記録されない／不可 | G06 |
 | 8 | mono-e2e に push できる 55 名＋Devin 等の agent | PR 1 本で SP mono-e2e-ci の OIDC トークン（レビュー・マージ不要） | 7 と同じ＋UC 実体 116 | workflow を書いた PR を開く | GitHub の run ログに残る。通知無し／不可 | G07 |
-| 9 | cdk-apps に push できる 54 名 | 任意ブランチ → CdkDeployRole → CloudFormation → cfn-exec-role（AdministratorAccess） | td1-raw、tuscenes-raw、denso-taxi-video、denso-nx-raw（約 3,275） | ライフサイクルに Expiration を混ぜた deploy（前例 PR #1440） | CloudTrail には cfn-exec-role 名義。通知無し／1〜2 日の窓のみ | G08 |
+| 9 | cdk-apps に push できる 54 名 | 任意ブランチ → CdkDeployRole → CloudFormation → cfn-exec-role（AdministratorAccess） | td1-raw、tuscenes-raw、denso-taxi-video、denso-nx-raw（約 3,275） | ライフサイクルに Expiration を混ぜた deploy（前例 [cdk-apps#1440](https://github.com/turingmotors/cdk-apps/pull/1440)） | CloudTrail には cfn-exec-role 名義。通知無し／1〜2 日の窓のみ | G08 |
 | 10 | Google グループ aws@ の 9 名、または 9 名の Google アカウントを奪った外部者 | root パスワードの再設定（メールのみ。MFA 無し、root 制限 SCP 無し） | tuscenes-prod 全量 約 4,995 | root でライフサイクル／削除／CloseAccount | 組織の CloudTrail に残るが通知無し／不可 | G11 |
 | 11 | management の静的キー kento-t（社外 SaaS が保持）と management 管理者 7 名 | AssumeRole AWSControlTowerExecution（全メンバー Admin、SCP の除外対象） | 全アカウント全量 約 5,971 | 同上＋全アカウント閉鎖 | 通知無し／不可（CloseAccount だけは 90 日以内なら可） | G12, G13 |
 | 12 | Databricks の all-employees 71 主体／e2e-team 21 名 | UC 外部ボリューム `e2e.sandbox.td1`、denso.default.raw（クラスタ不要） | td1-rlog 21、denso-raw 15 | Catalog Explorer／Files API／サーバーレス SQL の REMOVE | UC 監査に残るが通知無し／不可 | G31 |
@@ -107,7 +107,7 @@ CloudWatch の容量（2026-10-08 時点、全ストレージクラス合算、�
 | G05 | critical（high から引き上げ） | AmazonS3FullAccess の静的キーが 4 ユーザーに残り、3 本は 1 年近く未使用。1 ユーザーはアカウント管理者に昇格できる | 即日 Inactive、2 週間後に削除 |
 | G06 | critical | Databricks UC の外部ロケーションの IAM ロールが一次バケットに DeleteObject を持ち、mlops-team が ALL PRIVILEGES | 外部ロケーションを READ ONLY、IAM ロールから Delete / Put を外す、ALL PRIVILEGES を READ FILES に |
 | G07 | critical | mono-e2e の PR だけで SP mono-e2e-ci（Databricks 管理者相当）のトークンが取れ、push 権限者 55 名がレビュー無しで raw まで消せる | SP を admins から外す、PR 用に plan 専用 SP、federation policy を main に限定、承認 1 以上 |
-| G08 | critical | cdk-apps の任意ブランチ／PR から本番 AdministratorAccess で deploy でき、ライフサイクルに Expiration を混ぜれば raw が翌日消える | PR #2024 をマージし job_workflow_ref 条件を追加、deploy workflow を main 限定、cfn-exec-role に Deny |
+| G08 | critical | cdk-apps の任意ブランチ／PR から本番 AdministratorAccess で deploy でき、ライフサイクルに Expiration を混ぜれば raw が翌日消える | [cdk-apps#2024](https://github.com/turingmotors/cdk-apps/pull/2024) をマージし job_workflow_ref 条件を追加、deploy workflow を main 限定、cfn-exec-role に Deny |
 | G11 | critical | メンバーアカウントの root に MFA 無し、root 制限 SCP 無し。root メール配送先の Google グループ（9 名）を押さえれば丸ごと消せる | Control Tower の root 制限を Product / misc OU に有効化、集中 root 管理、aws@ の参加制限、代替連絡先 |
 | G12 | critical | management の IAM ユーザー kento-t（AdministratorAccess）の静的キーを社外 SaaS が保持。キー 1 本で全アカウント閉鎖・全メンバー Admin に届く | 最小権限の専用ユーザーに差し替えてから、キーを Inactive → 削除 |
 | G31 | high（critical から引き下げ） | UC 外部ボリューム経由で all-employees 71 主体が td1-rlog 21 TB、e2e-team 21 名が denso-raw 15 TB をクラスタ無しで消せる | DROP VOLUME `e2e.sandbox.td1`、`grants.tf` から WRITE_VOLUME を外す、外部ロケーションを READ ONLY |
@@ -175,10 +175,10 @@ CloudWatch の容量（2026-10-08 時点、全ストレージクラス合算、�
     - **検証で直した点**: 3 レンズとも critical。影響を「DROP CATALOG（UNDROP 7 日で戻せる）」としたのは過小で、外部ロケーション経由の raw 削除は UNDROP の外。federation policy の本文はアカウント API が読めず未確認（run の成功で実質確定）。
     - **推奨**: mono-e2e-ci を admins から外し、PR 用に USE / SELECT だけの plan 専用 SP。federation policy の subject を main に限定。environment に required reviewers と branch policy。ルールセットを承認 1 以上にし、workflows と databricks-terraform を CODEOWNERS で固定。
 - **G08** cdk-apps の任意ブランチ／PR から本番 AdministratorAccess で deploy でき、ライフサイクルに Expiration を混ぜれば raw が翌日消える
-    - **事実**: GithubActions-CdkDeployRole（prod）の信頼条件は cdk-apps の全ブランチと pull_request。deploy-role 経由で cfn-exec-role（AdministratorAccess、boundary 無し）。CloudTrail 14 日で pull_request からの assume が 60 件。push 54 名。diff 系 workflow 30 本は PR 側の定義で同ロールを assume。本番 deploy workflow のうち main ガード無しの workflow_dispatch が 12 本。CloudFormation 147 スタック全てに TerminationProtection 無し。PutBucketLifecycle は 90 日で 15 件、全て cfn-exec-role 名義。前例として PR #1440 で tuscenes-video-training に Expiration 1 日のライフサイクルが入り、CloudFormation が適用した。
+    - **事実**: GithubActions-CdkDeployRole（prod）の信頼条件は cdk-apps の全ブランチと pull_request。deploy-role 経由で cfn-exec-role（AdministratorAccess、boundary 無し）。CloudTrail 14 日で pull_request からの assume が 60 件。push 54 名。diff 系 workflow 30 本は PR 側の定義で同ロールを assume。本番 deploy workflow のうち main ガード無しの workflow_dispatch が 12 本。CloudFormation 147 スタック全てに TerminationProtection 無し。PutBucketLifecycle は 90 日で 15 件、全て cfn-exec-role 名義。前例として [cdk-apps#1440](https://github.com/turingmotors/cdk-apps/pull/1440) で tuscenes-video-training に Expiration 1 日のライフサイクルが入り、CloudFormation が適用した。
     - **リスク**: 54 名の誰か 1 人が自分のブランチに workflow を push するだけで、レビュー無しに Admin の CloudFormation を流せる。
-    - **検証で直した点**: 3 レンズとも critical。「cfn-exec-role で aws s3 rm 等の任意操作」は不正確で、到達できるのはテンプレートで表現できる操作（ライフサイクル改変、Lambda カスタムリソース、IAM 作成）に限られる。結果は同じ。「15 本に branch 無制限」は 12 本。新事実: cdk-apps-diff-role は既に稼働中で、残るのはレビュー（PR #2024）だけ。
-    - **推奨**: PR #2024 を最優先でマージし、management の ci-cdk-deploy-role と同じ job_workflow_ref 条件を付ける。本番 deploy workflow 12 本に main ガードか Environment。cfn-exec-role に一次バケットの削除系を Deny する boundary か SCP。CDK のユニットテストで一次バケットに Expiration が無いことを assert。一次データを持つスタックに TerminationProtection。
+    - **検証で直した点**: 3 レンズとも critical。「cfn-exec-role で aws s3 rm 等の任意操作」は不正確で、到達できるのはテンプレートで表現できる操作（ライフサイクル改変、Lambda カスタムリソース、IAM 作成）に限られる。結果は同じ。「15 本に branch 無制限」は 12 本。新事実: cdk-apps-diff-role は既に稼働中で、残るのはレビュー（[cdk-apps#2024](https://github.com/turingmotors/cdk-apps/pull/2024)）だけ。
+    - **推奨**: [cdk-apps#2024](https://github.com/turingmotors/cdk-apps/pull/2024) を最優先でマージし、management の ci-cdk-deploy-role と同じ job_workflow_ref 条件を付ける。本番 deploy workflow 12 本に main ガードか Environment。cfn-exec-role に一次バケットの削除系を Deny する boundary か SCP。CDK のユニットテストで一次バケットに Expiration が無いことを assert。一次データを持つスタックに TerminationProtection。
 - **G11** メンバーアカウントの root に MFA 無し、root 制限 SCP 無し。root メール配送先の Google グループを押さえれば丸ごと消せる
     - **事実**: root の MFA は management 以外の全アカウントで未設定。Product OU（tuscenes-prod、e2e-dev など）と misc OU（biz-dev）の SCP に root 制限が無い（Research / Security / Web OU にはある）。集中 root 管理は未有効。root メールは aws+アカウント名@ で、配送先の Google グループ aws@ は MEMBER 9 名、参加申請可、誰でも投稿可。代替連絡先は未設定。root の操作は CloudTrail に残るが通知無し。
     - **リスク**: 受信箱 1 つで root パスワードを再設定し、SCP・バケットポリシー・SSO の Deny のどれにも止められず、CloseAccount まで到達する。社外のフィッシング経由にも開いている。
@@ -240,7 +240,7 @@ CloudWatch の容量（2026-10-08 時点、全ストレージクラス合算、�
 
 ## 7. 対策ロードマップ
 
-優先順位は「経路を塞ぐ効果 ÷ 作業量」。実行はしていない。既存の進行中の取り組み（cdk-apps PR #2024、service key 廃止、IdP 移行、backend-api 監査ログ、IAM ユーザー一元管理）との関係を各項目に書いた。
+優先順位は「経路を塞ぐ効果 ÷ 作業量」。実行はしていない。既存の進行中の取り組み（[cdk-apps#2024](https://github.com/turingmotors/cdk-apps/pull/2024)、service key 廃止、IdP 移行、backend-api 監査ログ、IAM ユーザー一元管理）との関係を各項目に書いた。
 
 ### 7.1 今日〜1 週間（止血、4 本柱）
 
@@ -276,7 +276,7 @@ CloudWatch の容量（2026-10-08 時点、全ストレージクラス合算、�
 
 **柱 3: CI の権限分離**（塞ぐ経路: 8、9）
 
-- cdk-apps: PR #2024（prod の CdkDeployRole を main 限定）をマージし、job_workflow_ref 条件を追加。本番 deploy workflow 12 本に main ガード。
+- cdk-apps: [cdk-apps#2024](https://github.com/turingmotors/cdk-apps/pull/2024)（prod の CdkDeployRole を main 限定）をマージし、job_workflow_ref 条件を追加。本番 deploy workflow 12 本に main ガード。
 - mono-e2e: mono-e2e-ci を Databricks の admins から外す。PR 用に USE / SELECT だけの plan 専用 SP。federation policy の subject を main に限定。environment に required reviewers。ルールセットを承認 1 以上に。
 - Coder / JADDViewer（G03）: DataScientist を ReadOnly＋明示した書き込み先だけの自前ポリシーに置換。
 - 作業量は 2〜3 日。

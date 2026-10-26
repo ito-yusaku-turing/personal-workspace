@@ -256,53 +256,53 @@ GET の回数が取れない残りのバケットは、**Intelligent-Tiering の
 
 | バケット | TB | 区分 | 最終 PUT | 再アクセス | GET | 層 FA/低頻度 | cdk-apps 初出 | cdk-apps 最終 | 参照アプリ |
 |---|---|---|---|---|---|---|---|---|---|
-| td1-raw-* | 1,753.6 | A | 2026-10-13 | 2026-07-11 | 2026-10-15（2,143 百万回） | IT 648/1101 | 2025-01-09 #4 | 2026-10-08 #2092 | 20 |
-| tuscenes-raw-* | 913.7 | A | なし | 2026-09-26（一括は 06-24） | — | IT 0/913 | 2024-12-26 `74d0f37b` | 2026-10-08 #2092 | 6 |
-| garuda-dataset-* | 540.2 | A | 2026-10-11 | 2026-10-12 | 2026-10-15（9,569 百万回） | IT 312/221 | 2026-03-04 #814 | 2026-10-06 #2047 | 8 |
-| denso-taxi-video-* | 452.0 | A | 2026-09-12 | 2026-10-13 | — | IT 433/19 | 2026-07-13 #1486 | 2026-10-13 #2141 | 6 |
-| turing-video-training-sync-gcp | 335.3 | A | 2026-09-09 | なし | — | IT 0/335 | 2026-05-26 #1177 | 2026-09-09 `e35fd628` | 1 |
-| turing-video-ap-northeast-1-* | 305.9 | A | 2026-10-13 | なし | — | IT 121/185 | 2025-02-19 #88 | 2026-09-16 #1927 | 2 |
-| derived-data-* | 266.6 | A | 2026-10-13 | なし | 2026-10-15（40,374 百万回） | IT 261/5 | 2026-07-24 #1548 | 2026-10-06 #2061 | 6 |
-| denso-nx-raw-* | 170.9 | A | 2026-10-02 | なし | — | IT 46/125 | 2026-04-10 #948 | 2026-07-24 #1521 | 1 |
-| databricks-workspace-e2e-bucket | 118.2 | A | 2026-10-13 | 測れない | — | Std | 2024-12-26 `0018f09b` | 2026-07-13 #1470 | 1 |
-| tuscenes-model-* | 62.2 | A | 2026-10-13 | なし | — | IT 4/57 | 2025-01-17 #7 | 2026-10-09 `bef3c6ed` | 15 |
-| tuscenes-dataset-* | 29.7 | A | 2026-10-13 | 2026-07-17 | 2026-08-17（361 百万回） | IT 0/30 | 2025-01-17 #7 | 2026-09-30 #2014 | 4 |
+| td1-raw-* | 1,753.6 | A | 2026-10-13 | 2026-07-11 | 2026-10-15（2,143 百万回） | IT 648/1101 | 2025-01-09 [cdk-apps#4](https://github.com/turingmotors/cdk-apps/pull/4) | 2026-10-08 [cdk-apps#2092](https://github.com/turingmotors/cdk-apps/pull/2092) | 20 |
+| tuscenes-raw-* | 913.7 | A | なし | 2026-09-26（一括は 06-24） | — | IT 0/913 | 2024-12-26 `74d0f37b` | 2026-10-08 [cdk-apps#2092](https://github.com/turingmotors/cdk-apps/pull/2092) | 6 |
+| garuda-dataset-* | 540.2 | A | 2026-10-11 | 2026-10-12 | 2026-10-15（9,569 百万回） | IT 312/221 | 2026-03-04 [cdk-apps#814](https://github.com/turingmotors/cdk-apps/pull/814) | 2026-10-06 [cdk-apps#2047](https://github.com/turingmotors/cdk-apps/pull/2047) | 8 |
+| denso-taxi-video-* | 452.0 | A | 2026-09-12 | 2026-10-13 | — | IT 433/19 | 2026-07-13 [cdk-apps#1486](https://github.com/turingmotors/cdk-apps/pull/1486) | 2026-10-13 [cdk-apps#2141](https://github.com/turingmotors/cdk-apps/pull/2141) | 6 |
+| turing-video-training-sync-gcp | 335.3 | A | 2026-09-09 | なし | — | IT 0/335 | 2026-05-26 [cdk-apps#1177](https://github.com/turingmotors/cdk-apps/pull/1177) | 2026-09-09 `e35fd628` | 1 |
+| turing-video-ap-northeast-1-* | 305.9 | A | 2026-10-13 | なし | — | IT 121/185 | 2025-02-19 [cdk-apps#88](https://github.com/turingmotors/cdk-apps/pull/88) | 2026-09-16 [cdk-apps#1927](https://github.com/turingmotors/cdk-apps/pull/1927) | 2 |
+| derived-data-* | 266.6 | A | 2026-10-13 | なし | 2026-10-15（40,374 百万回） | IT 261/5 | 2026-07-24 [cdk-apps#1548](https://github.com/turingmotors/cdk-apps/pull/1548) | 2026-10-06 [cdk-apps#2061](https://github.com/turingmotors/cdk-apps/pull/2061) | 6 |
+| denso-nx-raw-* | 170.9 | A | 2026-10-02 | なし | — | IT 46/125 | 2026-04-10 [cdk-apps#948](https://github.com/turingmotors/cdk-apps/pull/948) | 2026-07-24 [cdk-apps#1521](https://github.com/turingmotors/cdk-apps/pull/1521) | 1 |
+| databricks-workspace-e2e-bucket | 118.2 | A | 2026-10-13 | 測れない | — | Std | 2024-12-26 `0018f09b` | 2026-07-13 [cdk-apps#1470](https://github.com/turingmotors/cdk-apps/pull/1470) | 1 |
+| tuscenes-model-* | 62.2 | A | 2026-10-13 | なし | — | IT 4/57 | 2025-01-17 [cdk-apps#7](https://github.com/turingmotors/cdk-apps/pull/7) | 2026-10-09 `bef3c6ed` | 15 |
+| tuscenes-dataset-* | 29.7 | A | 2026-10-13 | 2026-07-17 | 2026-08-17（361 百万回） | IT 0/30 | 2025-01-17 [cdk-apps#7](https://github.com/turingmotors/cdk-apps/pull/7) | 2026-09-30 [cdk-apps#2014](https://github.com/turingmotors/cdk-apps/pull/2014) | 4 |
 | miwa-gmo-2026-0424-archive | 24.3 | A | 2026-04-29 | 測れない | — | Std | 履歴なし | — | 0 |
 | td1-rlog | 21.1 | C | 2025-09-08 | なし | — | IT 0/21 | 2024-12-26 `74d0f37b` | 2025-03-27 `c6a41494` | 1 |
-| scenario-test-result-* | 15.6 | A | 2026-10-13 | なし | — | IT 1/15 | 2025-05-01 `4e7cb9c6` | 2026-08-24 #1735 | 8 |
-| denso-raw-* | 15.2 | B | 2025-12-23 | 2026-04-15（少量） | — | IT 0/15 | 2025-01-22 `87e532cc` | 2026-09-30 #2014 | 0 |
-| tuscenes-annotation-* | 13.5 | A | 2026-10-13 | 2026-03-05 | — | IT 1/12 | 2025-01-17 #7 | 2026-09-30 #2014 | 3 |
+| scenario-test-result-* | 15.6 | A | 2026-10-13 | なし | — | IT 1/15 | 2025-05-01 `4e7cb9c6` | 2026-08-24 [cdk-apps#1735](https://github.com/turingmotors/cdk-apps/pull/1735) | 8 |
+| denso-raw-* | 15.2 | B | 2025-12-23 | 2026-04-15（少量） | — | IT 0/15 | 2025-01-22 `87e532cc` | 2026-09-30 [cdk-apps#2014](https://github.com/turingmotors/cdk-apps/pull/2014) | 0 |
+| tuscenes-annotation-* | 13.5 | A | 2026-10-13 | 2026-03-05 | — | IT 1/12 | 2025-01-17 [cdk-apps#7](https://github.com/turingmotors/cdk-apps/pull/7) | 2026-09-30 [cdk-apps#2014](https://github.com/turingmotors/cdk-apps/pull/2014) | 3 |
 | td1-video-h265-gcp-* | 9.1 | B | 2026-04-08 | 測れない | — | Std | 2026-04-07 `f5842a54`（main 外） | 同左 | 0 |
-| closed-loop-scenario-test-result-* | 8.4 | A | 2026-09-28 | なし | — | IT 0/8 | 2025-12-02 #512 | 2026-07-16 #1513 | 5 |
-| denso-nx-sample-* | 5.7 | A | 2026-05-20 | なし | — | IT 0/6 | 2026-05-01 #1033 | 2026-10-13 #2024 | 2 |
+| closed-loop-scenario-test-result-* | 8.4 | A | 2026-09-28 | なし | — | IT 0/8 | 2025-12-02 [cdk-apps#512](https://github.com/turingmotors/cdk-apps/pull/512) | 2026-07-16 [cdk-apps#1513](https://github.com/turingmotors/cdk-apps/pull/1513) | 5 |
+| denso-nx-sample-* | 5.7 | A | 2026-05-20 | なし | — | IT 0/6 | 2026-05-01 [cdk-apps#1033](https://github.com/turingmotors/cdk-apps/pull/1033) | 2026-10-13 [cdk-apps#2024](https://github.com/turingmotors/cdk-apps/pull/2024) | 2 |
 | external-driving-videos-* | 4.2 | B | 2026-02-18 | なし | — | IT 0.0/4.2 | 2026-02-04 `4c565bff` | 2026-02-09 `2ad562e8` | 1 |
 | abemi-gmo-2026-0424-archive-*-us-west-2-an | 3.7 | A | 2026-10-10 | 測れない | — | Std | 履歴なし | — | 0 |
-| gaming-data-collection-* | 3.3 | A | 2026-07-31 | なし | — | IT 0.0/3.3 | 2026-05-25 #1169 | 2026-07-29 `c3d84472` | 3 |
-| cluster-backup-* | 2.4 | A | 2026-08-27 | なし | — | IT 0.0/2.4 | 2026-08-03 #1641 | 2026-10-02 #2050 | 2 |
-| tuscenes-basicai-datasets-* | 2.1 | C | なし | なし | — | IT 0.0/2.1 | 2025-01-17 #7 | 2025-11-19 `20a04397` | 0 |
-| tuscenes-map-* | 1.7 | A | 2026-10-13 | 2026-07-14 | — | IT 0.1/1.5 | 2025-01-17 #7 | 2026-10-15 `26689e00` | 5 |
-| wm-data-* | 1.3 | A | 2026-10-12 | なし | — | IT 1.3/0.0 | 2026-09-02 #1840 | 2026-09-09 #1899 | 3 |
+| gaming-data-collection-* | 3.3 | A | 2026-07-31 | なし | — | IT 0.0/3.3 | 2026-05-25 [cdk-apps#1169](https://github.com/turingmotors/cdk-apps/pull/1169) | 2026-07-29 `c3d84472` | 3 |
+| cluster-backup-* | 2.4 | A | 2026-08-27 | なし | — | IT 0.0/2.4 | 2026-08-03 [cdk-apps#1641](https://github.com/turingmotors/cdk-apps/pull/1641) | 2026-10-02 [cdk-apps#2050](https://github.com/turingmotors/cdk-apps/pull/2050) | 2 |
+| tuscenes-basicai-datasets-* | 2.1 | C | なし | なし | — | IT 0.0/2.1 | 2025-01-17 [cdk-apps#7](https://github.com/turingmotors/cdk-apps/pull/7) | 2025-11-19 `20a04397` | 0 |
+| tuscenes-map-* | 1.7 | A | 2026-10-13 | 2026-07-14 | — | IT 0.1/1.5 | 2025-01-17 [cdk-apps#7](https://github.com/turingmotors/cdk-apps/pull/7) | 2026-10-15 `26689e00` | 5 |
+| wm-data-* | 1.3 | A | 2026-10-12 | なし | — | IT 1.3/0.0 | 2026-09-02 [cdk-apps#1840](https://github.com/turingmotors/cdk-apps/pull/1840) | 2026-09-09 [cdk-apps#1899](https://github.com/turingmotors/cdk-apps/pull/1899) | 3 |
 | turing-video-frames-* | 1.3 | A | 2026-10-13 | なし | — | IT 0.1/1.0 | 2026-01-15 `ff922a7f` | 2026-01-21 `e04c7dfb` | 1 |
 | datadog-account-level-cost-report | 1.3 | A | 2026-10-13 | 測れない | — | Std | 履歴なし | — | 0 |
-| tuscenes-calibration（旧、接尾辞なし） | 1.3 | B | 2026-03-24 | なし | — | IT 0.0/1.3 | 2025-01-17 #7 | 2026-04-01 `44019c07` | 0 |
-| denso-taxi-processed-* | 1.1 | A | 2026-09-11 | なし | — | IT 0.9/0.3 | 2026-07-01 #1406 | 2026-07-14 #1491 | 1 |
+| tuscenes-calibration（旧、接尾辞なし） | 1.3 | B | 2026-03-24 | なし | — | IT 0.0/1.3 | 2025-01-17 [cdk-apps#7](https://github.com/turingmotors/cdk-apps/pull/7) | 2026-04-01 `44019c07` | 0 |
+| denso-taxi-processed-* | 1.1 | A | 2026-09-11 | なし | — | IT 0.9/0.3 | 2026-07-01 [cdk-apps#1406](https://github.com/turingmotors/cdk-apps/pull/1406) | 2026-07-14 [cdk-apps#1491](https://github.com/turingmotors/cdk-apps/pull/1491) | 1 |
 | argoverse2-all | 1.1 | C | なし | なし | — | IT 0.0/1.1 | 履歴なし | — | 0 |
 | alphaspp-raw-* | 0.9 | C | なし | なし | — | IT 0.0/0.9 | 履歴なし | — | 0 |
-| train-3dgs-video-* | 0.9 | A | 2026-09-27 | なし | — | IT 0.0/0.9 | 2025-09-05 #350 | 2025-09-05 #350 | 1 |
+| train-3dgs-video-* | 0.9 | A | 2026-09-27 | なし | — | IT 0.0/0.9 | 2025-09-05 [cdk-apps#350](https://github.com/turingmotors/cdk-apps/pull/350) | 2025-09-05 [cdk-apps#350](https://github.com/turingmotors/cdk-apps/pull/350) | 1 |
 | dataset-for-appen | 0.7 | C | なし | 測れない | — | Std | 履歴なし | — | 0 |
-| driving-behavior-data-* | 0.7 | A | 2026-10-10 | なし | — | IT 0.1/0.6 | 2026-06-11 #990 | 2026-07-31 #1629 | 1 |
+| driving-behavior-data-* | 0.7 | A | 2026-10-10 | なし | — | IT 0.1/0.6 | 2026-06-11 [cdk-apps#990](https://github.com/turingmotors/cdk-apps/pull/990) | 2026-07-31 [cdk-apps#1629](https://github.com/turingmotors/cdk-apps/pull/1629) | 1 |
 | tuscenes-tmp-* | 0.7 | A | 2026-10-13 | なし | 2026-10-14（47 百万回） | IT 0.0/0.0 | 2024-12-27 `86b82624` | 2026-10-09 `bef3c6ed` | 10 |
-| s3-inventory-results-* | 0.7 | A | 2026-10-12 | なし | — | IT 0.3/0.3 | 2025-10-28 `d63affea` | 2026-08-04 #1655 | 2 |
+| s3-inventory-results-* | 0.7 | A | 2026-10-12 | なし | — | IT 0.3/0.3 | 2025-10-28 `d63affea` | 2026-08-04 [cdk-apps#1655](https://github.com/turingmotors/cdk-apps/pull/1655) | 2 |
 | tuscenes-sampled-* | 0.6 | C | なし | 測れない | — | Std | 履歴なし | — | 0 |
 | nuscenes-all | 0.5 | C | なし | 測れない | — | Std | 履歴なし | — | 0 |
-| hyperpod-user-data-* | 0.5 | A | 2026-10-08 | 測れない | — | Std | 2026-08-20 #1729 | 2026-08-20 #1729 | 2 |
+| hyperpod-user-data-* | 0.5 | A | 2026-10-08 | 測れない | — | Std | 2026-08-20 [cdk-apps#1729](https://github.com/turingmotors/cdk-apps/pull/1729) | 2026-08-20 [cdk-apps#1729](https://github.com/turingmotors/cdk-apps/pull/1729) | 2 |
 | alphaspp-data-* | 0.4 | C | なし | 測れない | — | Std | 履歴なし | — | 0 |
 | dataset-for-third-dimension | 0.3 | B | 2026-01-09 | 測れない | — | Std | 履歴なし | — | 0 |
-| openmaptiles-* | 0.3 | A | 2026-07-27 | 測れない | — | Std | 2026-06-19 #1329 | 2026-09-30 #2031 | 7 |
+| openmaptiles-* | 0.3 | A | 2026-07-27 | 測れない | — | Std | 2026-06-19 [cdk-apps#1329](https://github.com/turingmotors/cdk-apps/pull/1329) | 2026-09-30 [cdk-apps#2031](https://github.com/turingmotors/cdk-apps/pull/2031) | 7 |
 | trajectory-visualizer-data-* | 0.3 | A | 2026-10-13 | なし | — | IT 0.0/0.2 | 2025-11-06 `796f7de7` | 2025-11-06 `796f7de7` | 1 |
 | semantic-kitti | 0.2 | C | なし | 測れない | — | Std | 履歴なし | — | 0 |
 | denso-data-* | 0.2 | C | なし | 測れない | — | Std | 履歴なし | — | 0 |
-| tuscenes-assets-* | 0.1 | A | 2026-10-13 | 測れない | — | Std | 2025-01-24 `d8f7579f` | 2026-07-16 #1513 | 6 |
+| tuscenes-assets-* | 0.1 | A | 2026-10-13 | 測れない | — | Std | 2025-01-24 `d8f7579f` | 2026-07-16 [cdk-apps#1513](https://github.com/turingmotors/cdk-apps/pull/1513) | 6 |
 
 0.1 TB 未満の 111 本は [`raw-data-security/classified.tsv`](raw-data-security/classified.tsv) にある。
 
@@ -312,19 +312,19 @@ GET の回数が取れない残りのバケットは、**Intelligent-Tiering の
 
 - **td1-raw**: 依存が最も広い（参照アプリ 20）。高頻度層に 648 TB があり、GET は半年で約 21 億回。
 - **tuscenes-raw**: 15 か月の間、PUT は 1 度も無い（2025-04 に収集を終えている）。2026-03 に約 380 TB、2026-06 に約 316 TB が一括で読まれた（GCS 向けの変換バッチと思われる）。それ以降の読み出しは 0.1 TB 程度だけ。2026-08〜09 に LiDAR の間引きでオブジェクトが 8.3 億から 2.1 億に減っている。
-- **denso-taxi-video**: 2026-07 にできたバケット（#1486）。容量のほぼ全部（433 TB）が高頻度層にあり、2026-09-19 に 21 TB の再アクセスがあった。2026-10-13 に Feature Cache ジョブへの読み取り権限が付いた（#2141）。
-- **denso-nx-raw**: 2026-04 にできた（#948）。参照しているのは denso-nx アプリだけ。Azure に原本 175.5 TB が残っている（調査書 G01）。
+- **denso-taxi-video**: 2026-07 にできたバケット（[cdk-apps#1486](https://github.com/turingmotors/cdk-apps/pull/1486)）。容量のほぼ全部（433 TB）が高頻度層にあり、2026-09-19 に 21 TB の再アクセスがあった。2026-10-13 に Feature Cache ジョブへの読み取り権限が付いた（[cdk-apps#2141](https://github.com/turingmotors/cdk-apps/pull/2141)）。
+- **denso-nx-raw**: 2026-04 にできた（[cdk-apps#948](https://github.com/turingmotors/cdk-apps/pull/948)）。参照しているのは denso-nx アプリだけ。Azure に原本 175.5 TB が残っている（調査書 G01）。
 - **databricks-workspace-e2e-bucket**: Standard クラスなので GET は測れない。UC 管理テーブル 2,880 本の実体（調査書 G09）。
 - **td1-rlog**: td1-raw ができる前の rlog の置き場。2025-03-27 の `c6a41494` で、rlog の読み先が `td1-rlog` から `td1-raw` に変わった。今も参照しているのは Databricks の auto-loader の IAM 権限だけ。**15 か月の間、全量が AIA 層にあり、FA に戻った日が 1 日も無い。** 調査書によると、2024-10〜2025-04 の走行一式の唯一の原本で、派生テーブルも無い。
-- **denso-raw**: 読み手だった JADD Creator が 2026-09-30 に削除され（#2014）、**IaC 上の読み手は 0**。残る経路は mono-e2e 側の Databricks ボリューム `denso.default.raw`（調査書 G31）。2025-12-22 に 4.7 GB、2026-03〜04 にごく少量の再アクセスがあった。
+- **denso-raw**: 読み手だった JADD Creator が 2026-09-30 に削除され（[cdk-apps#2014](https://github.com/turingmotors/cdk-apps/pull/2014)）、**IaC 上の読み手は 0**。残る経路は mono-e2e 側の Databricks ボリューム `denso.default.raw`（調査書 G31）。2025-12-22 に 4.7 GB、2026-03〜04 にごく少量の再アクセスがあった。
 - **tuscenes-annotation**: 人手のラベル。2026-02〜03 に計 0.7 TB の再アクセスがあった。
-- **denso-nx-sample**: 2026-05 にできた（#1033）。denso-nx の抽出テストで使われている。
-- **tuscenes-calibration（旧、接尾辞なし）**: 2026-05-19 の #1142（train3dgs: per-account calibration bucket）で、IaC の参照先が `tuscenes-calibration-<account>` に移った。HEAD で旧バケットを名指ししているコードは無い（最後に名指ししたのは 2026-04-01 の `44019c07`）。**ところが新バケットはほぼ 0 TB で、旧バケットの 1.26 TB は移っていない。**
+- **denso-nx-sample**: 2026-05 にできた（[cdk-apps#1033](https://github.com/turingmotors/cdk-apps/pull/1033)）。denso-nx の抽出テストで使われている。
+- **tuscenes-calibration（旧、接尾辞なし）**: 2026-05-19 の [cdk-apps#1142](https://github.com/turingmotors/cdk-apps/pull/1142)（train3dgs: per-account calibration bucket）で、IaC の参照先が `tuscenes-calibration-<account>` に移った。HEAD で旧バケットを名指ししているコードは無い（最後に名指ししたのは 2026-04-01 の `44019c07`）。**ところが新バケットはほぼ 0 TB で、旧バケットの 1.26 TB は移っていない。**
 
 **二次・派生データ**
 
-- **turing-video-training-sync-gcp**: 2026-05-26 の #1177 でできた GCS 同期用のバケット。全量が IA 層にある（S3 側では読まれていない）。前身の tuscenes-video-training は、#1440 のライフサイクルで全削除された。
-- **turing-video-ap-northeast-1**: 閲覧用の DASH 動画。2025-02 にできた（#88）。commentary-audio だけは作り直せない（調査書 2.2）。
+- **turing-video-training-sync-gcp**: 2026-05-26 の [cdk-apps#1177](https://github.com/turingmotors/cdk-apps/pull/1177) でできた GCS 同期用のバケット。全量が IA 層にある（S3 側では読まれていない）。前身の tuscenes-video-training は、[cdk-apps#1440](https://github.com/turingmotors/cdk-apps/pull/1440) のライフサイクルで全削除された。
+- **turing-video-ap-northeast-1**: 閲覧用の DASH 動画。2025-02 にできた（[cdk-apps#88](https://github.com/turingmotors/cdk-apps/pull/88)）。commentary-audio だけは作り直せない（調査書 2.2）。
 - **td1-video-h265-gcp**: 作ったコミット `f5842a54`（2026-04-07、H.265 の GCP 転送パイプライン）は、**main に一度もマージされていない**ブランチ `origin/td1-raw-gcp-converter` にしか無い。PUT は翌日 04-08 に止まっている。中身は td1-raw の cam_front 動画を H.265・960x620・30fps に変換したもの。
 - **garuda-dataset / derived-data**: どちらも 2026 年にできた。GET はそれぞれ半年で約 96 億回、約 404 億回。
 
@@ -338,7 +338,7 @@ GET の回数が取れない残りのバケットは、**Intelligent-Tiering の
 
 **退避用**
 
-- **cluster-backup**（#1641、クラスタからの退避）と **hyperpod-user-data**（#1729、HyperPod Lustre の縮小に伴うユーザーデータの退避）。
+- **cluster-backup**（[cdk-apps#1641](https://github.com/turingmotors/cdk-apps/pull/1641)、クラスタからの退避）と **hyperpod-user-data**（[cdk-apps#1729](https://github.com/turingmotors/cdk-apps/pull/1729)、HyperPod Lustre の縮小に伴うユーザーデータの退避）。
 
 ## 測れないこと・限界
 
@@ -385,24 +385,24 @@ GET の回数が取れない残りのバケットは、**Intelligent-Tiering の
 - 2026-10-16: 上の 1・2・4 の下調べを、AWS CLI（読み取り専用）で済ませた（「バージョニングの下調べ」）。既存の Expiration と DataSync の懸念は実質なし。databricks-workspace-e2e-bucket は、Databricks の推奨（7 日以内）と裁定案が食い違う。CDK 管理の 7 本は、cdk-apps の PR で入れる必要がある。denso-nx-raw の Azure 側のファイル数が、10-15 に急に減っていた。
 - **次にやること**: 「裁定が要ること」の 5 点を決める → cdk-apps の PR（7 本）と、CLI の手順書（4 本）を書く。
 - 2026-10-19: 種別 S1〜S10 と処遇を決め、チーム共有用の記事（[`notion-bucket-classification.md`](raw-data-security/notion-bucket-classification.md)）を作った。denso-nx-sample はチームで却下された。cdk-apps の準備を [s3-versioning-cdk.md](s3-versioning-cdk.md) に起票した。
-- 2026-10-19: **古い版は失効させないことにした**（当初の 90 日を取り消し）。cdk-apps #2211 のレビューで「消すときはライフサイクルで古い版ごと消すので、失効は要らないのでは」と指摘があり、妥当と判断した。
+- 2026-10-19: **古い版は失効させないことにした**（当初の 90 日を取り消し）。[cdk-apps#2211](https://github.com/turingmotors/cdk-apps/pull/2211) のレビューで「消すときはライフサイクルで古い版ごと消すので、失効は要らないのでは」と指摘があり、妥当と判断した。
   - 理由: 今回の手当ては操作ミスへの備え。失効を付けると、ミスに気づけないまま期限を過ぎたときにそこで消える。削除を検知する仕組みが無く、期限内に気づける保証がない。原本はふだん消しも上書きもしない（直近 30 日に容量が減った日が無い）ので、失効が無くても古い版はほとんど溜まらない。tuscenes-model（S3）の前例とも揃う。
   - 一緒に決めること: (1) 意図して大量に消すときは、版を指定して消すかライフサイクルで古い版ごと消す。今の LidarDeleter は `s3:DeleteObject` だけなので、このまま間引きを再開すると約 1.3〜1.6 PiB が古い版として**無期限に**残る。(2) 古い版の容量を Storage Lens などで見ておく。
   - 親のレビュー 1（「古い版を何日残すかを決める」）は、この判断で置き換えた。
   - CDK の 4 本の PR から失効を外し、CLI の手順書をバージョニングだけにした（[`cli-versioning-runbook.md`](raw-data-security/cli-versioning-runbook.md)、3 本分にまとめた）。
-- 2026-10-19: **denso-taxi-processed を S6（派生）から S2（他社から受領）に移し、バージョニングを行うことにした。** cdk-apps #2216 のレビューで、作り直す元だった Azure 側の原本（bag）と加工後のデータが削除済みで、ほかに写しが無いと分かった（geniac4 は原本を 9/19、加工後を 9/30 に purge、mlops-1 も削除済み）。中身は bag ごとの calibration / can / frame_timestamps / gnss の parquet（1.0 TiB・1,126 万件）。frame_timestamps は mp4 から作り直せず、失うと video の動画も時刻を合わせられない。#2216 に含めた。
+- 2026-10-19: **denso-taxi-processed を S6（派生）から S2（他社から受領）に移し、バージョニングを行うことにした。** [cdk-apps#2216](https://github.com/turingmotors/cdk-apps/pull/2216) のレビューで、作り直す元だった Azure 側の原本（bag）と加工後のデータが削除済みで、ほかに写しが無いと分かった（geniac4 は原本を 9/19、加工後を 9/30 に purge、mlops-1 も削除済み）。中身は bag ごとの calibration / can / frame_timestamps / gnss の parquet（1.0 TiB・1,126 万件）。frame_timestamps は mp4 から作り直せず、失うと video の動画も時刻を合わせられない。[cdk-apps#2216](https://github.com/turingmotors/cdk-apps/pull/2216) に含めた。
 - 2026-10-19: tuscenes-basicai-datasets を今回の手当てから外した。CLI で入れるのは td1-rlog・tuscenes-calibration（旧）・denso-raw の 3 本になった。
 - 2026-10-19: td1-rlog は、cdk import で IaC に取り込まず AWS CLI で入れると決めた（2025-09 から書き込みが無い運用の実態に合わせた）。手順書を書いた（その後 [`raw-data-security/cli-versioning-runbook.md`](raw-data-security/cli-versioning-runbook.md) に改めた）。
 - 2026-10-19: 裁定の「次にやる」（バケットポリシー）の準備として、[原本バケットへのアクセスの洗い出しと手当て](s3-bucket-access-control.md) を起票した。
 - ~~次にやること: cdk-apps の準備は子の workstream で進める。こちらでは、CLI で入れる 4 本の手順書と、LidarDeleter の扱いを決める。~~（2026-10-19 の終わりに下へ置き換えた）
 - 2026-10-19 の終わりの状態:
-  - バージョニングが有効: gaming-data-collection、td1-raw、tuscenes-raw、tuscenes-annotation、tuscenes-calibration（新）、denso-taxi-video、denso-taxi-processed、denso-nx-raw（cdk-apps #2211・#2215・#2216・#2217、deploy 後に ReadOnly で確認）、tuscenes-model（以前から）。古い版はどれも失効させない。
+  - バージョニングが有効: gaming-data-collection、td1-raw、tuscenes-raw、tuscenes-annotation、tuscenes-calibration（新）、denso-taxi-video、denso-taxi-processed、denso-nx-raw（[cdk-apps#2211](https://github.com/turingmotors/cdk-apps/pull/2211)・[cdk-apps#2215](https://github.com/turingmotors/cdk-apps/pull/2215)・[cdk-apps#2216](https://github.com/turingmotors/cdk-apps/pull/2216)・[cdk-apps#2217](https://github.com/turingmotors/cdk-apps/pull/2217)、deploy 後に ReadOnly で確認）、tuscenes-model（以前から）。古い版はどれも失効させない。
   - 未実施: td1-rlog、tuscenes-calibration（旧）、denso-raw（CLI。[`raw-data-security/cli-versioning-runbook.md`](raw-data-security/cli-versioning-runbook.md)）。
   - チーム共有用の記事（[`notion-bucket-classification.md`](raw-data-security/notion-bucket-classification.md)）は、今日の変更（失効なし・basicai の除外・denso-taxi-processed の S2 への移動）を反映済み。**Notion へは上げ直しが要る。**
 - **次にやること**（優先順）:
   1. **CLI の 3 本を実行する**（書き込みの権限の人が手順書を流す → エージェントが ReadOnly で確認）。 → **2026-10-20 15:07 JST に実施済み**（伊藤が SSO FullAccess で実行）。エージェントが ReadOnly で、3 本とも `Enabled`、ライフサイクルは変わらず古い版の失効も無いことを確かめた。
   2. **LidarDeleter の扱いを決める**（周知か、信頼ポリシーを外すか）。**2026-10-20: 作った人に聞く。後回し。**td1-raw・tuscenes-raw はもうバージョニングが有効で、今のロール（`s3:DeleteObject` だけ）で間引きを再開すると、古い版が無期限に残って課金が続く。
   3. ~~2026-10-20 03:00 JST の `azure-mlops1-dcorp-inbound-daily` の結果を確かめる~~ → 2026-10-20 に確認。成功し、新しい SAS で認証は通っている。ただし送り元は 10-17 から 0 件で、中身が流れることは確かめられていない（[s3-versioning-cdk.md](s3-versioning-cdk.md)）。
-  4. deploy の workflow の `paths` に `packages/azure-data-sync/**` を足す PR（denso-nx・denso-taxi。#2216 のレビューで約束した）。 → 2026-10-20 に cdk-apps #2231 を出した。**TODO: 作った人に確認してから進める（それまでレビュー依頼・マージはしない）。**
+  4. deploy の workflow の `paths` に `packages/azure-data-sync/**` を足す PR（denso-nx・denso-taxi。[cdk-apps#2216](https://github.com/turingmotors/cdk-apps/pull/2216) のレビューで約束した）。 → 2026-10-20 に [cdk-apps#2231](https://github.com/turingmotors/cdk-apps/pull/2231) を出した。**TODO: 作った人に確認してから進める（それまでレビュー依頼・マージはしない）。**
   5. 次の段: [s3-bucket-access-control.md](s3-bucket-access-control.md) の洗い出し。
   6. 「裁定が要ること」の残り: denso-nx-raw の Azure 側のファイル数の減少（10-17 以降は 0 件）を誰に確かめるか。 **2026-10-20: 作った人に聞く。後回し。**Notion の記事の上げ直し。
