@@ -27,9 +27,9 @@ personal-workspace/
 
 ## projects/（案件ごとの資料）
 
-`projects/` には、案件ごとに名前を付けたフォルダを作り、資料を整理する。
+`projects/` には、案件ごとに名前を付けたフォルダ `projects/<project-id>/` を作り、資料を整理する。`<project-id>` はフォルダ名そのもの。
 
-- **指示の中の `project:<名前>` は `projects/<名前>/` を指す**（例: `project:gaming-data-collection` → `projects/gaming-data-collection/`）。プレフィクスのない名前はリポジトリ（`/usr/app/<名前>`）を指す。同じ名前のリポジトリがあっても別物として扱い、どちらか分からなければ確認する。
+- **指示の中の `project:<project-id>` は `projects/<project-id>/` を指す**（例: `project:gaming-data-collection` → `projects/gaming-data-collection/`）。プレフィクスのない名前はリポジトリ（`/usr/app/<名前>`）を指す。同じ名前のリポジトリがあっても別物として扱い、どちらか分からなければ確認する。
 - フォルダ名は案件名を kebab-case にする。
 - **Git の扱いは personal-workspace のルールに従う**（下記「Git運用ルール」）。同じ名前のリポジトリの Git 規約は適用しない。
 - 案件フォルダに `AGENTS.md` / `CLAUDE.md` があれば、その案件での作業の前に読む。
@@ -45,6 +45,35 @@ personal-workspace/
   - 続けて、資料をサブフォルダごとに見出しで分けて並べる。1件は `- [相対パス](./相対パス): 内容の説明` の1行にする。
 - 資料（文書・画像・データなど）は1ファイル1件で載せる。MOD やスクリプトのようにまとまったコードは、フォルダ単位で1件にし、そのフォルダの `README.md` を指す。
 - 目録自身と `AGENTS.md` / `CLAUDE.md` は載せなくてよい。
+
+### workstream（セッションを跨ぐ作業の記録）
+
+1セッションで終わらない作業は、経緯を workstream として記録しながら進める。
+
+- **配置は `projects/<project-id>/workstream/<案件名>.md`**。1案件1資料で、ファイル名は kebab-case にする。
+- **workstream は必ずどこかの project に属する**。`projects/` の外（personal-workspace 直下や `docs/`）には置かない。どの project に属するか分からない、または該当する project が無いときは、資料を作る前に確認する（新しい project を作る場合も含む）。
+- 対象のリポジトリが独自の workstream の規約（例: `docs/workstream/`）を持つ場合、そのリポジトリの作業の記録はリポジトリ側の規約に従う。ここに二重に作らない。
+- **着手する前に、該当する project の `workstream/` に資料があるか確認し、あれば続きから進める**。無ければ作る。
+- 作業の区切りごと（とくにセッションを終えるとき）に、進捗と引き継ぎを書き足す。古くなった記述は消すか直す。
+- 完了したら `workstream/done/` へ移す。恒久的に残すべき内容（仕様・手順・決定事項）は、移す前に project 内の別の資料へ書き出す。
+- 資料を作る・移すときは、project の目録（`README.md`）の `workstream/` の見出しも同じコミットで更新する。
+
+テンプレート:
+
+```markdown
+# <案件名>
+
+<1〜2文の概要（何をする案件か）>
+
+## 背景・目的
+## 設計判断と理由
+## 進捗チェックリスト
+- [ ] ...
+## 次セッションへの引き継ぎ
+（現在地・残課題・注意点）
+## 関連リンク
+（関連する資料・リポジトリ・ファイル）
+```
 
 ## 開発環境（Docker / devbox）
 
