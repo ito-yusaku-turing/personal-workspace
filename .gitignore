@@ -1,17 +1,19 @@
 # Jetbrains
 .idea
 
-# user-home
+# 旧コンテナ HOME / 旧データ置き場（いまは使っていない。中身は人間が整理する）
 /user-home/*
-
-# storage
 /storage/*
 
-# bin (個人設定)
-/bin/config.sh
+# devbox 開発環境（開発者ごと / 生成物）
+docker/.env
+docker/config/repos.conf
+docker/compose.repos.yml
 
-# tmp
+# 作業用の一時ファイル
 /tmp/*
+/*/tmp/*
+/*/*/tmp/*
 
 # node_modules（npm 成果物）
 node_modules/

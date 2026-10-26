@@ -1,0 +1,56 @@
+# ====================================================================================
+# devbox — 開発シェル / コーディングエージェント用コンテナ
+#
+#   `docker compose up` では起動しない（profile: cli）。使い捨てコンテナとして
+#   docker/bin/shell.sh, claude.sh, codex.sh, remote-claude.sh から `run --rm` で起動する。
+#
+#   マウント:
+#     - このリポジトリ           → ${CONTAINER_REPO_DIR}
+#     - コンテナ HOME            → /usr/home（gh / ssh / クラウド CLI / claude の設定はここ）
+#     - 追加リポジトリ（任意）   → docker/compose.repos.yml（setup.sh が生成）で追加される
+#
+#   実行ユーザー: root で起動し、entrypoint が HOST_UID/HOST_GID に降格する。
+#     passwd エントリの home も /usr/home に揃えるため、ssh 等 getpwuid() を見る
+#     コマンドでも鍵が解決される。詳細は images/devbox/docker-entrypoint.sh。
+#
+#   ${...} の値はすべて docker/bin/lib/common.sh が docker/config/project.conf と
+#   docker/.env から読んで渡す。ここを直接 docker compose で叩かないこと。
+# ====================================================================================
+services:
+  devbox:
+    profiles: ["cli"]
+    build:
+      context: ../images/devbox
+      args:
+        NODE_VERSION: ${NODE_VERSION:?docker/bin/ 配下のスクリプト経由で実行してください（.nvmrc から渡されます）}
+        PROJECT_NAME: ${PROJECT_NAME:?docker/config/project.conf を設定してください}
+        CONTAINER_REPO_DIR: ${CONTAINER_REPO_DIR:?docker/config/project.conf を設定してください}
+        PERSONAL_CONFIG_DIR_NAME: ${PERSONAL_CONFIG_DIR_NAME:?docker/config/project.conf を設定してください}
+        TZ: ${TZ:-Asia/Tokyo}
+        DEVBOX_WITH_PSQL: ${DEVBOX_WITH_PSQL:-0}
+        DEVBOX_WITH_AWS: ${DEVBOX_WITH_AWS:-0}
+        DEVBOX_WITH_GCLOUD: ${DEVBOX_WITH_GCLOUD:-0}
+        DEVBOX_WITH_DATABRICKS: ${DEVBOX_WITH_DATABRICKS:-0}
+        DEVBOX_WITH_UV: ${DEVBOX_WITH_UV:-0}
+    image: ${DEVBOX_IMAGE:?docker/bin/ 配下のスクリプト経由で実行してください}
+    working_dir: ${CONTAINER_REPO_DIR}
+    init: true
+    environment:
+      - TZ=${TZ:-Asia/Tokyo}
+      - HOME=/usr/home
+      - ENV_NAME=development
+      - NODE_OPTIONS=--no-deprecation
+      # ホストと同じ UID/GID で実行する（bind mount の所有者をホストと一致させる）
+      - HOST_UID=${HOST_UID:?docker/bin/ 配下のスクリプト経由で実行してください}
+      - HOST_GID=${HOST_GID:?docker/bin/ 配下のスクリプト経由で実行してください}
+      - CONTAINER_USER=${CONTAINER_USER:-dev}
+      # コンテナ内のスクリプト（doctor / setup-state）が参照するプロジェクト設定。
+      # イメージに焼かずここで渡すため、値を変えても再ビルドは要らない。
+      - PROJECT_LABEL=${PROJECT_LABEL:-}
+      # 任意。ホスト側で設定されているときだけコンテナに渡る（空文字で上書きしないこと）
+      - AWS_PROFILE
+      - AWS_REGION
+    volumes:
+      - "../..:${CONTAINER_REPO_DIR}"
+      - "${USER_HOME_DIR:?docker/.env に USER_HOME_DIR を設定してください（docker/bin/setup.sh）}:/usr/home"
+    command: bash
