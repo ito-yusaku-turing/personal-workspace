@@ -53,7 +53,7 @@ tuscenes-prod（767397804933）の IAM ユーザー `jadd_studio_amplify` は、
    - tern は `AWS_PROFILE` に SSO のプロファイルを入れて動かす。
    - 古いキーが残っているかは、次のコマンドで確かめられる（値は出ない）: `grep -l HOC2HR6GHTY ~/.aws/credentials ~/.aws/config /usr/app/jadd_studio3/.env.local /usr/app/jadd_studio3/docker/.env 2>/dev/null`
 3. **s3-data-protection-2 に反映する**。TODO 13 の jadd_studio_amplify を済みにする。[cdk-apps#2252](https://github.com/turingmotors/cdk-apps/pull/2252) のレビューへの返答で、この主体が消えたことを伝える。
-4. **Amplify の一式を片付けるか決める**（別に判断する。ユーザーを消しても残る）。対象は、アプリ 2 つ（`jadd_studio` d34n309gf2fupw・`jaddstudio` d37k44pfh0i4bm）、スタック `amplify-jaddstudio-dev-2b103` と子 2 つ、Cognito のユーザープール `us-west-2_jb7jCOO9q` と ID プール、IAM のロール 4 本、Lambda 1 つ、S3 のバケット（deployment と storage）。使われていないことを確かめてから消す（Cognito のユーザー数、ID プールと Lambda の最終利用など）。
+4. **Amplify の一式を片付けるか決める**（2026-10-26 に片付けることにした。対象は下の「Amplify の一式の洗い出し」、手順書は [amplify-cleanup-runbook.md](jadd-studio-amplify-removal/amplify-cleanup-runbook.md)）（別に判断する。ユーザーを消しても残る）。対象は、アプリ 2 つ（`jadd_studio` d34n309gf2fupw・`jaddstudio` d37k44pfh0i4bm）、スタック `amplify-jaddstudio-dev-2b103` と子 2 つ、Cognito のユーザープール `us-west-2_jb7jCOO9q` と ID プール、IAM のロール 4 本、Lambda 1 つ、S3 のバケット（deployment と storage）。使われていないことを確かめてから消す（Cognito のユーザー数、ID プールと Lambda の最終利用など）。
 
 ## Amplify の一式の洗い出し（2026-10-26、ReadOnly、us-west-2）
 

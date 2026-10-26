@@ -14,6 +14,7 @@ tuscenes-prod（767397804933）の S3 原本バケットを、消失や破壊か
 - [workstream/aws-root-credentials.md](./workstream/aws-root-credentials.md): **メンバーアカウントの root の認証情報を消す**。tuscenes-prod の root（パスワード有効・MFA なし）の削除を CorpIT に依頼する
 - [workstream/jadd-studio-amplify-removal.md](./workstream/jadd-studio-amplify-removal.md): **IAM ユーザー jadd_studio_amplify を削除する**。キーが jadd_studio3 の git 履歴に平文で残っていたユーザー。2026-10-26 にユーザーを削除した。残りは第二弾への反映と Amplify の一式の判断
   - [workstream/jadd-studio-amplify-removal/delete-runbook.md](./workstream/jadd-studio-amplify-removal/delete-runbook.md): 削除の手順書（AWS CLI。実行前後の確認と戻し方）
+  - [workstream/jadd-studio-amplify-removal/amplify-cleanup-runbook.md](./workstream/jadd-studio-amplify-removal/amplify-cleanup-runbook.md): Amplify の一式（スタック・アプリ・Cognito・バケットなど）の削除の手順書（AWS CLI）
 
 ## workstream/done/ — 完了した作業記録（第一弾）
 
