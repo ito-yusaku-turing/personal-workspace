@@ -8,6 +8,7 @@
 - 指定したページのコメントを読む（notion-get-comments）
 
 ここに無いツールは、Notion が後から足したものも含めてすべて止める。
+書き込み（作成・更新）は、通す前に必ず人間に確認する（permissionDecision: ask）。
 """
 
 import json
@@ -15,19 +16,25 @@ import sys
 
 PREFIX = "mcp__notion__"
 ALLOWED = {"notion-fetch", "notion-create-pages", "notion-update-page", "notion-get-comments"}
+# 書き込みのツール。範囲内の使い方でも、実行の前に人間の確認を取る
+ASK = {"notion-create-pages", "notion-update-page"}
 # 更新で許すコマンド。テンプレートの適用と検証済みの設定は、同期の範囲を超えるので止める
 UPDATE_COMMANDS = {"update_content", "replace_content", "insert_content", "update_properties"}
 
 
-def deny(reason: str) -> None:
+def decide(decision: str, reason: str) -> None:
     print(json.dumps({
         "hookSpecificOutput": {
             "hookEventName": "PreToolUse",
-            "permissionDecision": "deny",
+            "permissionDecision": decision,
             "permissionDecisionReason": f"notion-guard: {reason}",
         }
     }, ensure_ascii=False))
     sys.exit(0)
+
+
+def deny(reason: str) -> None:
+    decide("deny", reason)
 
 
 def check(tool: str, args: dict) -> None:
@@ -52,6 +59,9 @@ def check(tool: str, args: dict) -> None:
             deny("子ページ・データベースを消す更新（allow_deleting_content）はしない")
         if "is_skill" in args:
             deny("スキルの設定は変えない")
+
+    if tool in ASK:
+        decide("ask", f"Notion への書き込み（{tool}）。内容を確かめて許可してください")
 
 
 def main() -> None:

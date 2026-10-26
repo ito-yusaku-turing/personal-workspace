@@ -98,6 +98,14 @@ Notion の MCP は、personal-workspace で起動したセッションにだけ�
 - 指定された URL のページの内容を更新する。**原則として、ローカルの原本との同期だけ**に使う。
 - 指定された URL のページのコメントを読む。
 
+**書き込み（作成・更新）の前には、必ず人間の許可を取る。** 何を・どのページに書くかを示してから実行する。フックも書き込みのたびに確認を出す（`permissionDecision: ask`）。
+
+**親ページの指定が無ければ、MLOps 1チームの「ドキュメント置き場」に作る。**
+
+- URL: <https://app.notion.com/p/turing-motors/1eda93b3e6f2809183efc88c780883b3>
+- データベースなので、ページは 1 行として作る（data source: `collection://1eda93b3-e6f2-80a3-a0a5-000b6eb7b75f`）。
+- タイトルは `Doc name` に入れる。`Status` は `下書き(Draft)` から始める。
+
 **原本は常にローカルに置く**（`projects/` の資料）。
 
 - Notion に上げた資料は、ローカルの原本の冒頭に、Notion のページの URL を書く。
