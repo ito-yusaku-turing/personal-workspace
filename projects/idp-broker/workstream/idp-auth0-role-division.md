@@ -21,6 +21,7 @@
   - **2026-10-16 に改めた: IdP は製品名で決め打ちしない。** ブローカーの要件は「大手が使う IdP（Entra ID・Okta・Ping Identity・ForgeRock・HENNGE One など）を SAML / OIDC で受け、SCIM を受けられること」とする。Entra ID は外から見える情報で最有力というだけ（下の「協力会社の IdP について外から確かめられること」）。
 - アクセスが要るのは、その中の**ごく一部の部門・人員だけ**。
 - 対象アプリは**まず JADD STUDIO だけ**。他のアプリへの展開はいったんスコープ外。
+  - **2026-10-16 に広げた:** backend-api も、機能をかなり絞ったうえで協力会社に使ってもらう可能性がある。jadd-cli は backend-api の認証が解ければ一緒に解ける想定（「backend-api と jadd-cli の認証」の前提）。
 - **Auth0 の費用はあまり気にしない。** 運用の負荷・変更のしやすさ・設計の綺麗さを優先する。
 - **STUDIO の中でできること（ロール）は STUDIO で管理する。**
 - STUDIO は利用者が**どの組織の人かを属性として記録・管理する**が、**それで権限を変えることはしない**。STUDIO の中では全員フラットで、そこから適切なロールを付ける運用にする。
@@ -68,6 +69,8 @@
 
 1. **ブローカーをどれにするか**（Okta Workforce か Auth0 か）
 2. **「誰がどのアプリを使えるか」（認可）をどこに持つか**
+
+> **2026-10-16 に改めた**: ブローカーの候補は Auth0 以外にも広げて比べ、Okta Workforce（案 B）は外した（「ブローカーの候補」「決まったこと」）。上の「Okta（Workforce）か Auth0」は 10-14 に書いた当時のもの。
 
 ## 選択肢
 
@@ -144,6 +147,8 @@
 ## 構想: JADD STUDIO に協力会社（Entra ID）を入れる
 
 ### 全体図
+
+> **2026-10-16 に改めた**: 社員も、ブローカーの導入が決まれば Okta からブローカー経由に置き換える。Supabase のトークンはどの段でも扱わない（「決まったこと」）。この図の「社員の経路（いまのまま）」と ① は、協力会社だけを通す前提で書いた当時のもの。
 
 | エイリアス | 実体 | 種類 |
 |---|---|---|
@@ -242,6 +247,8 @@ flowchart LR
 - Supabase は 2 つの役で出てくる。社員の認証（Supabase Auth）と、STUDIO の DB（Postgres）。協力会社が関わるのは DB の行（user・セッション）だけで、Supabase Auth には一切現れない。
 - 破線の「将来: Okta 接続」は、社員も Auth0 から入れるようにする場合の経路。この構想の範囲外。
 
+> **2026-10-16 に改めた**: 上の「将来: Okta 接続」は、ブローカーの導入が決まれば社員の経路になる（「決まったこと」）。④ の「協力会社は backend に届かない」も改めた。協力会社には backend-api も機能を絞って使ってもらう可能性があり、誰に許すかは backend-api の `user_role` に協力会社の行を `(iss, sub)` で持って判定する（「backend-api と jadd-cli の認証」）。BFF は撤廃に向かっている（「backend-api の課題と、今の動き」）。
+
 
 ### 1 アプリ・1 社なら Auth0 は必須ではない
 
@@ -258,6 +265,8 @@ STUDIO が協力会社の Entra ID に**直接** OIDC/SAML でつなぐことも
 **推奨は Auth0 経由。** 費用より運用と変更のしやすさを優先するという前提なら、なおさらこちら。STUDIO は「Auth0 を信頼する」1 本だけを持ち、相手先ごとの差（SAML/OIDC・証明書・入場の確かめ方）は Auth0 の設定に閉じ込められる。2 社目・2 つ目のアプリが来ても STUDIO を作り直さなくてよい。
 
 ### 社員はいまのまま（Google）
+
+> **2026-10-16 に改めた**: 社員も、ブローカーの導入が決まれば Okta からブローカー経由に置き換える。Supabase のトークンはどの段でも扱わない（「決まったこと」）。この節は協力会社だけを通す前提で書いた当時のもの。
 
 この構想では社員のログインは触らない。Auth0 を通るのは協力会社だけにする。
 
@@ -319,7 +328,7 @@ X社の Entra ID           Auth0                        JADD STUDIO
 #### 案 2 で決めておくこと
 
 - **guest が自動でできることを許容するか。** 入場が案件の部門に絞られていれば、一覧に現れるのはその部門の人だけ。社員の Google ログインと同じ扱いなので許容できる見込み。
-- **異動・退職で外れた人の扱い。** L1 で外されると次のログインから入れない。STUDIO に残ったアカウントとロールは、下の「退職・異動したら止まるまで」で止める。
+- **異動・退職で外れた人の扱い。** L1 で外されると次のログインから入れない。STUDIO に残ったアカウントとロールは、下の「退職・離任したら止まるまで」で止める。
 - **相手先での申請の流れ。** 誰が相手先の IT にグループへの追加を頼むか（相手先の案件責任者を窓口にする等）。こちらは関与しない形が一番軽い。
 - **案 3 が要るとき。** 契約上「こちらが 1 人ずつ承認するまで、アカウントすら作らせない」ことが求められる場合だけ。そのときも STUDIO（案 4）でなく Auth0 に置く。
 
@@ -329,6 +338,7 @@ STUDIO にはすでに外部の人を受け入れる仕組みがある（`docs/g
 
 - **認可は STUDIO のロールのまま。** `external_viewer` などのベースロールと追加ロールで、何を見られるかを決める。Auth0 にはロールを持たせない（二重管理しない）。
 - **BFF には届かない。** 協力会社の人に Supabase のトークンは出さないので、能力 `backendAccess` が自動で false になり、`requireBackendToken` で backend 依存の API は 403 になる。BFF の改修は要らない。
+  - **2026-10-16 に改めた:** 協力会社にも backend-api を機能を絞って使ってもらう可能性があり、誰に許すかは backend-api の `user_role` で判定する。BFF は撤廃に向かっている（「backend-api と jadd-cli の認証」「backend-api の課題と、今の動き」）。この項は協力会社を backend に通さない前提で書いた当時のもの。
 - **セッションの形は同じ。** `authMethod` に新しい値（例: `sso`）を足すだけで、`proxy.ts` の検証は分岐しない。
 - **2 段階認証は相手先に任せる。** メールユーザーの TOTP は要らなくなる。相手先の条件付きアクセスで MFA を必須にしてもらい、こちらは ID トークンの `amr`（認証方法）を見て確かめることもできる。
 
@@ -437,7 +447,7 @@ Auth0 のサポートセンターの「Quota Utilization」で、契約の上限
 
 | 計測の単位 | 数え方 | この構想では |
 |---|---|---|
-| Active Users（MAU） | その月にトークンを発行した一意のユーザー ID。同じ人が複数のアプリを使っても 1。RT での更新は数えない。後で削除しても、その月は数える | **協力会社のうち、その月に STUDIO にログインした人数**。SCIM で作られただけでログインしていない人は数えない |
+| Active Users（MAU） | その月にトークンを発行した一意のユーザー ID。同じ人が複数のアプリを使っても 1。RT での更新は数えない。後で削除しても、その月は数える | **協力会社のうち、その月に STUDIO にログインした人数**。SCIM で作られただけでログインしていない人は数えない（2026-10-16 の決定で社員もブローカー経由にすると、社員の人数も加わる） |
 | Enterprise Connections | その月に「アプリで有効」かつ「ログイン等の利用があった」企業接続の本数。**Okta Workforce の接続は数えない** | **協力会社の社数**。将来社員を Okta から入れても増えない |
 | Machine to Machine | Client Credentials で発行したアクセストークンの数。**Management API 用のトークンは除く** | STUDIO の突き合わせの cron は Management API を使うので数えない見込み |
 | MFA | Enterprise MFA（プッシュ・WebAuthn・SMS 等）と Pro MFA（認証アプリ）の登録・チャレンジの回数 | MFA は相手先の Entra に任せるので発生しない |
@@ -579,6 +589,8 @@ B2B Professional でも構想は成り立つ（離任は Event Streams + cron �
 ### 比較から言えること
 
 - **離任が製品の中で閉じているのは Auth0・Clerk・WorkOS（AuthKit の Directory Provisioning を使う場合）。** SCIM の無効化 → セッション失効 → アプリへの通知が一続き。Entra B2B は通知が無い。
+> **2026-10-16 に改めた**: 同じ日に「Terraform そのものは必須でなく、identity リポの IaC lane に近い運用ができればよい」と条件を改めた。順位は Auth0（本命）・Zitadel Cloud（2 番手）・WorkOS（3 番手）（「決まったこと」「一騎打ちに割り込めそうな候補」）。次の項は Terraform を必須としていた当時のもの。
+
 - **Terraform を必須とする（2026-10-16 に決定）。** 公式の provider が無い Clerk・Descope は外れ、残るのは Auth0 と WorkOS。WorkOS の provider もコミュニティ製で、この点が WorkOS の最大の弱点になる（「Auth0 と WorkOS の詳しい比較」）。
 - **相手先が Entra に限られるなら、Entra B2B も比べる価値がある。** ただし入場の向き（案 2）と離任の同期が構想と合わないので、選ぶなら構想の側を直す。
 
@@ -689,6 +701,8 @@ B2B Professional でも構想は成り立つ（離任は Event Streams + cron �
 **WorkOS の Events API を cron で読む形は、受け口（外から叩かれる API）を持たずに済む。** `defineRoute` で利用者のセッションを持たない受け口を宣言する、という未決の論点が消える。その代わり、離任から失効までの時間は cron の間隔で決まる（Entra の同期が約 40 分ごとなので、数分おきに読めば実質の差は小さい）。
 
 ### いまの見立て
+
+> **2026-10-16 に改めた**: この見立ては「Terraform を必須とする」前提で書いた。その後、条件を「identity リポの IaC lane に近い運用」に改めた（「決まったこと」）。WorkOS の弱点は、provider がコミュニティ製であることより、読み取りと書き込みの credential を分けられないこと（下の「WorkOS の設定をコードで管理する手段」）。
 
 - **決め手は Terraform。** 「Terraform を必須とする」なら、公式の provider を持つのは Auth0 だけで、WorkOS はコミュニティ製の provider に頼るか、自分たちで provider を持つことになる。Actions やドメインの設定は provider の対象外なので、少なくとも一部は管理画面か API で手作業になる。
 - **WorkOS が優るのは、運用の細部。** 管理画面の SSO が全プラン、相手先向けの Admin Portal、Events API で離任と cron を 1 本にできる、SCIM で入場を決める別解、料金が公開。
@@ -834,7 +848,7 @@ CLI のログインの流れは 2 つ。ローカルの転送（認可コード 
 
 **見立て**: 既定はローカルの転送にし、ブラウザの無い環境だけデバイスコードを使えば、3 者の差はほぼ消える。デバイスコードだけで作るなら、Zitadel Cloud のリフレッシュトークンと Auth0 の Organizations の扱いを検証テナントで確かめる。
 
-**補足資料への反映**: まだ。4 章の jadd-cli の行と 8 章の表を直し、CLI の節を足す予定（公開用は手を付けない指示）。
+**補足資料への反映**: 済み。作り直した補足資料の 4 章 C「CLI」に入っている。
 
 **出典**: Auth0 Device Authorization Flow https://auth0.com/docs/get-started/authentication-and-authorization-flow/device-authorization-flow ・ Call your API using the Device Authorization Flow https://auth0.com/docs/get-started/authentication-and-authorization-flow/device-authorization-flow/call-your-api-using-the-device-authorization-flow ・ Missing org_id in Device Authentication Flow https://support.auth0.com/center/s/article/missing-org-id-in-auth0-device-authentication-flow ・ Community https://community.auth0.com/t/device-auth-flow-with-organizations/72187 ・ WorkOS CLI Auth https://workos.com/docs/authkit/cli-auth ・ Zitadel Device Authorization https://zitadel.com/docs/guides/integrate/login/oidc/device-authorization ・ Zitadel Scopes https://zitadel.com/docs/apis/openidoauth/scopes
 
@@ -880,18 +894,18 @@ mono-e2e と cdk-apps の PR で確かめた。
 
 **見えること**: 動いているのは安本さんの BFF の撤廃とオフボーディングの同期。2 段目の大半は設計メモの作業で、特に「認可のチェック」「`user_role`」「`iss` の対応表」は補足資料の案の土台。先に入れればブローカーが決まったときの作業が小さくなる。3 段目の多くは、ブローカーの決定と、協力会社に使ってもらう機能の決定で動き出す。
 
-**補足資料の古い記述**: 3 章と 10 章の「BFF の `/3dgs/train`・`/data-explorer` が残っている」は、10/16 の #2186 で古くなった。
+**補足資料の古い記述**: 作り直す前の補足資料にあった「BFF の `/3dgs/train`・`/data-explorer` が残っている」は、10/16 の #2186 で古くなった。作り直した補足資料では、6 章に「撤去済み」と書いてある（対応済み）。
 
 ## 決まったこと
 
 - 協力会社は非常に大きな会社・Entra ID の可能性が高い・ごく一部の部門だけ
-- 対象アプリはまず JADD STUDIO だけ
+- 対象アプリはまず JADD STUDIO。backend-api も機能を絞って協力会社に使ってもらう可能性があり、jadd-cli は backend-api の認証と一緒に解ける想定（2026-10-16）
 - 費用より運用・変更のしやすさ・設計の綺麗さを優先する
 - STUDIO の中のロールは STUDIO で管理する。所属は属性として記録するだけで権限に使わない（全員フラット）
 - 入場の絞り方は案 2（相手先の割り当て + Auth0 でアプリロールのクレームを確認）を基にする。guest の自動作成は許容する
 - 退職者・離任者の処理は必須。SCIM で受け、必要なら定期のバッチを併用する
 - ブローカーの設定は、identity リポの IaC lane に近い運用（コードで持つ・PR で変える・CI で適用・credential の分離）で管理できることを求める。Terraform そのものは必須でない（2026-10-16）
-- ブローカーは SaaS に限る。順位は Auth0（本命）・Zitadel Cloud（2 番手）・WorkOS（3 番手）。Okta Workforce（案 B）は外す（2026-10-16）
+- ブローカーは SaaS に限る。順位は Auth0（本命）・Zitadel Cloud（2 番手）・WorkOS（3 番手）。WorkOS は credential を分けられず運用の条件から外れるが、比べる基準として残す。Okta Workforce（案 B）は外す（2026-10-16）
 - 協力会社の IdP は製品名で決め打ちしない（2026-10-16）
 - 社員の Google ログインは一時的な形。ブローカーの導入が決まれば Okta → ブローカーに置き換える。Supabase のトークンはどの段でも扱わない（2026-10-16）
 - backend-api で誰に許すかは、backend-api の `user_role` に協力会社の行を `(iss, sub)` で持つ案で進める（2026-10-16）
@@ -913,7 +927,7 @@ mono-e2e と cdk-apps の PR で確かめた。
 - [ ] jadd-cli のログインの流れ（ローカルの転送を既定、デバイスコードを補助にするか）
 - [ ] Auth0 のプラン（Enterprise か B2B Professional か。上の「Auth0 のプラン」）
 - [ ] 協力会社 SSO のセッションの絶対的な寿命（SCIM が止まったときの保険。例: 7 日）
-- [ ] Auth0 の運用主体（コーポレート IT か、アプリ側か）と、identity リポの IaC lane に載せるか
+- [ ] Auth0 の運用主体（コーポレート IT か、アプリ側か）。identity リポの IaC lane で管理する方針は 2026-10-16 に決めた（[`where-to-solve.md`](../documents/where-to-solve.md) 3 章）
 
 ## 参照
 

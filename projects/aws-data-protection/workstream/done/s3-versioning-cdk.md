@@ -2,14 +2,14 @@
 
 - 開始: 2026-10-19
 - **完了（2026-10-20）**: 第一弾として完結。残りの TODO は [S3 バケットのデータ保護 第二弾](../s3-data-protection-2.md) に引き継いだ
-- 状態: **cdk-apps の 4 本の PR はすべてマージ・deploy 済み（2026-10-19）**。残りは DataSync の確認と、deploy の workflow の `paths` の修正
+- 状態: **cdk-apps の 4 本の PR はすべてマージ・deploy 済み（2026-10-19）**。DataSync は 2026-10-20 に確かめた（認証は通った。送り元が 0 件なので中身の転送は未確認）。deploy の workflow の `paths` の修正（#2231）は第二弾の TODO 18 に移した
 - 所属: project:aws-data-protection（作業先は cdk-apps だが、cdk-apps に workstream の置き場が無いためこちらに置く。2026-10-26 に `~/docs/workstream/` から移した）
 - 親: [走行データ消失リスクへの対応](raw-data-security.md)（種別 S1〜S10 と処遇はそちらが正本）
 - 用語: S3 の Versioning は「バージョニング」と書く。旧版を指すときは「古い版」
 
 ## 目的
 
-親 workstream で「バージョニングを行う」とした原本のバケットのうち、**CDK で管理しているもの**に、cdk-apps の PR でバージョニングと古い版の失効を入れる。手で ON にすると、ライフサイクルを次の deploy で上書きされるため、テンプレートに書く（親 workstream の「管理元ごとの入れ方」）。
+親 workstream で「バージョニングを行う」とした原本のバケットのうち、**CDK で管理しているもの**に、cdk-apps の PR でバージョニングと古い版の失効を入れる（2026-10-19 に改めた: 古い版は失効させない。下の「決まったこと」）。手で ON にすると、ライフサイクルを次の deploy で上書きされるため、テンプレートに書く（親 workstream の「管理元ごとの入れ方」）。
 
 手動で作ったバケット（AWS CLI で入れる分）は、この workstream の範囲外。
 
@@ -108,7 +108,7 @@ dev に deploy されるのは **datalake だけ**（`datalake-deploy-dev.yml`�
   - #2031（2026-09-30）では、本番にしか無いバケットのポリシー（`OpenmaptilesBucketPolicy`）を `prodAccountIds.includes(currentAccountId)` のときだけ作るようにした。dev / GENIAC で作られないことのテストも足している。
 - **dev は main に追従させる。** #2031 で、main への push で dev にも自動 deploy するようにした。手動だと dev が main から遅れ、未反映の差分が溜まって壊れても気づけないため。
 - **バージョニングは、前例では dev にも入れている。** tuscenes-model のバージョニングは #2031 で dev にも入った（「prod と同じ設定」）。
-- **dev の td1-raw は検証用のバケット。** 車両チームが試験データを上げ、消すこともある（mono-e2e `naga-pipeline/PLAN.md`: 2026-06-30 に試験データ `nx99` が削除された）。バージョニングを入れると、消した試験データが古い版として 90 日残る。
+- **dev の td1-raw は検証用のバケット。** 車両チームが試験データを上げ、消すこともある（mono-e2e `naga-pipeline/PLAN.md`: 2026-06-30 に試験データ `nx99` が削除された）。バージョニングを入れると、消した試験データが古い版として 90 日残る。（2026-10-19 に改めた: 失効はやめた。dev にはバージョニング自体を入れていない（#2215））
 
 **書き方の案**: #2031 と同じく、`versioned` と失効を `prodAccountIds.includes(currentAccountId)` のときだけ有効にする。dev / GENIAC では何も変わらないことをテストで確かめる。tuscenes-model の前例（dev にも入れた）とは逆の判断になるので、PR 本文に理由（dev は検証用で原本ではない）を書く。
 
@@ -128,12 +128,12 @@ dev に deploy されるのは **datalake だけ**（`datalake-deploy-dev.yml`�
 
 ### 手順
 
-1. バージョニングと 90 日の失効を足す PR を出す（`versioned: true`、ライフサイクルの規則に `noncurrentVersionExpiration`）。
+1. バージョニングと 90 日の失効を足す PR を出す（`versioned: true`、ライフサイクルの規則に `noncurrentVersionExpiration`）。（2026-10-19 に改めた: 失効は外した。下の「進捗と引き継ぎ」）
 2. マージ後に、書き込みの権限で `apps/gaming-data-collection` から `npx cdk deploy` する（クリーンな checkout から）。`cdk diff` が `VersioningConfiguration` と `LifecycleConfiguration` の変更だけであることを先に確かめる。
 
 ## 先に済ませること
 
-- **LidarDeleter の信頼ポリシーを外すか、周知する**（親 workstream のレビュー 2）。バージョニングの後に LiDAR の間引きを再開されると、データは消えずに古い版として課金が続く。失効が 90 日なら、約 1.3〜1.6 PiB が 90 日間残る。
+- **LidarDeleter の信頼ポリシーを外すか、周知する**（親 workstream のレビュー 2）。バージョニングの後に LiDAR の間引きを再開されると、データは消えずに古い版として課金が続く。失効が 90 日なら、約 1.3〜1.6 PiB が 90 日間残る。（2026-10-19 に失効はやめたので、無期限に残る。LidarDeleter の扱いは第二弾の TODO 16）
 
 ## 進捗と引き継ぎ
 

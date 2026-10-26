@@ -16,7 +16,7 @@
 
 ## 1. 結論
 
-- **本命は Auth0、2 番手は Zitadel Cloud、3 番手は WorkOS。**
+- **本命は Auth0、2 番手は Zitadel Cloud、3 番手は WorkOS。** WorkOS は運用の条件 (7) を満たさず候補から外れるが、Auth0 と比べる基準として順位に残した（3 章）。
 - 決め手は、**identity リポと同等の IaC（設定をコードで持ち、PR で変え、CI で適用し、読み取りと書き込みの credential を分ける）ができるか**。Auth0 と Zitadel Cloud は満たせるが、WorkOS は credential を分けられない。
 - Zitadel Cloud が Auth0 に及ばないのは、**離任の確かさ**（SCIM がプレビュー、無効化のときにアプリへ通知されるかが不明）、**SCIM の人と SSO の人の結び付けがメール・ユーザー名頼み**、**日本のリージョンが無い**、の 3 点。
 - 次の一手は、Auth0 と Zitadel Cloud の検証テナントで離任の流れを確かめることと、Auth0 の Enterprise の見積を取ること（6 章）。
@@ -368,7 +368,7 @@ identity リポの Provisioning lane は、いまは「Okta の Terraform で完
 
 - Auth0 なら、プラン（Enterprise か B2B Professional か。バックチャネルログアウトと Dashboard SSO は Enterprise だけ）
 - 協力会社のセッションの絶対的な寿命（SCIM が止まったときの保険。例: 7 日）
-- ブローカーの運用主体（コーポレート IT か、アプリ側か）と、identity リポの IaC lane に載せるか
+- ブローカーの運用主体（コーポレート IT か、アプリ側か）。identity リポの IaC lane で管理する方針は 2026-10-16 に決めた（[`where-to-solve.md`](where-to-solve.md) 3 章）
 
 ## 7. 出典
 

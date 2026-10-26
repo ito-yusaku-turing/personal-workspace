@@ -41,5 +41,5 @@ Claude Code の入力欄から `!` を付けて 1 行ずつ実行する。
 ## この手順で確かめないもの
 
 - **AWSAdministratorAccess の例外**: FullAccess と同じ書き方（`AWSReservedSSO_<名前>_*`）なので、FullAccess で確かめれば足りる。
-- **CDK の deploy（cfn-exec-role）**: datalake の PR で `tuscenes-calibration-test` に入れ、`cdk diff` を確かめてからマージし、GitHub Actions の deploy が通ることで確かめる。
+- **CDK の deploy（cfn-exec-role）**: datalake の PR で `tuscenes-calibration-test` に入れ、`cdk diff` を確かめてからマージし、GitHub Actions の deploy が通ることで確かめる。（2026-10-23 追記: `tuscenes-calibration-test` では試さず、本番の #2252 の deploy で確かめた。[親](../../s3-data-protection-2.md) の TODO 4）
 - **Control Tower・StackSets のロールが止まっても困らないか**: ReadOnly で確かめ済み（2026-10-21）。直近 90 日の呼び出しは 0 件で、StackSet のスタックは 12 本に触れていない。

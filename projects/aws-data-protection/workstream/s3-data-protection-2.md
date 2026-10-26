@@ -1,13 +1,13 @@
 # S3 バケットのデータ保護 第二弾（権限設計のアップグレード）
 
 - 開始: 2026-10-20
-- 状態: **ステージ 1 とステージ 2 の 1 本目がレビュー待ち**（2026-10-22 終業時）。cdk-apps #2252（共通部と denso-raw）・#2253（残りの 11 本）・#2267（ステージ 2 のカナリアと記録の仕組み）。3 本とも Copilot の指摘は片付け済み、CI は全部通過。チームのレビューはまだ付いていない
+- 状態: **ステージ 1 の残りの 11 本とステージ 2 の 1 本目がレビュー待ち**（2026-10-23 終業時）。cdk-apps #2252（共通部と denso-raw）は 2026-10-23 にマージし、denso-raw に入れた。#2253（残りの 11 本）・#2267（ステージ 2 のカナリアと記録の仕組み）は、どちらも main 向けで CI は全部通過。チームの承認待ち
 - 所属: project:aws-data-protection（2026-10-26 に `~/docs/workstream/` から移した）
 - 前段（第一弾、完了）:
   - [走行データ消失リスクへの対応](done/raw-data-security.md)（バケットの種別と処遇、裁定の正本）
   - [原本バケットのバージョニング（cdk-apps）](done/s3-versioning-cdk.md)
   - [原本バケットへのアクセスの洗い出し](done/s3-bucket-access-control.md)（誰が何をできるかの表。本資料の根拠）
-- 共有用の資料: [permission-upgrade-plan.md](s3-data-protection-2/permission-upgrade-plan.md)（Notion に上げる）
+- 共有用の資料: [permission-upgrade-plan.md](s3-data-protection-2/permission-upgrade-plan.md)（2026-10-21 に Notion に上げた。2026-10-26 に手元の写しを 10-21〜22 の決定に合わせて直したので、上げ直しが要る）
 - 参考資料: [AWS の権限の階層](../documents/aws-privilege-hierarchy.md)（一般論と、管理アカウントへの CI の経路の調査）
 - 用語: S3 の Versioning は「バージョニング」。旧版を指すときは「古い版」
 - 番号の付け方: 案件は「第一弾・第二弾」、第二弾の中の手順は「ステージ 1〜4」、TODO は通し番号で「TODO 6」のように呼ぶ（2026-10-22。以前の「第 1 段」「P1」はやめた）
@@ -37,7 +37,7 @@
 
 ### すぐやる
 
-1. **共有用のプランをチームに出す**（[permission-upgrade-plan.md](s3-data-protection-2/permission-upgrade-plan.md) を Notion に上げる）。「決めてほしいこと」の 1〜4 への回答を集める。とくに break-glass の人を誰にするか。
+1. **共有用のプランをチームに出す**（~~[permission-upgrade-plan.md](s3-data-protection-2/permission-upgrade-plan.md) を Notion に上げる~~ → 済み（2026-10-21。「進捗と引き継ぎ」の 10-21）。2026-10-26 に手元の写しを 10-21〜22 の決定に合わせて直したので、Notion への上げ直しが要る）。「決めてほしいこと」の 1〜4 への回答を集める。とくに break-glass の人を誰にするか（名簿はまだ無い）。
 2. **root の認証情報の削除**は別の案件にした（[メンバーアカウントの root の認証情報を消す](aws-root-credentials.md)。CorpIT に依頼する）。S3 の案件としては、進み具合を見るだけにする。
 
 ### ステージ 1: バケットポリシーの Deny
@@ -53,8 +53,8 @@
    - 例外以外が拒否される（一時的なロールで試す）。
    - 例外の主体がポリシーを直せる（締め出されない）。
    - ~~Control Tower・StackSets のロールが止まっても困らない~~ → 困らない（2026-10-21、ReadOnly で確認）。3 本（`AWSControlTowerExecution`・`aws-controltower-AdministratorExecutionRole`・`stacksets-exec-ff6b…`）とも直近 90 日の CloudTrail に呼び出しが 0 件（最終利用は 2025-09-12・未使用・2026-02-02）。このアカウントの StackSet のスタック 9 個は Control Tower の基本設定と SSM の Quick Setup で、S3 は SSM 用のバケット 2 本だけ。12 本には触れていない。
-   - deploy の経路（cfn-exec-role）は、B3 の datalake の PR で `tuscenes-calibration-test` に入れて確かめる。
-5. **Databricks**: 直近 90 日に、Databricks のロールによるライフサイクルの読み書きは 0 件（`GetBucketLifecycle` 約 4.5 万件・`PutBucketLifecycle` 15 件を確認。2026-10-21）。別の検証は立てず、本番の 1 本目で Unity Catalog が動くかを見る。
+   - ~~deploy の経路（cfn-exec-role）は、B3 の datalake の PR で `tuscenes-calibration-test` に入れて確かめる。~~ → 済み。`tuscenes-calibration-test` では試さず、本番で確かめた（2026-10-22 にシミュレーターで cfn-exec-role が書き換えられることを確認（TODO 7）。2026-10-23 に #2252 の deploy で cfn-exec-role が denso-raw に `PutBucketPolicy` し、スタックの更新も完了した（「進捗と引き継ぎ」の 10-23））。
+5. ~~**Databricks**: 直近 90 日に、Databricks のロールによるライフサイクルの読み書きは 0 件（`GetBucketLifecycle` 約 4.5 万件・`PutBucketLifecycle` 15 件を確認。2026-10-21）。別の検証は立てず、本番の 1 本目で Unity Catalog が動くかを見る。~~ → 済み（2026-10-23。denso-raw に入れた前後で、Databricks の `denso.default.raw` から書き込みと削除ができた。「進捗と引き継ぎ」の 10-23）。
 6. ~~**本番の 1 本目に入れる**（cdk-apps #2252）~~ → 済み（2026-10-23。結果は「進捗と引き継ぎ」の 10-23）。denso-raw。共通部 `packages/original-bucket-guard` もこの PR で足す。マージ後 30 分〜1 時間、Unity Catalog の読み書きと CloudTrail の AccessDenied を見る。
 7. **残りの 11 本に入れる**（cdk-apps #2253。今は main 向け。チームの承認待ち）。
    - 2026-10-22 の方針の変更（伊藤が決定）:
@@ -87,7 +87,7 @@
 8. **root の案件との接点を押さえる**（root の側は別の案件）。
    - root の一元管理が入ると、管理アカウントの管理者が `S3UnlockBucketPolicy` でバケットポリシーを消せる。これはステージ 1 で締め出されたときの戻し道になる。一方で、守りを外せる経路にもなる。
    - そのため、管理アカウントで最大権限を持つ人も、最大権限を持つ人に数える。
-9. **削除のデータイベントを記録する**。12 本の書き込み系だけ。費用を見積もってから決める（書き込みは少ないはず）。古い版の削除・ライフサイクルの変更を通知する。
+9. **削除のデータイベントを記録する**。~~12 本の書き込み系だけ。費用を見積もってから決める（書き込みは少ないはず）。古い版の削除・ライフサイクルの変更を通知する。~~ → 範囲と費用は上の要件で決めた（2026-10-22）。記録は 12 本の `DeleteObject`・`DeleteObjects` だけ（データイベントは月 $1 未満、仕組み全体で月約 $60）。通知は毎時の報告にし、即時のアラートはスコープ外。設計は [stage2-hourly-report.md](s3-data-protection-2/stage2-hourly-report.md)、1 本目の PR は #2267（対象はカナリアだけ）。
 24. **SCP・RCP で 2 枚目の守りを足す**（2026-10-23。#2252 のレビューで graph226 さんの指摘から）。バケットポリシーは例外の主体なら書き換えられるので、tuscenes-prod の中から外せない守りを重ねる。仕様を調べてから決める。
     - `cdk-hnb659fds-*` のロールの作成・削除・信頼の変更を Deny する。#2150 の `iam-guardrails` の `DenyReservedPathRoles` と同じ形。deploy のロールを名乗る抜け道を、主体がだれでも塞げる。
     - 12 本への `DeleteObjectVersion` などの Deny を SCP か RCP に重ねる。
@@ -111,7 +111,7 @@
 13. **IAM ユーザーと長期キーを片付ける**。
     - `tokyo30-dataupload-pc-01`：td1-raw ほか 3 本でバケットの削除まで可能。今も使用中なので、持ち主に確認する。
     - `AmazonS3FullAccess` の 4 本：jadd-datasync、jadd-remote-sync-kohei.watanabe、jadd_studio_amplify、shio-secretsmanager_GetSecretValue。
-    - **jadd_studio_amplify**（2026-10-23 に正体を調べた）。Amplify CLI の時代（2024-11-23、初代 jadd_studio）に `amplify configure` で作ったユーザー。`AmazonS3FullAccess`・`AdministratorAccess-Amplify`・`AmplifyBackendDeployFullAccess`・`secretsmanager_GetSecretValue` を持つ。cfn-exec-role を名乗れるので、ステージ 1 の守りを外せる（#2252 のレビュー）。
+    - **jadd_studio_amplify**（2026-10-23 に正体を調べた）。Amplify CLI の時代（2024-11-22、初代 jadd_studio）に `amplify configure` で作ったユーザー。`AmazonS3FullAccess`・`AdministratorAccess-Amplify`・`AmplifyBackendDeployFullAccess`・`secretsmanager_GetSecretValue` を持つ。cfn-exec-role を名乗れるので、ステージ 1 の守りを外せる（#2252 のレビュー）。
       - **別の資料に切り出した: [jadd_studio_amplify を削除する](jadd-studio-amplify-removal.md)**（2026-10-23）。利用元の調査の結果・削除の手順・Amplify の一式の扱いはそちらが正本。
       - 要点: キーは 2 本とも 2026-10-23 に無効化した（伊藤）。利用元の最有力は、jadd_studio3 の開発者の手元の `.env.local`（3 月に配った秘密情報のパッケージにこのキーが入っていた）。Devin の線は取り下げた。削除を妨げる依存は無い。
       - PR には、キーが漏れていることを書かない（「ステージ 4 で片付ける」とだけ書いた）。
@@ -127,7 +127,7 @@
 
 ### 第一弾からの持ち越し（チームの合意待ち）
 
-20. **バケットの種別の記事を Notion に上げ直す**（[`done/raw-data-security/notion-bucket-classification.md`](done/raw-data-security/notion-bucket-classification.md)。10-19 の変更を反映済み）。
+20. **バケットの種別の記事を Notion に上げ直す**（[`done/raw-data-security/notion-bucket-classification.md`](done/raw-data-security/notion-bucket-classification.md)。10-19 の変更を反映済み。2026-10-26 に、tuscenes-calibration（新）の失効の記述と denso-nx-raw の件数の記述も手元の写しで直した）。
 21. **databricks-workspace-e2e-bucket の A 案**（バージョニングを入れない）をチームで議論する。S3 を直接消されることへの手当ては、ステージ 1 と同じバケットポリシーで考えられる（Databricks のロール以外の削除を拒否する）。
 22. **調べ残し**：手で作ったバケットの持ち主と出所、tuscenes-calibration（旧）の写しの有無、他アカウント（amman-pipeline・e2e-dev・biz-dev）の同じ集計。
 23. **datalake の td1-raw の通知の設定**: datalake は td1-raw の通知を CDK の「丸ごと上書き」の方式（`Managed: true`）で持っている。datalake の通知の設定を変えて deploy すると、Databricks の auto-ingest の通知が消えるおそれがある（2026-10-22 に気づいた。ステージ 2 の設計を参照）。
@@ -206,7 +206,7 @@
     | #2267 | ステージ 2 の 1 本目: カナリアと記録の仕組み | 10-22 の引き継ぎの「#2267 の deploy の後」の 4 点 |
 
   - **伊藤の作業**: denso-raw の `_policy-check/` の片付け（FullAccess で古い版と削除マーカーを消す）。
-  - **待っているもの**: jadd-1023-search（並行のセッション）の結果。1 本目のキーの利用元（Devin の Secrets・Slurm の資格情報）。片付けは TODO 13（切り出した workstream）で。
+  - **待っているもの**: jadd-1023-search（並行のセッション）の結果。1 本目のキーの利用元（Devin の Secrets・Slurm の資格情報）。片付けは TODO 13（切り出した workstream）で。（2026-10-26 注: Devin の線は取り下げた。利用元は TODO 13 と [jadd-studio-amplify-removal.md](jadd-studio-amplify-removal.md) を正とする）
   - **作業場所**: worktree はエージェントの一時ディレクトリ（cdk-2253・cdk-2267）。ブランチはすべて push 済みなので、次は `/usr/app/cdk-apps` から作り直せばよい。`/usr/app/cdk-apps` は片付け済み（main は c8698ee2 まで fast-forward、ローカルブランチは PR 中のものだけ。valhalla-turing-api の残骸は控えを取って消した）。
   - **期限があるもの**: TODO 19（azure-data-sync の SAS は 2026-10-26 まで）。
   - **注意**: #2253 と #2231 は denso の workflow の同じ箇所を触る（後からマージする側で行をそろえる）。

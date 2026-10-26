@@ -1,7 +1,7 @@
 # M2M 認証の手法の確立（車載装置・CI 用マシン）
 
 - 開始: 2026-10-15
-- 状態: **一般論の整理と、関係者の動きの把握の段階**。改善案は岩政さん・安本さんと歩調を合わせてから詰める
+- 状態: **一般論の整理と、関係者の動きの把握の段階**。伊藤の第一候補は「安部さんの 1 台 1 証明書の体制が整ってから、backend-api を IoT 証明書の基盤に乗せる」（関係者とはまだ合わせていない）。次は安部さんに backend-api の要件を伝え、安本さんと `jadv_` をつなぎにするかを決める（下の「歩調を合わせる論点」）
 - 所属: project:m2m-auth（2026-10-26 に `~/docs/workstream/` から移した）
 - 関連: [IdP の役割分担の検討](../../idp-broker/workstream/idp-auth0-role-division.md)（退職の同期・ロールの持ち場・BFF 撤廃後の入口が共通の論点）
 
@@ -94,7 +94,7 @@
 | `/video`・`/trajectory-visualizer` を backend-api に移し、旧ルートと中継先を撤去 | 安本 | mono-e2e #6161・#6299、cdk-apps #2166〜#2168 |
 
 **これからやる**
-- 残りのルート（3dgs・data-explorer）を移す。STUDIO の資料ではキーワード検索も BFF 固有のエンドポイントとして残っている。
+- ~~残りのルート（3dgs・data-explorer）を移す~~ → 10/16 に撤去済み（安本さん、cdk-apps #2186）。BFF に残るのは `/v1/{proxy+}`（backend-api への中継）と authorizer だけ（[IdP の役割分担の検討](../../idp-broker/workstream/idp-auth0-role-division.md)の「backend-api の課題と、今の動き」）。STUDIO の資料ではキーワード検索も BFF 固有のエンドポイントとして残っていたが、いまどうなっているかは確かめていない。
 - 【未決】service key 廃止のメモで BFF の authorizer に持たせていた役割（API キーの検証、号車・サービスのキーの経路制限、`iss` の確認、`.internal` のメールの拒否）を、撤廃後どこに移すか。
 
 ### 2. backend-api（mono-e2e）
@@ -114,7 +114,7 @@
 
 **これからやる**
 - service key 廃止の実装（メモの 8 段階: 土台 → jadd-cli → authorizer → シナリオテスト → サービスのキー → 号車 → enforce → 削除）
-- オフボーディング同期を本番で有効にする（専用の Google アカウントと委任の準備待ち）
+- ~~オフボーディング同期を本番で有効にする（専用の Google アカウントと委任の準備待ち）~~ → 10/9 に本番で有効（15 分ごと。cdk-apps #2122・#2123。IdP の役割分担の検討の「backend-api の課題と、今の動き」）
 - メモの「残るリスク」: JWT 署名鍵の作り直し（JWKS への移行）、`backend-prod` を読める 39 主体の整理
 - 【未決】STUDIO のロールを backend-api でも効かせるか（メモでは範囲外）
 
@@ -303,7 +303,7 @@ mender 証明書（iot-core-agent の MQTT・Device Shadow 用。IoT ポリシ�
 - [ ] edge-ansible #552（tern-api 用の証明書と秘密鍵の配布）・#531（CodeArtifact 用の `aws_credential_process.py`）の状態と、秘密鍵をどこに置いて配っているか
 - [ ] 2026-03-05 に credential provider と全台共通の証明書を作ったのは誰か（基盤の持ち主）
 - [ ] IoT credential provider で得た資格情報から、呼び先で機体（Thing 名・証明書 ID）を取り出せるか（role のセッション名・`userArn` に何が入るか）。安部さんの側でも未定
-- [ ] Auth0 を発行役にする場合: `private_key_jwt` が使えるプラン、アプリ数の上限、M2M トークン数の数え方
+- [x] ~~Auth0 を発行役にする場合: `private_key_jwt` が使えるプラン、アプリ数の上限、M2M トークン数の数え方~~ → 不要。ブローカー（Auth0 などの候補）を M2M の発行役にはしない。機械の身元は AWS（IoT・IAM）と backend-api の API キーで持つ（[補足資料](../../idp-broker/documents/backend-api-auth-supplement.md)の冒頭の「範囲外」、[どの問題を、どこで解くか](../../idp-broker/documents/where-to-solve.md)の「機械（車載装置・CI）の身元」）
 
 ## 参照
 

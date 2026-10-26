@@ -46,9 +46,9 @@
 | td1-rlog | S1 | 21.1 | 2024-10〜2025-04 の走行一式 | 2025-09-08 | **行う** | AWS CLI | 唯一の原本で、派生テーブルも無い。全量が低頻度層にある |
 | gaming-data-collection | S1 | 3.3 | ゲームやシミュレータの操作記録（推定） | 2026-07-31 | **行う** | cdk-apps | 手元のマシンからアクセスキーで上げている |
 | tuscenes-calibration（旧、接尾辞なし） | S1 | 1.3 | 車両のキャリブレーション | 2026-03-24 | **行う** | AWS CLI | 新バケットに中身が移っていない |
-| tuscenes-calibration（新） | S1 | ほぼ 0 | 車両のキャリブレーション | — | **行う（既に導入済み）** | cdk-apps（Datalake） | 古い版の失効が無いので、失効を足す |
+| tuscenes-calibration（新） | S1 | ほぼ 0 | 車両のキャリブレーション | — | **行う（既に導入済み）** | cdk-apps（Datalake） | テンプレートに `versioned: true` を書いて実物に合わせる。古い版の失効は無い（無期限に残る） |
 | denso-taxi-video | S2 | 452.0 | DENSO のタクシー動画 | 2026-10-13 | **行う** | cdk-apps（DensoTaxiStack） | 取り込み元の Azure 側は削除済み |
-| denso-nx-raw | S2 | 170.9 | DENSO NX の mcap | 2026-10-02 | **行う** | cdk-apps（DensoNx） | Azure から毎日転送。転送元のファイル数が 2026-10-15 に急減しており、確認中 |
+| denso-nx-raw | S2 | 170.9 | DENSO NX の mcap | 2026-10-02 | **行う** | cdk-apps（DensoNx） | Azure から毎日転送。転送元のファイル数が 2026-10-15 に急減し、10-17 以降は 0 件。確認中 |
 | denso-raw | S2 | 15.2 | DENSO から納品された raw（7z） | 2026-04-15 | **行う** | AWS CLI | IaC 上の読み手は 0。Databricks のボリューム経由で読める |
 | denso-taxi-processed | S2 | 1.1 | Azure 側で加工した bag ごとの parquet（calibration / can / frame_timestamps / gnss） | 2026-09-11 | **行う** | cdk-apps（DensoTaxiStack） | 作り直す元だった Azure 側の原本と加工後のデータは削除済み。frame_timestamps は mp4 から作り直せない。2026-10-19 に S6 から移した |
 | denso-nx-sample | S2 | 5.7 | DENSO NX の mcap のサンプル | 2026-05-20 | 行わない | — | denso-nx の抽出テストで使う。2026-10-19 にチームで却下 |

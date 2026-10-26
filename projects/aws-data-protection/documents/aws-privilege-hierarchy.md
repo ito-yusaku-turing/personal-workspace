@@ -127,7 +127,7 @@ cdk-apps の main（`c9ee0565`）、GitHub の ruleset と Environment の設定
 
 - 管理アカウントの `cfn-exec-role` の権限。CDK の初期設定なら `AdministratorAccess`。
 - ruleset の `require_extra_approval_for_unattributed_changes: true` の意味。穴 1 の一部を塞いでいる可能性がある。
-- Identity Center が管理アカウントにあるのか、委任管理者のアカウント（CorpIT の 259604217662 など）にあるのか。
+- ~~Identity Center が管理アカウントにあるのか、委任管理者のアカウント（CorpIT の 259604217662 など）にあるのか。~~ → インスタンスは管理アカウント 210332786925 にある（2026-10-20、[原本バケットへのアクセスの洗い出し](../workstream/done/s3-bucket-access-control.md) の進捗）。委任管理者のアカウントを置いているかは未確認。
 
 ### 塞ぎ方の案
 

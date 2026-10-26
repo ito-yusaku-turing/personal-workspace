@@ -1,7 +1,7 @@
 # Tern iOS アプリの認証と、フィードバックの送信
 
 - 開始: 2026-10-23
-- 状態: **方針と分担が決まった（2026-10-23）**。こちらは「Google ログインと、ログインした利用者が backend-api を呼ぶ経路」を iOS アプリに用意するまで。フィードバックの機能は三輪さんが作る
+- 状態: **方針と分担が決まり、説明用の資料でレビューを受ける段階（2026-10-23）**。こちらは「Google ログインと、ログインした利用者が backend-api を呼ぶ経路」を用意し、iOS への組み込み方を示すまで。iOS への組み込みとフィードバックの機能は三輪さんが作る。説明用の資料（[`notion-tern-ios-google-login.md`](tern-backend-api/notion-tern-ios-google-login.md)）を Notion に取り込み、三輪さんと MLOps チームにレビューしてもらう
 - 所属: project:tern-ios-auth（作業先は navi-ios-app・mono-e2e・cdk-apps にまたがる。2026-10-26 に `~/docs/workstream/` から移した）
 - 関連: [backend-api・JADD STUDIO・CLI の認証（補足資料）](../../idp-broker/documents/backend-api-auth-supplement.md)、[M2M 認証](../../m2m-auth/workstream/m2m-auth.md)
 
@@ -65,7 +65,7 @@
 
 ## 視点を引いた整理
 
-- **R1 に新しい Supabase プロジェクトは要らない見込み。** jadd-cli と同じく、backend-prod の Supabase に Google でログインすればよい。そのトークンは BFF の authorizer をもう通るので、**鍵の登録も authorizer の改修も要らない**。iOS では `ASWebAuthenticationSession` で Supabase の認可の画面を開き、アプリの URL スキームへ戻す（supabase-swift の OAuth のログインがこれを包んでいる）。手作業は、backend-prod の Supabase の Redirect URLs にアプリの戻り先を足すことだけ。
+- **R1 に新しい Supabase プロジェクトは要らない見込み。** jadd-cli と同じく、backend-prod の Supabase に Google でログインすればよい。そのトークンは BFF の authorizer をもう通るので、**鍵の登録も authorizer の改修も要らない**。iOS では `ASWebAuthenticationSession` で Supabase の認可の画面を開き、アプリの URL スキームへ戻す（supabase-swift の OAuth のログインがこれを包んでいる）。設定の手作業は、backend-prod の Supabase の Redirect URLs にアプリの戻り先を足すことだけ。ただし backend-prod の anon キーがアプリのビルドに入るので、`public` スキーマの RLS を確かめる（説明用の資料の「新しく生じること」）。
 - **R3 は、既存の Tern 用の API と同じ作りで足せる。** backend-api にフィードバックの受付を足し、backend-prod の Postgres に書く（Databricks からは federation で読む。下の「フィードバックの保存先」）。認可も同じく「検証済みの `@turing-motors.com` の利用者」にでき、送った人を JWT の `sub`・email で記録できる。JADD_SERVICE_KEY は使わない。
 - **R2 は別の作業になる。** Tern API は backend-api の後ろにいないので、ログインしても API キーは消えない。共有のキーを外すには、Tern API にトークンを検証する入口を足す必要がある（下の案）。β テストの間は、キーを残したまま R1・R3 を先に進めてもよい。
 
@@ -82,26 +82,29 @@
 ## こちらの作業（R1）
 
 1. **backend-prod の Supabase の設定**（手動）: Redirect URLs にアプリの戻り先（URL スキーム。例: `turingnavi://auth-callback`）を足す
-2. **iOS: ログイン**: supabase-swift で、Google の OAuth（PKCE）のログインを `ASWebAuthenticationSession` で行う。セッションは Keychain に置き、トークンの更新とログアウトも用意する。設定画面にログインの状態を出す
-3. **iOS: backend-api のクライアント**: ベースの URL は `https://api.turing-ai.dev`（jadd-cli の既定）。`Authorization: Bearer <access_token>` を付け、期限切れのときは更新してから送る。三輪さんがこの上に受付の呼び出しを足せる形にする
-4. **疎通の確認**: ログインした実機から、既存の backend-api のエンドポイントを呼び、BFF の authorizer と backend-api の `token_verifier` を通ることを確かめる
-5. **引き渡し**: 三輪さんに、クライアントの使い方と、受付の API 側で `@turing-motors.com` に絞る方法（既存の tern-agent と同じ）を伝える
+2. **iOS への組み込み方を示す**（実装は三輪さん。説明用の資料の「iOS アプリへの組み込み」）
+   - ログイン: supabase-swift で、Google の OAuth（PKCE）のログインを `ASWebAuthenticationSession` で行う。セッションは Keychain に置き、トークンの更新とログアウトも用意する。設定画面にログインの状態を出す
+   - backend-api のクライアント: ベースの URL は `https://api.turing-ai.dev`（jadd-cli の既定）。`Authorization: Bearer <access_token>` を付け、期限切れのときは更新してから送る。この上に受付の呼び出しを足せる形にする
+3. **疎通の確認**: ログインした実機から、既存の backend-api のエンドポイントを呼び、BFF の authorizer と backend-api の `token_verifier` を通ることを確かめる
+4. **引き渡し**: 三輪さんに、組み込み方と、受付の API 側で `@turing-motors.com` に絞る方法（既存の tern-agent と同じ）を伝える
 
-三輪さんの側（参考）: フィードバックの中身を決め、db-models にテーブルを足し、backend-api に受付を足し、iOS に送信の画面を足す。R2 は今回の範囲外。
+三輪さんの側（参考）: iOS にログインと backend-api の呼び出しを組み込む。フィードバックの中身を決め、db-models にテーブルを足し、backend-api に受付を足し、iOS に送信の画面を足す。R2 は今回の範囲外。
 
-当初の案（新しい Supabase プロジェクト + 鍵の登録）は、**下の「決めること」で backend-prod を使えないと分かった場合だけ**の予備に回す。その場合の注意: authorizer は HS256 の共有の秘密しか受けない（`supabase-authorizer-v3.ts:578`）ので、新しいプロジェクトが非対称鍵なら authorizer の改修が要る。また `iss` を確かめていないので、新しいプロジェクトに誰でも Google で入れると backend-api まで届く。
+当初の案（新しい Supabase プロジェクト + 鍵の登録）は、**backend-prod を使えなくなった場合だけ**の予備に回す（下の「決めたこと」で backend-prod を使うと決めた）。その場合の注意: authorizer は HS256 の共有の秘密しか受けない（`supabase-authorizer-v3.ts:578`）ので、新しいプロジェクトが非対称鍵なら authorizer の改修が要る。また `iss` を確かめていないので、新しいプロジェクトに誰でも Google で入れると backend-api まで届く。
 
 ## 決めたこと（2026-10-23）
 
 - [x] **β テスターは社員だけ。** Google ログイン（`@turing-motors.com`）で足りる。当初の案（新しい Supabase プロジェクト）は使わない
 - [x] **ログインには backend-prod の Supabase を使う。** jadd-cli で Supabase Auth の実績がある
   - jadd-cli と共存できる。Redirect URLs は複数登録でき、アプリは `redirect_to` で戻り先を指定するので、Site URL も jadd-cli の戻り先も変えない。Google の Client ID もカンマ区切りで足せる（ネイティブの Sign-In にする場合）。同じ社員は jadd-cli と iOS で同じ `sub` になる
+- [x] **iOS への組み込みは三輪さんが行う**（分担の表）。navi-ios-app は三輪さんのリポなので、PR も三輪さんが出す
 - [x] **フィードバックの保存先は backend-prod の Postgres（下の表の A）。** Tern の回帰テストのテーブル（`tern_regression_test_cases`・`_runs`・`_results`・`_gts`）が既にあり、その並びに置く。定義は mono-e2e の db-models（alembic）、Databricks からは `supabase_backend_prod.public` で読む
 
 ## 決めること
 
 - [ ] **ログインは必須か任意か**（三輪さんと決める）。オフラインの経路の計算は今もキー無しで使えるので、「フィードバックを送るときだけログイン」もありうる
-- [ ] iOS の変更の進め方。navi-ios-app に誰がどう PR を出すか（三輪さんのリポ）
+- [ ] 【未決】idp-broker の方針「Supabase のトークンはどの段でも扱わない」（2026-10-16、[補足資料](../../idp-broker/documents/backend-api-auth-supplement.md)）との関係。Tern は backend-prod の Supabase のトークンに頼る利用者を足す。一時的な例外とするか、ブローカーへの移行で置き換える対象に入れるかが決まっていない
+- [ ] 【未決】BFF の撤廃（安本さん）の後の経路。この資料は BFF の authorizer をそのまま通る前提で書いている。撤廃後の backend-api の入口でも backend-prod の JWT が通るか（[M2M 認証](../../m2m-auth/workstream/m2m-auth.md)の「1. BFF」）
 
 三輪さんの側で決めること（参考）: フィードバックの中身（経路・地点・自由記述・スクリーンショット？）と読み方。**座標を含むので、ログには出さない**（既存の tern-agent の方針と同じ）。R2 は担当・時期とも未定。
 
@@ -125,6 +128,9 @@
 - [ ] supabase-swift の OAuth のログイン（PKCE）が、backend-prod の設定のままで使えるか
 - [ ] backend-prod の Supabase の Google のログインが、社外の Google アカウントを弾くか（OAuth の同意画面が「内部」か）。弾かないなら、受付の API 側で `@turing-motors.com` に絞る（jadd-cli の経路でも同じ事情）
 - [ ] backend-prod の Supabase で、退職者がどう止まるか（JADD Studio のプロジェクトは STUDIO の cron が ban する）
+  - 分かったこと: backend-prod にもオフボーディングの同期（mono-e2e #6139）があり、10/9 に本番で有効になった。15 分ごとに、Google で停止・削除された人を ban し、API キーの再発行を止める（[IdP の役割分担の検討](../../idp-broker/workstream/idp-auth0-role-division.md)の「backend-api の課題と、今の動き」）
+  - 残り: ban のあと、発行済みのトークンがいつまで使えるか
+- [ ] backend-prod の `public` スキーマの RLS が「認証済みなら何でも読める」になっていないか（anon キーをアプリのビルドに入れるため。説明用の資料の「新しく生じること」）
 - [ ] 疎通の確認に使う、既存の backend-api の読み取りのエンドポイント（副作用が無く、利用者の身元が返るもの）
 - [ ] backend-prod の Supabase の設定を変えられる人（Redirect URLs の追加）
 - 三輪さんの側（参考）: backend-prod の Postgres に足したテーブルが、`supabase_backend_prod` の federation で自動的に見えるか（権限の付与が要るか）
@@ -138,3 +144,4 @@
 - 2026-10-23: 分担が決まった。こちらは R1（Google ログインと backend-api を呼ぶ経路の用意）まで、フィードバックの機能（テーブル・受付・画面）は三輪さん、R2 は範囲外。次は「調べること」の Supabase の設定（Redirect URLs・社外アカウント）を確かめ、iOS のログインに着手する。
 - 2026-10-23: 「backend-prod の認証を使うと iOS 専用になるか」を確認し、Redirect URLs を足すだけで jadd-cli と共存できると整理した。backend-prod の Redirect URLs にアプリの戻り先を足す方向で進める。
 - 2026-10-23: 三輪さんと MLOps チームに共有する説明用の資料を [`tern-backend-api/notion-tern-ios-google-login.md`](tern-backend-api/notion-tern-ios-google-login.md) に作った（Notion に取り込んでレビューしてもらう）。iOS への組み込みは三輪さんが行う。
+- 次: 説明用の資料へのレビューを待つ（MLOps チームの「合意したいこと」への回答と、三輪さんの確認）。並行して、URL スキーム名を三輪さんと決め、「調べること」を確かめる。
