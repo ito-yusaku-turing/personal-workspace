@@ -12,12 +12,12 @@ tuscenes-prod（767397804933）の S3 原本バケットを、消失や破壊か
   - [workstream/s3-data-protection-2/bucket-policy/](./workstream/s3-data-protection-2/bucket-policy/test-runbook.md): ステージ 1 のバケットポリシー一式。生成・比較・シミュレーションのスクリプト、12 本分の生成結果（`rendered/`）、使い捨てバケットで試す手順書（`test-runbook.md`）
   - `workstream/s3-data-protection-2/stage2-verify/cdk/cdk.out/`: ステージ 2 の検証用スタック（`S2vProbeStack`）の合成結果。CDK のソースは移す前から残っていない
 - [workstream/aws-root-credentials.md](./workstream/aws-root-credentials.md): **メンバーアカウントの root の認証情報を消す**。tuscenes-prod の root（パスワード有効・MFA なし）の削除を CorpIT に依頼する
-- [workstream/jadd-studio-amplify-removal.md](./workstream/jadd-studio-amplify-removal.md): **IAM ユーザー jadd_studio_amplify を削除する**。キーが jadd_studio3 の git 履歴に平文で残っていたユーザー。2026-10-26 にユーザーと Amplify の一式を削除した。残りは [cdk-apps#2252](https://github.com/turingmotors/cdk-apps/pull/2252) での返答
-  - [workstream/jadd-studio-amplify-removal/delete-runbook.md](./workstream/jadd-studio-amplify-removal/delete-runbook.md): 削除の手順書（AWS CLI。実行前後の確認と戻し方）
-  - [workstream/jadd-studio-amplify-removal/amplify-cleanup-runbook.md](./workstream/jadd-studio-amplify-removal/amplify-cleanup-runbook.md): Amplify の一式（スタック・アプリ・Cognito・バケットなど）の削除の手順書（AWS CLI）
 
-## workstream/done/ — 完了した作業記録（第一弾）
+## workstream/done/ — 完了した作業記録
 
+- [workstream/done/jadd-studio-amplify-removal.md](./workstream/done/jadd-studio-amplify-removal.md): **IAM ユーザー jadd_studio_amplify を削除する**。キーが jadd_studio3 の git 履歴に平文で残っていたユーザー。2026-10-26 にユーザーと Amplify の一式を削除して完了
+  - [workstream/done/jadd-studio-amplify-removal/delete-runbook.md](./workstream/done/jadd-studio-amplify-removal/delete-runbook.md): 削除の手順書（AWS CLI。実行前後の確認と戻し方）
+  - [workstream/done/jadd-studio-amplify-removal/amplify-cleanup-runbook.md](./workstream/done/jadd-studio-amplify-removal/amplify-cleanup-runbook.md): Amplify の一式（スタック・アプリ・Cognito・バケットなど）の削除の手順書（AWS CLI）
 - [workstream/done/raw-data-security.md](./workstream/done/raw-data-security.md): **走行データ消失リスクへの対応（バケットの価値の見積もり）**。第一弾の親。PUT/GET からバケットの価値を見積もり、種別 S1〜S10 と処遇を裁定した
   - [workstream/done/raw-data-security/cli-versioning-runbook.md](./workstream/done/raw-data-security/cli-versioning-runbook.md): 手で作った原本バケット 3 本のバージョニングを AWS CLI で入れる手順書（2026-10-20 実施済み）
   - [workstream/done/raw-data-security/notion-bucket-classification.md](./workstream/done/raw-data-security/notion-bucket-classification.md): チーム共有用の記事「S3 バケットの種別とバージョニングの処遇」

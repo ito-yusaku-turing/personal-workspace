@@ -112,8 +112,8 @@
     - `tokyo30-dataupload-pc-01`：td1-raw ほか 3 本でバケットの削除まで可能。今も使用中なので、持ち主に確認する。
     - `AmazonS3FullAccess` の 4 本：jadd-datasync、jadd-remote-sync-kohei.watanabe、jadd_studio_amplify、shio-secretsmanager_GetSecretValue。
     - **jadd_studio_amplify**（2026-10-23 に正体を調べた）。Amplify CLI の時代（2024-11-22、初代 jadd_studio）に `amplify configure` で作ったユーザー。`AmazonS3FullAccess`・`AdministratorAccess-Amplify`・`AmplifyBackendDeployFullAccess`・`secretsmanager_GetSecretValue` を持つ。cfn-exec-role を名乗れるので、ステージ 1 の守りを外せる（[cdk-apps#2252](https://github.com/turingmotors/cdk-apps/pull/2252) のレビュー）。
-      - **2026-10-26 にユーザーを削除した**（伊藤）。cfn-exec-role を名乗れる抜け穴の主体の 1 つが消えた。[cdk-apps#2252](https://github.com/turingmotors/cdk-apps/pull/2252) のレビューへの返答はまだ。
-      - **別の資料に切り出した: [jadd_studio_amplify を削除する](jadd-studio-amplify-removal.md)**（2026-10-23）。利用元の調査の結果・削除の手順・Amplify の一式の扱いはそちらが正本。
+      - **2026-10-26 にユーザーを削除した**（伊藤）。cfn-exec-role を名乗れる抜け穴の主体の 1 つが消えた。[cdk-apps#2252](https://github.com/turingmotors/cdk-apps/pull/2252) のレビューへの返答は対処不要とした。
+      - **別の資料に切り出した: [jadd_studio_amplify を削除する](done/jadd-studio-amplify-removal.md)**（2026-10-23）。利用元の調査の結果・削除の手順・Amplify の一式の扱いはそちらが正本。
       - 要点: キーは 2 本とも 2026-10-23 に無効化した（伊藤）。利用元の最有力は、jadd_studio3 の開発者の手元の `.env.local`（3 月に配った秘密情報のパッケージにこのキーが入っていた）。Devin の線は取り下げた。削除を妨げる依存は無い。
       - PR には、キーが漏れていることを書かない（「ステージ 4 で片付ける」とだけ書いた）。
 14. **使われていない強いロールを消す**。ecsTaskExecutionRole、AmazonEMRStudio_RuntimeRole、CodeCatalyst、tuscenes-sampler-test、sfn-auto-labeling、tuscenes-processing（どれも最終利用は 1 年以上前）。cdk の us-east-2 の bootstrap は使う予定を確かめてから。
@@ -207,7 +207,7 @@
     | [cdk-apps#2267](https://github.com/turingmotors/cdk-apps/pull/2267) | ステージ 2 の 1 本目: カナリアと記録の仕組み | 10-22 の引き継ぎの「[cdk-apps#2267](https://github.com/turingmotors/cdk-apps/pull/2267) の deploy の後」の 4 点 |
 
   - **伊藤の作業**: denso-raw の `_policy-check/` の片付け（FullAccess で古い版と削除マーカーを消す）。
-  - **待っているもの**: jadd-1023-search（並行のセッション）の結果。1 本目のキーの利用元（Devin の Secrets・Slurm の資格情報）。片付けは TODO 13（切り出した workstream）で。（2026-10-26 注: Devin の線は取り下げた。利用元は TODO 13 と [jadd-studio-amplify-removal.md](jadd-studio-amplify-removal.md) を正とする）
+  - **待っているもの**: jadd-1023-search（並行のセッション）の結果。1 本目のキーの利用元（Devin の Secrets・Slurm の資格情報）。片付けは TODO 13（切り出した workstream）で。（2026-10-26 注: Devin の線は取り下げた。利用元は TODO 13 と [jadd-studio-amplify-removal.md](done/jadd-studio-amplify-removal.md) を正とする）
   - **作業場所**: worktree はエージェントの一時ディレクトリ（cdk-2253・cdk-2267）。ブランチはすべて push 済みなので、次は `/usr/app/cdk-apps` から作り直せばよい。`/usr/app/cdk-apps` は片付け済み（main は c8698ee2 まで fast-forward、ローカルブランチは PR 中のものだけ。valhalla-turing-api の残骸は控えを取って消した）。
   - **期限があるもの**: TODO 19（azure-data-sync の SAS は 2026-10-26 まで）。
   - **注意**: [cdk-apps#2253](https://github.com/turingmotors/cdk-apps/pull/2253) と [cdk-apps#2231](https://github.com/turingmotors/cdk-apps/pull/2231) は denso の workflow の同じ箇所を触る（後からマージする側で行をそろえる）。

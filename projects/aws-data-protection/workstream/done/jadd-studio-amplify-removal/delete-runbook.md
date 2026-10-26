@@ -72,5 +72,5 @@ aws iam get-policy --policy-arn arn:aws:iam::767397804933:policy/secretsmanager_
 ## 削除の後にやること
 
 - 親資料の「進捗と引き継ぎ」に、実施の日時と結果を書く。
-- 親資料の TODO 3: [s3-data-protection-2.md](../s3-data-protection-2.md) の TODO 13 で jadd_studio_amplify を済みにする。[cdk-apps#2252](https://github.com/turingmotors/cdk-apps/pull/2252) のレビューへの返答で、この主体が消えたことを伝える（キーが漏れていたことは書かない）。
+- 親資料の TODO 3: [s3-data-protection-2.md](../../s3-data-protection-2.md) の TODO 13 で jadd_studio_amplify を済みにする。[cdk-apps#2252](https://github.com/turingmotors/cdk-apps/pull/2252) のレビューへの返答で、この主体が消えたことを伝える（キーが漏れていたことは書かない）。
 - 親資料の TODO 4（Amplify の一式を片付けるか）は、別に判断する。ユーザーを消しても一式は残る。

@@ -1,10 +1,10 @@
 # IAM ユーザー jadd_studio_amplify を削除する
 
 - 開始: 2026-10-23
-- 状態: **ユーザーと Amplify の一式を削除した**（2026-10-26）。残りは苦情への対応と、[cdk-apps#2252](https://github.com/turingmotors/cdk-apps/pull/2252) での返答
+- 状態: **完了**（2026-10-26）。ユーザーと Amplify の一式を削除した。残りの TODO 2・3 は対処不要とした（伊藤）
 - 所属: project:aws-data-protection（2026-10-26 に `~/docs/workstream/` から移した）
 - 実施: 伊藤（書き込みは Full の権限で CLI。このユーザーは CDK の管理外）
-- 経緯: [S3 バケットのデータ保護 第二弾](s3-data-protection-2.md) の TODO 13 から切り出した。[cdk-apps#2252](https://github.com/turingmotors/cdk-apps/pull/2252) のレビューで犬塚さん（graph226）が「cfn-exec-role を名乗れる主体」として挙げたユーザー
+- 経緯: [S3 バケットのデータ保護 第二弾](../s3-data-protection-2.md) の TODO 13 から切り出した。[cdk-apps#2252](https://github.com/turingmotors/cdk-apps/pull/2252) のレビューで犬塚さん（graph226）が「cfn-exec-role を名乗れる主体」として挙げたユーザー
 
 ## 背景
 
@@ -48,11 +48,11 @@ tuscenes-prod（767397804933）の IAM ユーザー `jadd_studio_amplify` は、
 
 1. ~~**ユーザーを削除する**~~ → 済み（2026-10-26 17:58 JST、伊藤）。（伊藤、Full の権限）。手順は [delete-runbook.md](jadd-studio-amplify-removal/delete-runbook.md) を正本にする（1 行ずつ貼る形。ループや変数は使わない。実行前後の確認と戻し方つき）。順番は、管理ポリシーを外す → キーを消す → ユーザーを消す。
    - ポリシーの ARN は 2026-10-23 と 10-26 に `list-attached-user-policies` で確かめたもの。
-2. **悲鳴への対応**。jadd_studio3 の開発者には、次の 2 点を案内する。
+2. ~~**悲鳴への対応**~~ → 対処不要（2026-10-26、伊藤）。jadd_studio3 の開発者には、次の 2 点を案内する。
    - `.env.local` の AWS の行を、今の `jadd-studio` のキーに差し替える。
    - tern は `AWS_PROFILE` に SSO のプロファイルを入れて動かす。
    - 古いキーが残っているかは、次のコマンドで確かめられる（値は出ない）: `grep -l HOC2HR6GHTY ~/.aws/credentials ~/.aws/config /usr/app/jadd_studio3/.env.local /usr/app/jadd_studio3/docker/.env 2>/dev/null`
-3. **s3-data-protection-2 に反映する**。TODO 13 の jadd_studio_amplify を済みにする。[cdk-apps#2252](https://github.com/turingmotors/cdk-apps/pull/2252) のレビューへの返答で、この主体が消えたことを伝える。
+3. ~~**s3-data-protection-2 に反映する**~~ → TODO 13 への反映は済み。[cdk-apps#2252](https://github.com/turingmotors/cdk-apps/pull/2252) での返答は対処不要（2026-10-26、伊藤）。TODO 13 の jadd_studio_amplify を済みにする。[cdk-apps#2252](https://github.com/turingmotors/cdk-apps/pull/2252) のレビューへの返答で、この主体が消えたことを伝える。
 4. ~~**Amplify の一式を片付けるか決める**~~ → 済み（2026-10-26 に消した）。（2026-10-26 に片付けることにした。対象は下の「Amplify の一式の洗い出し」、手順書は [amplify-cleanup-runbook.md](jadd-studio-amplify-removal/amplify-cleanup-runbook.md)）（別に判断する。ユーザーを消しても残る）。対象は、アプリ 2 つ（`jadd_studio` d34n309gf2fupw・`jaddstudio` d37k44pfh0i4bm）、スタック `amplify-jaddstudio-dev-2b103` と子 2 つ、Cognito のユーザープール `us-west-2_jb7jCOO9q` と ID プール、IAM のロール 4 本、Lambda 1 つ、S3 のバケット（deployment と storage）。使われていないことを確かめてから消す（Cognito のユーザー数、ID プールと Lambda の最終利用など）。
 
 ## Amplify の一式の洗い出し（2026-10-26、ReadOnly、us-west-2）
@@ -90,4 +90,4 @@ TODO 4 の対象。どれも 2024-11-22〜23 に作られたまま、更新さ�
   - Amplify のアプリは us-west-2 に 0。Cognito のユーザープール・ID プール、IAM ロール 4 本、Lambda はどれも見つからない。
   - バケット 2 本は `head-bucket` が 404。Lambda のロググループも無い。
   - 消さない `amplify-turingapps-main-127f9` は CREATE_COMPLETE のまま。
-- **次にやること**: TODO 2（苦情が出たら案内する）、TODO 3 の残り（[cdk-apps#2252](https://github.com/turingmotors/cdk-apps/pull/2252) のレビューへの返答で、この主体が消えたことを伝える）。返答の投稿は伊藤の了承を取ってから。
+- 2026-10-26: 残りの TODO 2・3 は対処不要と伊藤が判断し、案件を完了とした。`done/` に移した。
