@@ -130,7 +130,7 @@ docker/bin/setup/github.sh verify
 
 ## エージェントに任せる準備（任意）
 
-commit / push / PR 作成は、既定では**依頼したときにエージェントが実行する**（「PR 作って」なら commit と push も含む）。「push は毎回確認してほしい」といった個人の方針は、git 管理外のプリファレンスファイルに書いておくとエージェントが読んで従う。
+commit / push / PR 作成は、既定では**依頼したときにエージェントが実行する**（「PR 作って」なら commit と push も含む）。personal-workspace 自身は PR を使わず、セッションを終えるときにエージェントが `main` へ commit と push を行う。「push は毎回確認してほしい」といった個人の方針は、git 管理外のプリファレンスファイルに書いておくとエージェントが読んで従う。
 
 - 設定ファイル: `$USER_HOME_DIR/.personal-workspace/agent-preferences.md`（`docker/bin/setup.sh` が雛形を配置する）
 - 書き方: [`agent-preferences.md`](agent-preferences.md)

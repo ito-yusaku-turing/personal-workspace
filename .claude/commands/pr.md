@@ -14,6 +14,8 @@ Pull Request を作成する。追加の指示: $ARGUMENTS
 
 ## 手順
 
+0. **対象が personal-workspace なら PR を作らない**。personal-workspace は `main` だけで運用し、PR を使わない（[`docs/git-workflow.md`](../../docs/git-workflow.md) の「personal-workspace の運用」）。その旨を伝え、必要なら `/push` の手順で `main` に push するかを確認して終了する。
+
 1. **個人プリファレンスを読む**（未読なら）。`gh pr create` が `禁止` なら実行せず終了する。
 2. **セットアップ状態を確認する**（未取得なら）: `docker/container-bin/doctor.sh --porcelain`。
    `gh-auth` が `ok` でない場合も**作業を打ち切らない**。差分の把握・セルフレビュー・本文の起草（手順 3〜5）は最後まで行い、最後に**人間が自分で叩けるコマンド**（`gh pr create` の全文、または PR 作成 URL）を渡して終わる。

@@ -59,13 +59,15 @@ devbox は、`docker/config/repos.conf` に登録したリポジトリを **`/us
 
 次の作業は、個人設定に書かれていなくても確認せずに実行する（実行したら報告する）。
 
-- **作業ブランチを切ること**。`main` や無関係なブランチの上では作業しない（命名は [`git-workflow.md`](docs/git-workflow.md)）
+- **personal-workspace では、セッションを終えるときに commit して `main` に push すること**（下記「Git運用ルール」）
+- **規約を持たないリポジトリでは、作業ブランチを切ること**。`main` や無関係なブランチの上では作業しない（命名は [`git-workflow.md`](docs/git-workflow.md)）
 - **動作確認のチェックを実行すること**（下記「動作確認」）
 
 次の操作は、個人設定でも解禁しない。
 
 - `docker/.env` / `docker/config/repos.conf` / `docker/compose.repos.yml`、`user-home/` / `storage/` など、**git 管理外のファイルの上書き・削除**。復元できない。検証が必要なときは、コピーした木か git worktree で行う
-- `gh pr merge` / force push / `main` への push
+- `gh pr merge` / force push
+- personal-workspace 以外のリポジトリの `main` への push
 
 commit / push / PR 作成は、依頼されたら前段の操作も含めて実行する。正本は [`git-workflow.md`](docs/git-workflow.md) の、操作ごとの既定を定めた表。
 
@@ -95,8 +97,19 @@ docker/container-bin/doctor.sh --porcelain   # コンテナ内から。ホスト
 
 個人方針を [`docs/git-workflow.md`](docs/git-workflow.md) に定めている。**独自の規約を持つリポジトリ（jadd_studio3 等）では、そちらに従う。** 要点は次のとおり。
 
+personal-workspace 自身:
+
+- **`main` だけで運用する**。`main` で直接作業し、`main` に commit / push してよい。作業ブランチは原則切らない。
+- **PR は作らない**。
+- **セッションを終えるときは、許可を求めずに commit して push する**（依頼された作業をすべて終えて最終報告をするとき、または人間が終了を告げたとき）。対象はそのセッションでの自分の変更だけ。自動チェックが落ちたら push しない。
+
+規約を持たないほかのリポジトリ:
+
 - **`main` に直接コミットしない**。作業ブランチを切り、PR 経由で取り込む。
 - ブランチ名は「種別プレフィックス + 内容（kebab-case）」にする（`feature/` `fix/` `docs/` `chore/`）。
+
+共通:
+
 - **commit / push / PR 作成はエージェントが代行する**。依頼された操作は、前段の操作も含めて実行し、事後に報告する。頼まれていない操作はしない。
 - コミットメッセージは **Conventional Commits と日本語の要約**にする。本文には「なぜ」を書き、`Co-Authored-By` を残す。
 - Claude Code では `/commit` `/push` `/pr` で上記の手順を実行できる（定義は `.claude/commands/`）。

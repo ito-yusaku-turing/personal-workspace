@@ -1,9 +1,9 @@
 ---
-description: 未コミット差分の commit と自動チェックの通過を済ませて作業ブランチを push する
+description: 未コミット差分の commit と自動チェックの通過を済ませて push する（personal-workspace は main、ほかは作業ブランチ）
 argument-hint: "[補足があれば]"
 ---
 
-作業ブランチを push する。追加の指示: $ARGUMENTS
+現在のブランチを push する。追加の指示: $ARGUMENTS
 
 ## 参照するもの
 
@@ -18,9 +18,11 @@ argument-hint: "[補足があれば]"
 2. **セットアップ状態を確認する**（未取得なら）: `docker/container-bin/doctor.sh --porcelain`。
    - `ssh-key` が `declined` → **push を試さない**。「SSH 鍵を使わない設定になっている」ことと、鍵を用意する場合の入口（`docker/bin/setup/github.sh ssh-key`）を伝えて終了する。
    - `ssh-key` が `missing` → 未着手なので `docker/bin/setup/github.sh ssh-key` を案内して終了する。
-3. **ブランチを確認する**: `git branch --show-current`。`main` なら**中止**する（push 禁止）。
+3. **ブランチを確認する**: `git branch --show-current`。
+   - **personal-workspace**: `main` への push は許可されている。そのまま進める。
+   - **ほかのリポジトリ**: `main` なら**中止**する（push 禁止）。
 4. **未コミットの変更を確認する**: `git status --short`。今回の作業の差分が残っていれば `/commit` の手順でコミットする（push の依頼に含まれる）。作業と無関係の差分は含めず、残したことを報告する。
-5. **push 対象を確認する**: `git log @{u}.. --oneline`（上流が無い場合は `git log main..HEAD --oneline`）。
+5. **push 対象を確認する**: `git log @{u}.. --oneline`（上流が無い場合は `git log origin/main..HEAD --oneline`）。push するコミットが無ければ、その旨を報告して終了する。
 6. **自動チェックを通す**（このセッションで未実施、または以降にコードを変更している場合）。
    ```bash
    # personal-workspace: シェルスクリプトの構文チェック
@@ -32,10 +34,12 @@ argument-hint: "[補足があれば]"
    ```bash
    git push -u origin "$(git branch --show-current)"
    ```
-8. 結果（ブランチ名・コミット数・リモートの URL）を報告する。**PR は作らない**（push の依頼に PR 作成は含まれない。`/pr` で別途依頼する）。
+8. 結果（ブランチ名・コミット数・リモートの URL）を報告する。**PR は作らない**（push の依頼に PR 作成は含まれない。ほかのリポジトリでは `/pr` で別途依頼する。personal-workspace では PR を使わない）。
+
+personal-workspace では、セッションを終えるときにこの手順を**依頼なしで**実行する（[`docs/git-workflow.md`](../../docs/git-workflow.md) の「personal-workspace の運用」）。
 
 ## やらないこと
 
-- `main` への push
+- personal-workspace 以外のリポジトリの `main` への push
 - `--force` / `--force-with-lease`（履歴の書き換えは人間の明示指示があるときだけ）
 - 他人のブランチへの push、ブランチ・タグの削除

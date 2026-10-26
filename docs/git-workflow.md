@@ -6,13 +6,26 @@
 
 | 対象 | 従うもの |
 |---|---|
-| personal-workspace 自身 | 本書 |
+| personal-workspace 自身 | 本書の「[personal-workspace の運用](#personal-workspace-の運用)」。ブランチと PR の節は適用しない |
 | 独自の Git 規約を持つリポジトリ（例: jadd_studio3 / jadd_studio3-alpha の `docs/guidelines/git-workflow.md`） | **そのリポジトリの規約**。本書はその上乗せにしない |
-| 独自の規約を持たないリポジトリ（単独で開発しているもの） | 本書 |
+| 独自の規約を持たないリポジトリ（単独で開発しているもの） | 本書（作業ブランチ + PR の運用） |
 
 迷ったら、対象リポジトリの `AGENTS.md` / `CLAUDE.md` を先に読む。そこに Git の規約があれば、そちらが正。
 
 初回の GitHub 認証セットアップ（人間が一度だけ行う）は [`github-setup.md`](github-setup.md) を参照。
+
+## personal-workspace の運用
+
+personal-workspace は個人の作業場で、レビューを挟む相手がいない。そのため作業ブランチと PR を使わず、`main` だけで運用する。
+
+- **`main` で直接作業し、`main` に commit / push してよい**。作業ブランチは原則切らない。人間が作業ブランチを指示した場合だけ、そのブランチで作業する（`main` への取り込みは人間の指示があってから）。
+- **PR は作らない**。`/pr` を頼まれても PR は作らず、その旨を伝える。
+- **セッションを終えるときは、許可を求めずに commit して push する**。「セッションを終えるとき」とは、依頼された作業をすべて終えて最終報告をするとき、または人間が終了を告げたときを指す。
+    - 対象は、そのセッションでエージェントが行った変更だけ。作業と無関係の差分（人間がステージした変更など）は含めず、残したことを報告する。
+    - push の前に自動チェック（下記「push」）を通す。落ちたら push せず、結果を報告する。
+    - push したら、コミットと push 先を報告する。
+    - 個人プリファレンスで `git push` を `都度確認` / `禁止` にしている場合は、そちらを優先する。
+- コミットの形式と粒度、force push などの禁止事項は、ほかのリポジトリと同じ（下記「コミット」「禁止事項のまとめ」）。
 
 ## 大原則: エージェントが代行する
 
@@ -26,8 +39,9 @@
 | `git commit` | 依頼時に実行 | `常に許可` まで緩和可 / `都度確認` `禁止` に締めるのも可 |
 | `git push`（作業ブランチへ） | 依頼時に実行 | `常に許可` まで緩和可 / `都度確認` `禁止` に締めるのも可 |
 | `gh pr create` | 依頼時に実行 | `常に許可` まで緩和可 / `都度確認` `禁止` に締めるのも可 |
+| セッション終了時の commit + push（personal-workspace のみ） | **確認せずに実行** | `都度確認` `禁止` に締めるのは可 |
 | `gh pr merge` | **禁止**（マージは人間が行う） | 変更不可 |
-| `main` への直接 commit / push | **禁止** | 変更不可 |
+| `main` への直接 commit / push | **禁止**（personal-workspace だけは許可） | 変更不可 |
 | force push・push 済み履歴の書き換え | **禁止** | 変更不可（必要なら人間が都度明示指示する） |
 | ブランチ／タグの削除、リモート設定の変更 | **禁止** | 変更不可 |
 
@@ -42,10 +56,12 @@ Claude Code では次のコマンドが本書の手順を実行する。他の�
 | コマンド | 内容 |
 |---|---|
 | `/commit` | ブランチ確認 → 差分の確認 → 規約に沿ったメッセージで commit |
-| `/push` | 未コミット差分の commit と自動チェックの通過を済ませて push |
-| `/pr` | 未コミット差分の commit と push を済ませ、セルフレビュー結果をもとに本文を起草して `gh pr create` |
+| `/push` | 未コミット差分の commit と自動チェックの通過を済ませて push（personal-workspace では `main` へ） |
+| `/pr` | 未コミット差分の commit と push を済ませ、セルフレビュー結果をもとに本文を起草して `gh pr create`（personal-workspace では使わない） |
 
 ## ブランチ運用
+
+この節と「PR」の節は、独自の規約を持たない他のリポジトリに適用する（personal-workspace は上記「personal-workspace の運用」に従う）。
 
 - **`main` に直接コミットしない**。`main` から作業ブランチを切り、PR 経由で `main` に取り込む。
 - **ファイル改変を伴う作業を始める前に、必ずブランチの状態を確認する**。
@@ -85,7 +101,7 @@ Co-Authored-By: ...
 ## push
 
 - push の前に**自動チェックを通す**。personal-workspace はシェルスクリプトの構文チェック（`git ls-files -z '*.sh' | xargs -0 -n1 bash -n`）、ほかのリポジトリはその `AGENTS.md` が定めるもの（ビルド / lint / 型チェック / テスト）。**落ちたら push しない。**
-- 上流が無いブランチは `git push -u origin <branch>`。
+- 上流が無いブランチは `git push -u origin <branch>`。personal-workspace の `main` は `git push origin main`。
 - **`--force` / `--force-with-lease` は使わない。**
 
 ## PR
@@ -108,7 +124,7 @@ Co-Authored-By: ...
 
 個人プリファレンスでも解禁しない。
 
-- `main` への直接 commit / push
+- `main` への直接 commit / push（personal-workspace を除く）
 - `gh pr merge`
 - force push・push 済み履歴の書き換え
 - ブランチ・タグの削除、リモート設定の変更
