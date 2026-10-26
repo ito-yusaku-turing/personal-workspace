@@ -103,7 +103,7 @@
   - jadd-cli と共存できる。Redirect URLs は複数登録でき、アプリは `redirect_to` で戻り先を指定するので、Site URL も jadd-cli の戻り先も変えない。Google の Client ID もカンマ区切りで足せる（ネイティブの Sign-In にする場合）。同じ社員は jadd-cli と iOS で同じ `sub` になる
 - [x] **iOS への組み込みは三輪さんが行う**（分担の表）。navi-ios-app は三輪さんのリポなので、PR も三輪さんが出す
 - [x] **アプリは BFF を使わず、backend-api だけを呼ぶ**（2026-10-26）。BFF は撤廃が決まっている。撤廃の後の backend-api の入口に合わせ、作り直しを避ける
-- [x] **フィードバックの保存先は backend-prod の Postgres（下の表の A）。** Tern の回帰テストのテーブル（`tern_regression_test_cases`・`_runs`・`_results`・`_gts`）が既にあり、その並びに置く。定義は mono-e2e の db-models（alembic）、Databricks からは `supabase_backend_prod.public` で読む
+- [x] **フィードバックの保存先・テーブル・受付の API は今回の範囲外（三輪さんの裁量）**（2026-10-26 に改めた）。今回は backend-prod の DB のスキーマに手を入れない。下の「フィードバックの保存先」は、三輪さんへの参考として残す（当初は A に決めたと書いていた）
 
 ## 決めること
 
@@ -125,7 +125,7 @@
 | Databricks からの読み | `supabase_backend_prod.public.<table>`（federation。重い集計には向かない。必要ならマテリアライズする） | そのまま読める。ほかの Databricks のデータと JOIN しやすい |
 | 向き | アプリからの少量の書き込みが主なとき | Databricks での集計・突き合わせが主なとき |
 
-**A に決めた**（2026-10-23）。アプリから 1 件ずつ送るものなので、Postgres に書いて federation で読むのが素直。Databricks で重い集計をするなら、あとで Delta へ写す。
+当初（2026-10-23）は A に決めたと書いたが、2026-10-26 に保存先は三輪さんの裁量に改めた。A を選ぶ場合の理由は、アプリから 1 件ずつ送るものなので、Postgres に書いて federation で読むのが素直なこと。
 
 ## 調べること
 
@@ -151,4 +151,5 @@
 - 2026-10-23: 三輪さんと MLOps チームに共有する説明用の資料を [`tern-backend-api/notion-tern-ios-google-login.md`](tern-backend-api/notion-tern-ios-google-login.md) に作った（Notion に取り込んでレビューしてもらう）。iOS への組み込みは三輪さんが行う。
 - 2026-10-26: 説明用の資料を MLOps 1チームの「ドキュメント置き場」に Notion のページとして作った（[Notion のページ](https://app.notion.com/p/405a93b3e6f281208011c7ccdb174536)、Status は `下書き(Draft)`）。原本はローカルの資料のままで、冒頭に URL を書いた。上げる前に PR 番号をフル URL にし、Notion で崩れた太字（`**…）**を` の形）を原本ごと直した。
 - 2026-10-26: BFF の撤廃が決まっているので、アプリは BFF を使わず backend-api だけを呼ぶ形に説明用の資料を直した。main を見ると、まだ `api.turing-ai.dev` は BFF にあり、backend-api は API Gateway の IP からしか受けず、検証も BFF のスタックの authorizer に頼っている。入口の用意と検証役の移設は BFF の撤廃の作業の前提として、資料の「作業の順番」の 3' と「合意したいこと」の 7 に書いた。R2 の既存の PR（[cdk-apps#2220](https://github.com/turingmotors/cdk-apps/pull/2220)）が STUDIO の Supabase と BFF の authorizer に頼っていることも見つけた。
-- 次: Notion のページの Status を `提案中(Proposed)` にして、三輪さんと MLOps チームに共有する（まだ共有していない）。そのあと説明用の資料へのレビューを待つ（MLOps チームの「合意したいこと」への回答と、三輪さんの確認）。並行して、URL スキーム名を三輪さんと決め、「調べること」を確かめる。
+- 2026-10-26: 説明用の資料を手元で組み直した（Notion には未反映）。提案の形をやめ、要件（今のアプリの整理を含む）・前提条件・仕様・今回の範囲・注意点の順にした。図とコードは外し、人の情報は最小限にした。今回の範囲は R1 まで（Redirect URLs の追加・anon キーの受け渡し・iOS への組み込み・疎通の確認）で、DB のスキーマ・API の追加・Databricks は範囲外（R1 の後は三輪さんの裁量）とした。Google Cloud の OAuth クライアントは作らない（Supabase の画面でのログインにするため）。
+- 次: 手元の資料を揉み、仕上がったら Notion のページを更新する（列幅を直した表があったので、全体を置き換えるときは表の列幅が戻ることを伝える）。人の情報（担当）は最後に必要な分だけ足す。そのあと Status を `提案中(Proposed)` にして共有する
