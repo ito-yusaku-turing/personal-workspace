@@ -240,4 +240,33 @@
     - 2026-10-26 追記: ステージ 2 は、構想「今日なにしたかわかる君」（[project:what-did-i-do の構想](../../what-did-i-do/documents/notion-what-did-i-do-concept.md)）の**フェーズ 1（今日なに消したかわかる君）**にあたる。段階 3・4 は、構想の 9 章のフェーズ 1 の中身（MLOps チームのチャンネルへの通知、出力を共通の記録の形にそろえる、1b の日次の突き合わせ・本人へのメンション・ログのバケットの Object Lock）に合わせて進める。伊藤が進めるのはフェーズ 1 まで。フェーズ 2 以降はチームへの提案で、着手が決まったら project:what-did-i-do に workstream を作る。
     - レビューで出た課題（10-26 の一覧の 1〜6）の対応を決める。
   - 作業場所: cdk-apps の worktree は scratchpad の cdk-2267b（push 済み）。前の cdk-2253・cdk-2267 はディレクトリが消えている。
-- 2026-10-26: tuscenes-prod の CloudTrail の今の設定を ReadOnly で確かめた（全リージョン）。トレイルは 2 本のままで、S3 の削除のデータイベントはまだ記録されていない。`aws-controltower-BaselineCloudTrail`（us-west-2、マルチリージョン、ログは 617808723336 のバケット）は管理イベントだけで `DataResources` は空。`garuda-index-access`（us-west-2 だけ）は `*/index.json` の `GetObject` だけ。CloudTrail Lake のイベントデータストアも無い。`DeleteBucket`・`PutBucketLifecycle` などの管理イベントは記録されている。`DeleteObject`・`DeleteObjects` を記録するトレイル `original-bucket-audit` は [cdk-apps#2267](https://github.com/turingmotors/cdk-apps/pull/2267) で足す予定で、PR はまだ OPEN（レビュー待ち）。
+- 2026-10-26: tuscenes-prod の CloudTrail の今の設定を ReadOnly で確かめた（全リージョン）。トレイルは 2 本のままで、S3 の削除のデータイベントはまだ記録されていない。`aws-controltower-BaselineCloudTrail`（us-west-2、マルチリージョン、ログは 617808723336 のバケット）は管理イベントだけで `DataResources` は空。`garuda-index-access`（us-west-2 だけ）は `*/index.json` の `GetObject` だけ。CloudTrail Lake のイベントデータストアも無い。`DeleteBucket`・`PutBucketLifecycle` などの管理イベントは記録されている。`DeleteObject`・`DeleteObjects` を記録するトレイル `original-bucket-audit` は [cdk-apps#2267](https://github.com/turingmotors/cdk-apps/pull/2267) で足す予定で、PR はまだ OPEN（レビュー待ち）。（2026-10-26 注: この記録はマージ前のもの。[cdk-apps#2267](https://github.com/turingmotors/cdk-apps/pull/2267) は 06:37 UTC にマージされ、トレイル `original-bucket-audit` は deploy 済み。今の対象はカナリアだけ）
+- 2026-10-26 のセッションの終わり。引き継ぎ（これより前の引き継ぎより、こちらを正とする）:
+  - **今日の結果:** ステージ 1 は 12 本すべてに入った（[cdk-apps#2253](https://github.com/turingmotors/cdk-apps/pull/2253)）。ステージ 2 の 1 本目（[cdk-apps#2267](https://github.com/turingmotors/cdk-apps/pull/2267)）も入り、カナリアの確認は失効の 1 点を残すだけ。1 時間の見張りで、原本バケットへの AccessDenied は 0 件。
+  - **構想:** ステージ 2 は、構想「今日なにしたかわかる君」の**フェーズ 1（今日なに消したかわかる君）**として進める。伊藤が進めるのはフェーズ 1 まで。構想は [project:what-did-i-do の構想](../../what-did-i-do/documents/notion-what-did-i-do-concept.md)（Notion: https://app.notion.com/p/405a93b3e6f28156a7c0fbc3db578957 、下書き）。
+  - **フェーズ 1 の計画（案。伊藤の決定待ち）:**
+    - 着手の前に:
+      - 0-1: カナリアの失効の確認（10-27〜28。ログのバケットの `events/2026/10/27/` 以降で `reason=Lifecycle` の `Object Deleted` を探す。ReadOnly）。
+      - 0-2: Slack の通知先のチャンネルと bot を決める（伊藤）。
+      - 0-3: bot のトークンを Secrets Manager の `original-bucket-audit/slack-bot-token` に置く（伊藤が Full 権限で。手順書はエージェントが用意）。
+    - **PR-A（対象はカナリアのまま）:**
+      - 毎時 15 分の集計の Lambda。過去 3 時間を読み直し、単発は request-id、一括は `parentRequestID`＋キーでつなぐ。「誰が」の保留（24 時間で「不明」）。
+      - 報告済みの印は DynamoDB（条件付きの書き込み、TTL 30 日）。Slack の投稿は取り消せないため、garuda の「状態を持たない」方式は使わない。
+      - 守りの設定の変更は、CloudTrail のイベント履歴（LookupEvents）を操作の名前で毎時引く案。
+      - 報告は Slack ＋ ログのバケットの `reports/`（3 年）。出力は構想の共通の記録の形。
+      - exerciser を毎日定期起動し、カナリアの削除は通知に出さず「拾えたか」だけを確かめる。拾えなければアラーム。
+      - アラームは、失敗・未実行・DLQ・Firehose の配信の失敗・カナリアを拾えない、の 5 種類。通知は Slack（garuda の `alarm_notify.py` と同じ形。Web API を urllib3 で直接、`chat:write`）。
+    - **PR-B:**
+      - トレイルを `eventName` の `DeleteObject`・`DeleteObjects` に絞る。12 本の一覧を `packages/original-bucket-guard` に置く。
+      - 12 本の EventBridge と Inventory を入れる。サイズは、作成のイベント、無ければ Inventory を Athena で引く。
+      - 書き込みの少ないバケットから 2 回に分けて入れる。
+      - **先に調べること:** datalake が td1-raw の通知を「丸ごと上書き」（`Managed: true`）で持っているため、監査のアプリが足した EventBridge が datalake の deploy で消えるおそれがある（TODO 23）。
+    - **1b:** 日次の突き合わせ（Inventory の差分、Athena）、本人へのメンション（`users:read.email`）、ログのバケットの Object Lock（古い版を 1 日で消すライフサイクルとぶつかるので、保存の設計から見直す）。
+    - **伊藤に決めてほしいこと:**
+      1. Slack の通知先（新しいチャンネルか既存の MLOps のチャンネルか）と bot（新規か使い回しか）。
+      2. 守りの設定の変更を、イベント履歴から引く案でよいか。
+      3. カナリアの削除を、通知に出さない扱いでよいか。
+  - **先例（cdk-apps）:** garuda の `apps/garuda/lib/constructs/index-access-aggregator.ts`（定期実行・読み直し・アラーム 3 種）と `apps/garuda/functions/index-access-aggregator/alarm_notify.py`（Slack への投稿）。Slack の bot のトークンは、アプリごとに Secrets Manager の `<アプリ>/slack-bot-token` に置く形が多い。cdk-apps に Athena の先例は無い。
+  - **Notion の運用:** personal-workspace のセッションにだけ Notion の MCP がある。書き込みは毎回確認が出る（`AGENTS.md` の「Notion」）。上げ直しが溜まっているもの: permission-upgrade-plan.md、バケットの種別の記事（どちらも既存の Notion のページの URL が要る）。
+  - **期限があるもの:** TODO 19（azure-data-sync の SAS は 2026-10-26 まで）は、今日も確かめられなかった。次のセッションの最初に、ローテーションと DataSync の成功を ReadOnly で確かめる。
+  - **作業場所:** cdk-apps の worktree は scratchpad の cdk-2267b（push 済みで、作業は残っていない）。次は `/usr/app/cdk-apps` から作り直せばよい。
