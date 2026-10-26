@@ -7,16 +7,16 @@ argument-hint: "[コミットに含めたい範囲や補足があれば]"
 
 ## 参照するもの
 
-- **対象リポジトリ（作業中のリポジトリ）の AGENTS.md / CLAUDE.md** — 独自の Git 規約があれば**そちらを優先**する（例: jadd_studio3 は `docs/guidelines/git-workflow.md`）。git コマンドは対象リポジトリで実行する
-- [`docs/git-workflow.md`](../../docs/git-workflow.md) — コミット規約と禁止事項（**正本**）
-- `$HOME/.personal-workspace/agent-preferences.md` — 個人プリファレンス。無ければ `git-workflow.md` の既定表に従う
+- **対象リポジトリ（作業中のリポジトリ）の AGENTS.md / CLAUDE.md** — personal-workspace 以外では、**毎回これを読み、そこに書かれた Git 規約に従う**（例: jadd_studio3 は `docs/guidelines/git-workflow.md`）。下の手順や `docs/git-workflow.md` のルールは持ち込まない。規約が見つからなければ、実行前に人間に確認する。git コマンドは対象リポジトリで実行する
+- [`docs/git-workflow.md`](../../docs/git-workflow.md) — personal-workspace のコミット規約と禁止事項（**正本**）
+- `$HOME/.personal-workspace/agent-preferences.md` — 個人プリファレンス。無ければ既定（personal-workspace は `git-workflow.md` の表、ほかのリポジトリはその規約）に従う
 
 ## 手順
 
 1. **個人プリファレンスを読む**（このセッションでまだ読んでいなければ）。`git commit` が `禁止` なら実行せず、手順の提示にとどめて終了する。
 2. **ブランチを確認する**: `git branch --show-current`。
    - **personal-workspace**: `main` のままコミットしてよい（作業ブランチは切らない）。
-   - **ほかのリポジトリ**: `main` にいる場合は**コミットしない**。作業ブランチ名を提案し、切ってよいか確認する。
+   - **ほかのリポジトリ**: そのリポジトリの規約に従う（ブランチの扱い、コミットメッセージの形式も含む）。
 3. **変更全体を把握する**: `git status --short` と `git diff` / `git diff --staged`。
    - 目的の異なる変更が混ざっていれば、コミットの分割を提案する。
    - `docker/.env` / `docker/config/repos.conf` など **git 管理外のローカル設定を巻き込まない**。
@@ -30,6 +30,6 @@ argument-hint: "[コミットに含めたい範囲や補足があれば]"
 
 ## やらないこと
 
-- personal-workspace 以外での `main` への直接コミット
+- 対象リポジトリの規約が許していないブランチへのコミット
 - 依頼なしのコミット、`--amend` や履歴の書き換え
 - ステージ済みの他人の変更を巻き込むこと（`git status` で確認する）

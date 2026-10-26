@@ -7,7 +7,8 @@
 personal-workspace は、**特定のプロジェクトに依存しない個人用の作業場**。ここからエージェントを起動し、`/usr/app/` にマウントした各リポジトリを横断して作業する。
 
 - **既定の対象プロジェクトはない**。どのリポジトリで作業するかは依頼から判断し、分からなければ確認する。
-- **あるリポジトリで作業するときは、先にそのリポジトリの `AGENTS.md` / `CLAUDE.md` を読み、それに従う**。そのリポジトリの規約（Git 運用・動作確認・禁止事項）は、このファイルより優先する。このファイルが決めるのは、personal-workspace 自身の扱いと、規約を持たないリポジトリでの既定だけ。
+- **あるリポジトリで作業するときは、作業のたびにそのリポジトリのトップにある `AGENTS.md` / `CLAUDE.md` を読み、それに従う**。Git 運用・動作確認・禁止事項はそのリポジトリの規約に従い、このファイルのルールは持ち込まない。このファイルが決めるのは personal-workspace 自身の扱いだけ。
+- 対象リポジトリに Git の規約が見つからない場合は、ブランチの作成・commit・push・PR 作成の前に確認する。
 - jadd_studio3 の devbox からも、このリポジトリは `/usr/app/personal-workspace` として見える（併用している）。
 
 ## ディレクトリ構成
@@ -55,21 +56,19 @@ devbox は、`docker/config/repos.conf` に登録したリポジトリを **`/us
 | `product-map` | `/usr/app/product-map` | 社内プロダクトの地図（資料と観測データ） |
 | `gaming-data-collection` | `/usr/app/gaming-data-collection` | ゲームを使ったデータ収集 |
 
-## 既定の自律範囲（personal-workspace と、規約を持たないリポジトリ）
+## 既定の自律範囲（personal-workspace）
 
 次の作業は、個人設定に書かれていなくても確認せずに実行する（実行したら報告する）。
 
-- **personal-workspace では、セッションを終えるときに commit して `main` に push すること**（下記「Git運用ルール」）
-- **規約を持たないリポジトリでは、作業ブランチを切ること**。`main` や無関係なブランチの上では作業しない（命名は [`git-workflow.md`](docs/git-workflow.md)）
+- **セッションを終えるときに commit して `main` に push すること**（下記「Git運用ルール」）
 - **動作確認のチェックを実行すること**（下記「動作確認」）
 
 次の操作は、個人設定でも解禁しない。
 
 - `docker/.env` / `docker/config/repos.conf` / `docker/compose.repos.yml`、`user-home/` / `storage/` など、**git 管理外のファイルの上書き・削除**。復元できない。検証が必要なときは、コピーした木か git worktree で行う
-- `gh pr merge` / force push
-- personal-workspace 以外のリポジトリの `main` への push
+- force push・push 済み履歴の書き換え
 
-commit / push / PR 作成は、依頼されたら前段の操作も含めて実行する。正本は [`git-workflow.md`](docs/git-workflow.md) の、操作ごとの既定を定めた表。
+commit / push は、依頼されたら前段の操作も含めて実行する。正本は [`git-workflow.md`](docs/git-workflow.md) の、操作ごとの既定を定めた表。
 
 ## 個人プリファレンス（作業開始時に読むこと）
 
@@ -95,24 +94,14 @@ docker/container-bin/doctor.sh --porcelain   # コンテナ内から。ホスト
 
 ## Git運用ルール
 
-個人方針を [`docs/git-workflow.md`](docs/git-workflow.md) に定めている。**独自の規約を持つリポジトリ（jadd_studio3 等）では、そちらに従う。** 要点は次のとおり。
-
-personal-workspace 自身:
+personal-workspace 自身の規約を [`docs/git-workflow.md`](docs/git-workflow.md) に定めている。**ほかのリポジトリには適用しない**（そのリポジトリの `AGENTS.md` 等に従う）。要点は次のとおり。
 
 - **`main` だけで運用する**。`main` で直接作業し、`main` に commit / push してよい。作業ブランチは原則切らない。
 - **PR は作らない**。
 - **セッションを終えるときは、許可を求めずに commit して push する**（依頼された作業をすべて終えて最終報告をするとき、または人間が終了を告げたとき）。対象はそのセッションでの自分の変更だけ。自動チェックが落ちたら push しない。
-
-規約を持たないほかのリポジトリ:
-
-- **`main` に直接コミットしない**。作業ブランチを切り、PR 経由で取り込む。
-- ブランチ名は「種別プレフィックス + 内容（kebab-case）」にする（`feature/` `fix/` `docs/` `chore/`）。
-
-共通:
-
-- **commit / push / PR 作成はエージェントが代行する**。依頼された操作は、前段の操作も含めて実行し、事後に報告する。頼まれていない操作はしない。
+- それ以外の commit / push は、依頼されたら前段の操作も含めて実行し、事後に報告する。頼まれていない操作はしない。
 - コミットメッセージは **Conventional Commits と日本語の要約**にする。本文には「なぜ」を書き、`Co-Authored-By` を残す。
-- Claude Code では `/commit` `/push` `/pr` で上記の手順を実行できる（定義は `.claude/commands/`）。
+- Claude Code では `/commit` `/push` で上記の手順を実行できる（定義は `.claude/commands/`）。ほかのリポジトリで使ったときは、そのリポジトリの規約に沿って動く。
 
 ## 動作確認
 

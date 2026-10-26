@@ -7,14 +7,13 @@ Pull Request を作成する。追加の指示: $ARGUMENTS
 
 ## 参照するもの
 
-- **対象リポジトリ（作業中のリポジトリ）の AGENTS.md / CLAUDE.md** — 独自の Git 規約があれば**そちらを優先**する（例: jadd_studio3 は `docs/guidelines/git-workflow.md`）。git コマンドは対象リポジトリで実行する
-- [`docs/git-workflow.md`](../../docs/git-workflow.md) — PR の書式と禁止事項（**正本**）
-- `$HOME/.personal-workspace/agent-preferences.md` — 個人プリファレンス。無ければ `git-workflow.md` の既定表に従う
+- **対象リポジトリ（作業中のリポジトリ）の AGENTS.md / CLAUDE.md** — personal-workspace 以外では、**毎回これを読み、そこに書かれた Git 規約に従う**（例: jadd_studio3 は `docs/guidelines/git-workflow.md`）。下の手順や `docs/git-workflow.md` のルールは持ち込まない。規約が見つからなければ、実行前に人間に確認する。git コマンドは対象リポジトリで実行する
+- `$HOME/.personal-workspace/agent-preferences.md` — 個人プリファレンス。無ければ既定（personal-workspace は `git-workflow.md` の表、ほかのリポジトリはその規約）に従う
 - `docker/container-bin/doctor.sh --porcelain` — セットアップ状態（`gh-auth` が使えるか）
 
 ## 手順
 
-0. **対象が personal-workspace なら PR を作らない**。personal-workspace は `main` だけで運用し、PR を使わない（[`docs/git-workflow.md`](../../docs/git-workflow.md) の「personal-workspace の運用」）。その旨を伝え、必要なら `/push` の手順で `main` に push するかを確認して終了する。
+0. **対象が personal-workspace なら PR を作らない**。personal-workspace は `main` だけで運用し、PR を使わない（[`docs/git-workflow.md`](../../docs/git-workflow.md)）。その旨を伝え、必要なら `/push` の手順で `main` に push するかを確認して終了する。
 
 1. **個人プリファレンスを読む**（未読なら）。`gh pr create` が `禁止` なら実行せず終了する。
 2. **セットアップ状態を確認する**（未取得なら）: `docker/container-bin/doctor.sh --porcelain`。
@@ -22,12 +21,14 @@ Pull Request を作成する。追加の指示: $ARGUMENTS
    - `declined` → gh を使わない設定なので、`gh` を試さず本文とブラウザ用の情報だけを渡す。
    - `missing` → 上記に加えて `docker/bin/setup/github.sh gh-login` を案内する。
 3. **前提を確認する**。
+   - 対象リポジトリの規約（ベースブランチ、PR の書式、レビュアー指定など）を読んだこと。以降の手順と食い違う点は規約を優先する
    - ブランチが `main` でないこと
    - 未コミット差分や未 push のコミットがあれば `/commit` `/push` の手順をそのまま実行する（PR 作成の依頼に含まれる）
    - 同じブランチの PR が既に無いこと（`gh-auth` が `ok` の場合のみ: `gh pr list --head "$(git branch --show-current)"`）
 4. **差分を把握する**: `git log main..HEAD --oneline` と `git diff main...HEAD --stat`。
 5. **セルフレビューを行う**。自動チェックは step 3 の `/push` で通っている。step 3 が no-op だった（既に commit / push 済みだった）場合はここで通す。
 6. **タイトルと本文を起草する**。
+   - 対象リポジトリに PR テンプレートや書式の規約があれば、それに従う。無い場合は次の形にする。
    - タイトル: コミットの要約行と同じ形式 `<type>(<scope>): <要約>`
    - 本文は次の構成。バッククォート等を含むため、**一時ファイルに書いて `--body-file` で渡す**。
      ```markdown
@@ -46,6 +47,6 @@ Pull Request を作成する。追加の指示: $ARGUMENTS
 
 ## やらないこと
 
-- **マージ（`gh pr merge`）** — 禁止。個人設定でも解禁されない。レビュー後に人間が行う
+- **マージ（`gh pr merge`）** — 人間の明示的な指示がない限り行わない
 - 依頼なしの PR 作成、レビュアーの勝手な指定
 - 目的の異なる変更を1つの PR に混ぜること（分割を提案する）
