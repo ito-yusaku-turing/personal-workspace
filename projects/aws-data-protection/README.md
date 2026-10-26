@@ -29,4 +29,5 @@ tuscenes-prod（767397804933）の S3 原本バケットを、消失や破壊か
 ## documents/ — 参考資料
 
 - [documents/raw-data-security.md](./documents/raw-data-security.md): **走行データ消失リスク調査（2026-10）**。安本さんの調査（Notion から取り込み）。workstream の G 番号はこの資料の所見 ID
+- [documents/notion-s3-object-lock.md](./documents/notion-s3-object-lock.md): **S3 Object Lock（WORM）の整理**。チーム共有用（Notion に上げる）。仕組み・モード・今の守りへの重なり方・費用・決めること（2026-10-26）
 - [documents/aws-privilege-hierarchy.md](./documents/aws-privilege-hierarchy.md): **AWS の権限の階層**。複数アカウントの組織での権限の階層の一般論と、うちの組織への当てはめ（管理アカウントへの CI の経路の調査を含む）
