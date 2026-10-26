@@ -177,6 +177,7 @@ Claude Code / Codex は **devbox コンテナの中でだけ動かす**。
   - そのため、使えるツールを Claude Code 側で絞っている（`.claude/settings.json`）。`--dangerously-skip-permissions` で起動しても効く。
     - PreToolUse フック `.claude/hooks/notion-guard.py` が、許可リスト（`notion-fetch`・`notion-create-pages`・`notion-update-page`・`notion-get-comments`）以外の Notion のツールを止める。Notion が後から足したツールも止まる。フックが失敗したときも止める（`onFailure: block`）。
     - 許可したツールでも、範囲外の使い方は止める。Notion のメモリの読み書き、スキル化、テンプレートの適用、検証済みの設定、子ページを消す更新（`allow_deleting_content`）が対象。
+    - 書き込み（`notion-create-pages`・`notion-update-page`）は、フックが毎回確認（`permissionDecision: ask`）を返す。`--dangerously-skip-permissions` で起動していても確認のダイアログが出ることを、2026-10-26 に確かめた。
     - フックが読み込まれなかったときの備えとして、`permissions.deny` にも削除と移動のツールを並べている。
     - 許可する操作を変えるときは、`notion-guard.py` の `ALLOWED` を直す。運用のルールは `AGENTS.md` の「Notion」。
   - 外すとき: `cd /usr/app/personal-workspace && claude mcp remove notion -s local`
