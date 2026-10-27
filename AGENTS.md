@@ -15,16 +15,18 @@ personal-workspace は、**特定のプロジェクトに依存しない個人�
 
 ```
 personal-workspace/
+├── bin/         # 一覧のコマンド（now.sh・list-workstream.sh）。下記「取り組み中の一覧」
 ├── docker/      # devbox（エージェント用の作業環境）。説明は docs/development-environment.md
 ├── docs/        # 開発環境・GitHub 認証・個人プリファレンス・Git 運用の文書
 ├── projects/    # 案件ごとの資料置き場（下記「projects/（案件ごとの資料）」）
+│   ├── README.md                 # projects/ 全体の目録と、取り組み中の workstream の並び
 │   ├── aws-data-protection/      # project:aws-data-protection。S3 原本バケットの保護
 │   ├── gaming-data-collection/   # project:gaming-data-collection。BeamNG の MOD と資料
 │   ├── idp-broker/               # project:idp-broker。社内アプリの認証の入口（IdP）の選定
 │   ├── m2m-auth/                 # project:m2m-auth。車載装置・CI 用マシンの認証
 │   ├── tern-ios-auth/            # project:tern-ios-auth。Tern iOS アプリの認証
 │   └── what-did-i-do/            # project:what-did-i-do。自分の操作の通知と、人でない主体の見張り
-├── .claude/commands/   # /commit /push /pr
+├── .claude/commands/   # /commit /push /pr /now /list-workstream
 └── ai-agents/   # 旧構成の残り（git 管理外の作業ファイルだけ）
 ```
 
@@ -52,6 +54,8 @@ personal-workspace/
 - 資料（文書・画像・データなど）は1ファイル1件で載せる。MOD やスクリプトのようにまとまったコードは、フォルダ単位で1件にし、そのフォルダの `README.md` を指す。
 - 目録自身と `AGENTS.md` / `CLAUDE.md` は載せなくてよい。
 
+`projects/README.md` は `projects/` 全体の目録。案件フォルダを作る・消すときは、ここの「案件」の見出しも同じコミットで更新する。
+
 ### workstream（セッションを跨ぐ作業の記録）
 
 1セッションで終わらない作業は、経緯を workstream として記録しながら進める。
@@ -62,12 +66,16 @@ personal-workspace/
 - **着手する前に、該当する project の `workstream/` に資料があるか確認し、あれば続きから進める**。無ければ作る。
 - 作業の区切りごと（とくにセッションを終えるとき）に、進捗と引き継ぎを書き足す。古くなった記述は消すか直す。
 - 完了したら `workstream/done/` へ移す。恒久的に残すべき内容（仕様・手順・決定事項）は、移す前に project 内の別の資料へ書き出す。
-- 資料を作る・移すときは、project の目録（`README.md`）の `workstream/` の見出しも同じコミットで更新する。
+- 資料を作る・移すときは、project の目録（`README.md`）の `workstream/` の見出しも同じコミットで更新する。あわせて `projects/README.md` の「取り組み中」「待ち・保留」も更新する（作ったら載せ、完了したら外す）。
+- 冒頭の `- 開始:` と `- 状態:` の行は、一覧のコマンドが読む。書式を変えない。`- 状態:` は1行目だけで今どこにいるか分かるように書き、状態が変わったら書き直す。
 
 テンプレート:
 
 ```markdown
 # <案件名>
+
+- 開始: YYYY-MM-DD
+- 状態: **<今どこにいるか>**。<次にやること>
 
 <1〜2文の概要（何をする案件か）>
 
@@ -80,6 +88,12 @@ personal-workspace/
 ## 関連リンク
 （関連する資料・リポジトリ・ファイル）
 ```
+
+### 取り組み中の一覧
+
+- **`projects/README.md` の「取り組み中」に注力している順、「待ち・保留」に人の対応待ちや手を止めているものを並べる**。1件は `- [<project-id>/workstream/<名前>.md](./<同じパス>): 一言メモ` の1行。状態そのものは workstream の `- 状態:` に書き、ここには写さない。
+- `bin/now.sh`（Claude Code では `/now`）がこの順に状態を出す。どちらにも載っていない進行中の workstream は「未分類」、載っているのに見つからないものは警告として出る。
+- `bin/list-workstream.sh`（`/list-workstream`）は project ごとの一覧。`-a` で完了したもの、`-f` で状態の行を切り詰めずに出す。
 
 ## 開発環境（Docker / devbox）
 
