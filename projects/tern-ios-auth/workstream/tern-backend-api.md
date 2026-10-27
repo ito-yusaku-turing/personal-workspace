@@ -156,6 +156,8 @@
   - 分かったこと: backend-prod にもオフボーディングの同期（[mono-e2e#6139](https://github.com/turingmotors/mono-e2e/pull/6139)）があり、10/9 に本番で有効になった。15 分ごとに、Google で停止・削除された人を ban し、API キーの再発行を止める（[IdP の役割分担の検討](../../idp-broker/workstream/idp-auth0-role-division.md)の「backend-api の課題と、今の動き」）
   - 残り: ban のあと、発行済みのトークンがいつまで使えるか
 - [ ] backend-prod の `public` スキーマの RLS が「認証済みなら何でも読める」になっていないか（anon キーをアプリのビルドに入れるため。説明用の資料の「新しく生じること」）
+- [ ] backend-prod の Supabase で、メールでの新規登録が無効か（anon キーがアプリに入るため。説明用の資料の「FAQ」）
+- [ ] backend-prod で、アプリ専用の publishable key を別に作れるか（漏れたときにそれだけを止めるため。旧来の anon キーは JWT の秘密と結びついていて、差し替えると jadd-cli を含む全員のトークンが無効になる）
 - [ ] 疎通の確認に使う、既存の backend-api の読み取りのエンドポイント（副作用が無く、利用者の身元が返るもの）
 - [ ] backend-prod の Supabase の設定を変えられる人（Redirect URLs の追加）
 - 三輪さんの側（参考）: backend-prod の Postgres に足したテーブルが、`supabase_backend_prod` の federation で自動的に見えるか（権限の付与が要るか）
@@ -176,4 +178,5 @@
 - 2026-10-26: R2 の案 a（[cdk-apps#2220](https://github.com/turingmotors/cdk-apps/pull/2220)）と案 b（backend-api を経由）を両方残して比べることにした。b には backend-api の `/valhalla/lane-semantic-map/*` という先例がある。#2220 は 10/19 から止まっていて、Draft のまま main と conflict している。比較は「R2 の案」の節に書いた。
 - 2026-10-26: 組み直した説明用の資料で Notion のページを同期した（本文をまるごと置き換え。表の列の幅は既定に戻った）。Notion の側でタイトルの末尾に「(ドラフト)」が足されていたので、プロパティには触らずに残した。コメントは無かった。R2 の a・b の比較は workstream にだけ書き、説明用の資料には入れていない。
 - 2026-10-27: 説明用の資料の冒頭の概要の段落を、TL;DR（6 項目）に置き換えた。Notion のページも同じ箇所だけ書き換えて同期した（同期の前に確かめたところ、人の編集もコメントも無かった）。
-- 次: Notion は 2026-10-27 の版で同期済み。人の情報（担当）を最後に必要な分だけ足し、R2 の a・b を資料に載せるかを決める。そのあと Status を `提案中(Proposed)` にして共有する。直すときは原本を直してから Notion を更新する（その前に Notion の人の編集とコメントを確かめる）
+- 2026-10-27: 安本さんから Notion にコメントが 3 件（リダイレクト先の決まり方・anon キーの用途と埋め込み・リフレッシュトークンの保存先）。答えを説明用の資料の「FAQ」にまとめ、TL;DR と注意点から参照した。Notion も同じ箇所だけ同期した。anon キーについて新たに分かったこと: jadd-cli はキーを埋め込まず環境変数（`SUPABASE_API_KEY`）から読むので、配るアプリに backend-prod の anon キーを入れるのは Tern が初めて。TestFlight でもテスターには見える。コメントへの返信は `notion-guard` が `notion-create-comment` を許していないため、人間が投稿する。
+- 次: Notion は 2026-10-27 の版（FAQ 入り）で同期済み。人の情報（担当）を最後に必要な分だけ足し、R2 の a・b を資料に載せるかを決める。そのあと Status を `提案中(Proposed)` にして共有する。直すときは原本を直してから Notion を更新する（その前に Notion の人の編集とコメントを確かめる）

@@ -11,7 +11,7 @@ Notion: <https://app.notion.com/p/405a93b3e6f281208011c7ccdb174536>（この資�
 - **設定の作業**: backend-prod の Redirect URLs に、アプリの戻り先を 1 行足すだけ。jadd-cli のログインは変わらない。
 - **範囲**: 今回は R1（ログイン・backend-api の呼び出し・疎通の確認）まで。Tern API の API キーの廃止（R2）とフィードバックの機能（R3）は範囲外で、R3 は R1 の上に三輪さんが作る。
 - **【重要】** 当面は、撤廃が決まっている BFF（`https://api.turing-ai.dev/v1`）を通して呼ぶ。撤廃の作業で同じ URL とパスを引き継いでもらえないと、アプリを出し直すまで backend-api を呼べなくなる。
-- **確かめること**: backend-prod の `public` スキーマの RLS（anon キーがビルドに入るため）、社外の Google アカウントを弾くか、ban した後のトークンの扱い。
+- **確かめること**: backend-prod の `public` スキーマの RLS とメールでの新規登録の設定（anon キーがビルドに入るため。「FAQ」を参照）、社外の Google アカウントを弾くか、ban した後のトークンの扱い。
 
 ## 要件
 
@@ -97,13 +97,42 @@ R1 ができた後の機能（R3 のフィードバックなど）は、中身�
 - **BFF の撤廃に追随する。** 前提条件の【重要】のとおり。撤廃の作業の動きを追い、URL とパスが変わるなら、撤廃より前にアプリの版を出し直す。
 - **検証役も BFF にある。** BFF の authorizer に加え、backend-api 自身の検証も、BFF のスタックにある `supabase-authorizer-v3` に任せている。BFF を撤廃した後も、この検証役が残る必要がある。
 - **トークンの検証の結果は 2 段でキャッシュされる。** BFF の authorizer と backend-api が、それぞれ 5 分ずつ持つ。ログアウトや ban の反映は、最大でおよそ 10 分遅れる。
-- **anon キーがアプリのビルドに入る。** anon キーは公開を前提にした値なので入れてよいと考える。ただしログインした社員は backend-prod の PostgREST を直接呼べるので、`public` スキーマの RLS が「認証済みなら何でも読める」になっていないかを確かめる。
+- **anon キーがアプリのビルドに入る。** anon キーは公開を前提にした値なので入れてよいと考える。ただしログインした社員は backend-prod の PostgREST を直接呼べるので、`public` スキーマの RLS が「認証済みなら何でも読める」になっていないかを確かめる。TestFlight でも隠せる範囲と、ほかに確かめることは「FAQ」に書いた。
 - **社外の Google アカウントを弾くかは未確認。** OAuth の同意画面が「内部」でなければ、社外の人もログインはできる。backend-api の側で `@turing-motors.com` に絞れば、API は使えない。
 - **退職者のトークン。** アクセストークンの寿命は約 1 時間。backend-prod では、オフボーディングの同期（[mono-e2e#6139](https://github.com/turingmotors/mono-e2e/pull/6139)）が 15 分ごとに、Google で停止・削除された人を ban している。ban した後、発行済みのトークンがいつまで使えるかは未確認。
 - **jadd-cli と同じ利用者になる。** 同じ社員は、jadd-cli とアプリで同じ `sub` になる。backend-api からは区別できない。
 - **ログに出さない。** アクセストークン、座標、フィードバックの本文は、アプリのログにも backend-api のログにも出さない。
 - **URL スキームは確定してから足す。** Redirect URLs とアプリの登録が一字一句同じでないとログインから戻れない。名前を決めてから Supabase に足す。
 - **R2 の既存の PR とは前提が違う。** Tern API に Supabase の JWT を受ける入口を足す PR（[cdk-apps#2220](https://github.com/turingmotors/cdk-apps/pull/2220)、未マージ）は、JADD STUDIO3 の Supabase の JWT だけを受け、検証を BFF の authorizer に任せている。ログインに使う Supabase が、この資料（backend-prod）とは違う。BFF の撤廃の影響も受ける。
+
+## FAQ
+
+### Q. ログインの後、どこに戻るか（リダイレクト先）はどう決まる？
+
+- アプリがログインを始めるときに、戻り先（`redirect_to=turingnavi://auth-callback`）を指定する。
+- 流れは「Google → backend-prod の Supabase → アプリ」の 2 段。Google からは Supabase に戻り（ここは今のまま変えない）、Supabase がアプリに戻す。
+- Supabase は、指定された戻り先が Redirect URLs に登録されているときだけ、そこへ戻す。登録が無ければ Site URL に戻す。Redirect URLs に 1 行足すのはこのためで、Site URL と jadd-cli の戻り先は変えない。
+
+### Q. anon キーは何に使う？
+
+- アプリが backend-prod の Supabase Auth を呼ぶときに付ける。ログインから戻った後にコードをトークンへ換えるとき（トークンエンドポイント）と、トークンを更新するときに使う。認可の画面を開くときには使わない。
+- どの Supabase プロジェクト宛ての呼び出しかを示す値で、公開を前提にしている。秘密の値ではない。
+- backend-api には送らない。backend-api にはアクセストークンだけを送る。
+
+### Q. anon キーをアプリに埋め込んでよいか。TestFlight だけなら隠せるか？
+
+- 埋め込む。リポジトリには書かず、ビルドの設定で渡すが、配ったアプリの中には入る。
+- TestFlight でも、アプリを入れたテスター（社員）はバイナリから取り出せる。隠せるのはテスター以外からまで。App Store で公開すれば、誰でも取り出せる。
+- 今の jadd-cli はキーを埋め込まず、環境変数（`SUPABASE_API_KEY`）から読む。配るアプリに backend-prod の anon キーを入れるのは、Tern が初めてになる。
+- anon キーで出来るのは、Supabase Auth を呼ぶことと、PostgREST を anon の権限で呼ぶこと。守りはキーを隠すことではなく、Supabase の設定で行う。次を確かめてから進める。
+  - `public` スキーマの RLS が、anon やログインした利用者に何でも読ませる形になっていないか。
+  - メールでの新規登録が無効か。有効だと、キーを持つ人が Google 以外のアカウントを作れる。backend-api の Tern 用 API は検証済みの `@turing-motors.com` に絞っているので、それだけでは API は使えない。
+  - 漏れたときに止められるか。旧来の anon キーは JWT の秘密と結びついていて、差し替えると jadd-cli を含む全員のトークンが無効になる。アプリ専用の publishable key を別に作れれば、それだけを止められる。backend-prod で使えるかは未確認。
+
+### Q. リフレッシュトークンはどこに保存される？
+
+- iOS の端末の中。supabase-swift が、アクセストークンとリフレッシュトークンを含むセッションを Keychain に保存し、期限が近づくと更新する。
+- ログアウトするとセッションを消す。ban された利用者はトークンを更新できない。ban した後、発行済みのアクセストークンがいつまで使えるかは、「注意点・留意点」のとおり未確認。
 
 ## 参考
 
