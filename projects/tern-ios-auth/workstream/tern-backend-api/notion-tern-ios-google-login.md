@@ -2,9 +2,16 @@
 
 Notion: <https://app.notion.com/p/405a93b3e6f281208011c7ccdb174536>（この資料が原本。直すときはここを直してから Notion を更新する）
 
-作成: 2026-10-23 ／ 更新: 2026-10-26
+作成: 2026-10-23 ／ 更新: 2026-10-27
 
-Tern の iOS アプリで、社員が Google アカウントでログインできるようにする。そのトークンで backend-api を呼べるようにし、API キーや JADD_SERVICE_KEY を使わずに機能を足せる土台を作る。ログインには jadd-cli と同じ backend-prod の Supabase Auth を使う。
+## TL;DR
+
+- **やること**: Tern の iOS アプリに、社員の Google ログインを入れる。そのトークンで backend-api を呼べるようにし、API キーや JADD_SERVICE_KEY を使わずに機能を足せる土台を作る。
+- **やり方**: jadd-cli と同じ backend-prod の Supabase Auth でログインする。このトークンは backend-api がすでに受け付けているので、新しい Supabase プロジェクトも、検証の改修も要らない。
+- **設定の作業**: backend-prod の Redirect URLs に、アプリの戻り先を 1 行足すだけ。jadd-cli のログインは変わらない。
+- **範囲**: 今回は R1（ログイン・backend-api の呼び出し・疎通の確認）まで。Tern API の API キーの廃止（R2）とフィードバックの機能（R3）は範囲外で、R3 は R1 の上に三輪さんが作る。
+- **【重要】** 当面は、撤廃が決まっている BFF（`https://api.turing-ai.dev/v1`）を通して呼ぶ。撤廃の作業で同じ URL とパスを引き継いでもらえないと、アプリを出し直すまで backend-api を呼べなくなる。
+- **確かめること**: backend-prod の `public` スキーマの RLS（anon キーがビルドに入るため）、社外の Google アカウントを弾くか、ban した後のトークンの扱い。
 
 ## 要件
 

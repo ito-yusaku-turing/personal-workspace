@@ -1,7 +1,7 @@
 # Tern iOS アプリの認証と、フィードバックの送信
 
 - 開始: 2026-10-23
-- 状態: **方針と分担が決まり、説明用の資料でレビューを受ける段階（2026-10-23）**。こちらは「Google ログインと、ログインした利用者が backend-api を呼ぶ経路」を用意し、iOS への組み込み方を示すまで。iOS への組み込みとフィードバックの機能は三輪さんが作る。説明用の資料（[`notion-tern-ios-google-login.md`](tern-backend-api/notion-tern-ios-google-login.md)）を Notion に上げた（2026-10-26、[Notion のページ](https://app.notion.com/p/405a93b3e6f281208011c7ccdb174536)。Status は下書き）。三輪さんと MLOps チームにレビューしてもらう
+- 状態: **方針と分担が決まり、説明用の資料でレビューを受ける段階（2026-10-27）**。こちらは「Google ログインと、ログインした利用者が backend-api を呼ぶ経路」を用意し、iOS への組み込み方を示すまで。iOS への組み込みとフィードバックの機能は三輪さんが作る。説明用の資料（[`notion-tern-ios-google-login.md`](tern-backend-api/notion-tern-ios-google-login.md)）を Notion に上げた（2026-10-26、[Notion のページ](https://app.notion.com/p/405a93b3e6f281208011c7ccdb174536)。Status は下書き。2026-10-27 に TL;DR を足して同期）。三輪さんと MLOps チームにレビューしてもらう
 - 所属: project:tern-ios-auth（作業先は navi-ios-app・mono-e2e・cdk-apps にまたがる。2026-10-26 に `~/docs/workstream/` から移した）
 - 関連: [backend-api・JADD STUDIO・CLI の認証（補足資料）](../../idp-broker/documents/backend-api-auth-supplement.md)、[M2M 認証](../../m2m-auth/workstream/m2m-auth.md)
 
@@ -175,4 +175,5 @@
 - 2026-10-26: BFF は撤廃まで動くので、撤廃までは BFF を通す前提に資料を組み替えた。廃止予定の BFF に頼ることは前提条件の先頭に【重要】として書いた。BFF の authorizer は期限切れのトークンにも 403 を返す（`supabase-authorizer-v3.ts:112`、HTTP API の simple response）ので、応答の扱いを「401・403 なら 1 回更新して送り直す」に改めた。R2・R3 は「範囲外」にそろえた。
 - 2026-10-26: R2 の案 a（[cdk-apps#2220](https://github.com/turingmotors/cdk-apps/pull/2220)）と案 b（backend-api を経由）を両方残して比べることにした。b には backend-api の `/valhalla/lane-semantic-map/*` という先例がある。#2220 は 10/19 から止まっていて、Draft のまま main と conflict している。比較は「R2 の案」の節に書いた。
 - 2026-10-26: 組み直した説明用の資料で Notion のページを同期した（本文をまるごと置き換え。表の列の幅は既定に戻った）。Notion の側でタイトルの末尾に「(ドラフト)」が足されていたので、プロパティには触らずに残した。コメントは無かった。R2 の a・b の比較は workstream にだけ書き、説明用の資料には入れていない。
-- 次: Notion は 2026-10-26 の版で同期済み。人の情報（担当）を最後に必要な分だけ足し、R2 の a・b を資料に載せるかを決める。そのあと Status を `提案中(Proposed)` にして共有する。直すときは原本を直してから Notion を更新する（その前に Notion の人の編集とコメントを確かめる）
+- 2026-10-27: 説明用の資料の冒頭の概要の段落を、TL;DR（6 項目）に置き換えた。Notion のページも同じ箇所だけ書き換えて同期した（同期の前に確かめたところ、人の編集もコメントも無かった）。
+- 次: Notion は 2026-10-27 の版で同期済み。人の情報（担当）を最後に必要な分だけ足し、R2 の a・b を資料に載せるかを決める。そのあと Status を `提案中(Proposed)` にして共有する。直すときは原本を直してから Notion を更新する（その前に Notion の人の編集とコメントを確かめる）
