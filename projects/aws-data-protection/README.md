@@ -11,6 +11,7 @@ tuscenes-prod（767397804933）の S3 原本バケットを、消失や破壊か
   - [workstream/s3-data-protection-2/stage2-hourly-report.md](./workstream/s3-data-protection-2/stage2-hourly-report.md): ステージ 2「原本バケットの削除の毎時の報告」の設計（cdk-apps `apps/original-bucket-audit`、カナリア）
   - [workstream/s3-data-protection-2/bucket-policy/](./workstream/s3-data-protection-2/bucket-policy/test-runbook.md): ステージ 1 のバケットポリシー一式。生成・比較・シミュレーションのスクリプト、12 本分の生成結果（`rendered/`）、使い捨てバケットで試す手順書（`test-runbook.md`）
   - `workstream/s3-data-protection-2/stage2-verify/cdk/cdk.out/`: ステージ 2 の検証用スタック（`S2vProbeStack`）の合成結果。CDK のソースは移す前から残っていない
+- [workstream/tuscenes-stack-cleanup.md](./workstream/tuscenes-stack-cleanup.md): **古いスタック tuscenes を片付ける**。アーカイブ済みの tuscenes-pipeline が残したスタック（ルール・Lambda・IAM ユーザー・バケット 5 本）。第二弾の TODO 23 の調査で見つかった。積んでいる
 - [workstream/aws-root-credentials.md](./workstream/aws-root-credentials.md): **メンバーアカウントの root の認証情報を消す**。tuscenes-prod の root（パスワード有効・MFA なし）の削除を CorpIT に依頼する
 
 ## workstream/done/ — 完了した作業記録

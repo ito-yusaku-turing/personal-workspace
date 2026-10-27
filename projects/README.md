@@ -21,6 +21,7 @@
 ほかの人の対応を待っているもの、手を止めているもの。
 
 - [aws-data-protection/workstream/aws-root-credentials.md](./aws-data-protection/workstream/aws-root-credentials.md): CorpIT の対応待ち
+- [aws-data-protection/workstream/tuscenes-stack-cleanup.md](./aws-data-protection/workstream/tuscenes-stack-cleanup.md): 積んでいる（そのうちやる）
 
 ## 案件
 

@@ -157,6 +157,16 @@ CDK は、自分が作ったバケット（`s3.Bucket`）の通知の設定を *
 - **拒否された削除は、CloudTrail にしか出ない。** 一括のときは、本体がエラーなし（HTTP 200）で、オブジェクトごとの記録にだけ AccessDenied が出る。拒否の試みを報告に載せるなら、オブジェクトごとの記録の `errorCode` を見る（今の要件では報告の対象外。即時のアラートを考えるときの材料）。
 - **トレイルを削除系に絞るとき**（12 本を足す前）は、`eventName` に `DeleteObject` と `DeleteObjects` の両方を入れる。オブジェクトごとの記録の `eventName` は `DeleteObject` なので、`DeleteObjects` だけでは「誰が・どのキー」が取れない。
 
+## tuscenes-raw の EventBridge（2026-10-27 決定）
+
+- tuscenes-raw には、古いスタック `tuscenes`（tuscenes-pipeline。アーカイブ済み）のルール `tuscenes-NewTripEventRule…` が残っている。`metadata.json` の作成・削除で、cleaning の job・Supabase・Slack への投稿を起こすもの。tuscenes-raw の EventBridge は、2025-04 に datalake へ移したときに、これを止めるために無効にしてある。
+- S3 の EventBridge は、default のバスにすべてのイベントを流す。届け先を選べないので、監査のために有効にすると、このルールも動き出す。
+- **決定: 伊藤がこのルールを止めてから（`disable-rule`）、12 本すべてに同じ形で EventBridge を入れる。** 手順は workstream の TODO 25。
+- 採らなかった案: tuscenes-raw だけ CloudTrail で報告する。CloudTrail では次のものが見えないため。
+  - ライフサイクルの削除（CloudTrail に出ない）。
+  - 一括削除の種類。オブジェクトごとの記録には `resources` のキーしか載らない。単発の `DeleteObject` なら、応答の `x-amz-delete-marker` で分かる。
+- スタック全体の片付けは、別の資料（[tuscenes-stack-cleanup.md](../tuscenes-stack-cleanup.md)）。
+
 ## 後で決めること
 
 - Slack: 投稿するチャンネルと bot（`users:read.email`・`chat:write`）。

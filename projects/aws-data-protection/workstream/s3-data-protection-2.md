@@ -1,7 +1,7 @@
 # S3 バケットのデータ保護 第二弾（権限設計のアップグレード）
 
 - 開始: 2026-10-20
-- 状態: **ステージ 1 は 12 本すべてに入った。ステージ 2 の 1 本目（カナリアと記録の仕組み）も入った**（2026-10-26）。[cdk-apps#2252](https://github.com/turingmotors/cdk-apps/pull/2252)（共通部と denso-raw、10-23）・[cdk-apps#2253](https://github.com/turingmotors/cdk-apps/pull/2253)（残りの 11 本、10-26 05:40 UTC）・[cdk-apps#2267](https://github.com/turingmotors/cdk-apps/pull/2267)（カナリア、10-26 06:37 UTC）をマージした。カナリアの確認は失効の 1 点だけが残る（10-27〜28）。次はステージ 2 の毎時の集計と報告の PR
+- 状態: **ステージ 1 は 12 本すべてに、ステージ 2 の 1 本目（カナリアと記録の仕組み）も入った。PR-A（毎時の集計と報告）の準備中**（2026-10-27）。Slack は bot もチャンネルも新しく作ると決めた。次は Slack の bot の準備（10-28）。カナリアの失効の確認も 10-28 の午後（JST）以降に。PR-B の障害だった tuscenes-raw の古いルールは止めた（TODO 25）
 - 所属: project:aws-data-protection（2026-10-26 に `~/docs/workstream/` から移した）
 - 前段（第一弾、完了）:
   - [走行データ消失リスクへの対応](done/raw-data-security.md)（バケットの種別と処遇、裁定の正本）
@@ -93,6 +93,14 @@
     - 12 本への `DeleteObjectVersion` などの Deny を SCP か RCP に重ねる。
     - 調べること: RCP の対象（S3 は可）・root にどう効くか・サービスにリンクされたロールの扱い・SCP との違い（他のアカウントの主体に効くか）・大きさの上限。
     - 経路は cdk-apps の `apps/organization-policy`（管理アカウントに deploy）。
+25. ~~**tuscenes-raw のルール `tuscenes-NewTripEventRule…` を止める**~~ → 済み（2026-10-27。伊藤が止め、`DISABLED` を ReadOnly で確かめた）。（2026-10-27 決定。PR-B の前に要る）tuscenes-raw の EventBridge を有効にすると、古いスタック `tuscenes` のこのルールが動き出し、cleaning の job・Supabase・Slack への投稿が起きるため。伊藤が Full 権限で止める。持ち主への確認はしない（本件の障害を自らの手で取り除く）。スタック全体の片付けは別の資料にした（[tuscenes-stack-cleanup.md](tuscenes-stack-cleanup.md)）。
+    - 手順（伊藤、Full 権限）:
+      ```bash
+      aws events disable-rule --region us-west-2 --name tuscenes-NewTripEventRule9F52899F-dXQQ5emHVD08
+      ```
+    - 止めた後の確認（エージェント、ReadOnly）: `aws events describe-rule --region us-west-2 --name tuscenes-NewTripEventRule9F52899F-dXQQ5emHVD08 --query State` が `DISABLED`。
+    - 戻すとき: 同じ名前で `aws events enable-rule`。
+    - PR-B では、datalake の `eventBridgeEnabled: false, // cleaning 処理に必要` のコメントを、経緯（ルールを止めたこと・監査のアプリが EventBridge を入れること）が分かるように直す。この指定はテンプレートに何も生まないので、datalake の deploy で監査の EventBridge が消えることは無い。
 
 ### ステージ 3: 人の権限
 
@@ -123,15 +131,16 @@
 
 16. **LidarDeleter・S3BatchDeleteLidar**：周知するか、信頼ポリシーを外すか。ステージ 1 が入れば古い版は消せなくなるが、間引きを再開すると古い版が残り、課金が続く。間引きはライフサイクルで行う形に改める（原則 2）。
 17. **denso-nx-raw の Azure 側の件数の減少**：10-14 までの 187,810 件が、10-17 以降は 0 件。調査書の G01 の前提が崩れている可能性がある。
-18. **[cdk-apps#2231](https://github.com/turingmotors/cdk-apps/pull/2231)**（azure-data-sync の変更で denso の deploy・diff を走らせる）：作った人に確認してから進める。それまでレビュー依頼・マージはしない。
-19. **azure-data-sync の SAS の次のローテーション**：今の SAS は 2026-10-26 まで有効。その前の自動のローテーションと、次の日の DataSync の成功を確かめる。
+18. ~~**[cdk-apps#2231](https://github.com/turingmotors/cdk-apps/pull/2231)**（azure-data-sync の変更で denso の deploy・diff を走らせる）：作った人に確認してから進める。それまでレビュー依頼・マージはしない。~~ → 閉じた（2026-10-27。同じ 3 行が [cdk-apps#2285](https://github.com/turingmotors/cdk-apps/pull/2285) で main に入っていたため）。
+19. ~~**azure-data-sync の SAS の次のローテーション**：今の SAS は 2026-10-26 まで有効。その前の自動のローテーションと、次の日の DataSync の成功を確かめる。~~ → 済み（2026-10-27。自動のローテーションが 10-25 に走り、その後の DataSync も成功。「進捗と引き継ぎ」の 10-27）。
 
 ### 第一弾からの持ち越し（チームの合意待ち）
 
 20. **バケットの種別の記事を Notion に上げ直す**（[`done/raw-data-security/notion-bucket-classification.md`](done/raw-data-security/notion-bucket-classification.md)。10-19 の変更を反映済み。2026-10-26 に、tuscenes-calibration（新）の失効の記述と denso-nx-raw の件数の記述も手元の写しで直した）。
 21. **databricks-workspace-e2e-bucket の A 案**（バージョニングを入れない）をチームで議論する。S3 を直接消されることへの手当ては、ステージ 1 と同じバケットポリシーで考えられる（Databricks のロール以外の削除を拒否する）。
-22. **調べ残し**：手で作ったバケットの持ち主と出所、tuscenes-calibration（旧）の写しの有無、他アカウント（amman-pipeline・e2e-dev・biz-dev）の同じ集計。
+22. **調べ残し**：手で作ったバケットの持ち主と出所、tuscenes-calibration（旧）の写しの有無、他アカウント（amman-pipeline・e2e-dev・biz-dev）の同じ集計。（2026-10-27: `alphaspp-raw`・`alphaspp-data` の出所は tuscenes-infra（スタック `alphaspp-pipeline`、削除済み）と分かった。tuscenes-basicai-datasets はスタック `tuscenes` の管理下。どちらも [tuscenes-stack-cleanup.md](tuscenes-stack-cleanup.md) に書いた）
 23. **datalake の td1-raw の通知の設定**: datalake は td1-raw の通知を CDK の「丸ごと上書き」の方式（`Managed: true`）で持っている。datalake の通知の設定を変えて deploy すると、Databricks の auto-ingest の通知が消えるおそれがある（2026-10-22 に気づいた。ステージ 2 の設計を参照）。
+    - **2026-10-27 に調べた（結果は「進捗と引き継ぎ」の 10-27）。** 監査のアプリ（PR-B）と td1-raw はぶつからない。一方で、td1-raw には監査とは関係なく前からある危険が 1 つある。また、tuscenes-raw に EventBridge を入れると、止まっている cleaning の処理が動き出すおそれがあることが分かった。
 
 ## 進捗と引き継ぎ
 
@@ -270,3 +279,73 @@
   - **Notion の運用:** personal-workspace のセッションにだけ Notion の MCP がある。書き込みは毎回確認が出る（`AGENTS.md` の「Notion」）。上げ直しが溜まっているもの: permission-upgrade-plan.md、バケットの種別の記事（どちらも既存の Notion のページの URL が要る）。
   - **期限があるもの:** TODO 19（azure-data-sync の SAS は 2026-10-26 まで）は、今日も確かめられなかった。次のセッションの最初に、ローテーションと DataSync の成功を ReadOnly で確かめる。
   - **作業場所:** cdk-apps の worktree は scratchpad の cdk-2267b（push 済みで、作業は残っていない）。次は `/usr/app/cdk-apps` から作り直せばよい。
+- 2026-10-27（01:05 UTC）: カナリアの失効（0-1）を ReadOnly で見た。**まだ起きていない。仕様どおり。**
+  - ログのバケットの `events/` は、10-26 06:48 の exerciser の 1 ファイルだけ。
+  - `expire/20261026T064825Z.txt` は、今の版と古い版が 1 つずつ残っている（どちらも 10-26 06:48:27 UTC）。ライフサイクル `canary-expire` は `Expiration.Days=1` と `NoncurrentDays=1`。
+  - S3 のライフサイクルは「作成から N 日後の、次の 0 時（UTC）」から対象になる。なので、失効の対象になるのは **10-28 00:00 UTC（09:00 JST）以降**。そこから実行まで最大 1 日ほど遅れることがある。
+  - 次は **10-28 の午後（JST）以降**に見る。期待するのは 2 件。今の版の失効（削除マーカーができる）と、古い版の完全な削除。どちらも `Object Deleted` で、`reason` がライフサイクル由来のもの。10-29 になっても出なければ、ルールか EventBridge の経路を疑う。
+- 2026-10-27: TODO 19（azure-data-sync の SAS）を ReadOnly で確かめた。**済み。期限の前に自動で差し替わり、その後の転送も成功している。**
+  - rotator（`DensoNx-AzureDataSyncSasRotatorRotatorFn…`）が、2026-10-25 12:00 UTC（21:00 JST）にスケジュールで起動した。新しい SAS（有効期限 2026-11-01 11:55 UTC）を `azure-data-sync/mlops1/sas-token` に書いた。シークレットの `LastChangedDate` も同じ時刻。
+  - その後の `azure-mlops1-dcorp-inbound-daily` は、10-26 03:00 JST・10-27 03:00 JST とも `SUCCESS`。`SasRotationFailureAlarm`・`LongRunningAlarm` も OK のまま。
+  - ローテーションの仕組み: スケジュールは `cron(0 12 */6 * ? *)`（毎月 1・7・13・19・25・31 日の 12:00 UTC）、SAS の寿命は 7 日。間隔は最大 6 日なので、期限まで 1 日以上の余裕がある。今後も手で見る必要は無い。
+  - 転送したファイルは 0 件のまま（送り元が 10-17 から 0 件。TODO 17）。分かったのは、認証が通っていることまで。
+- 2026-10-27: [cdk-apps#2231](https://github.com/turingmotors/cdk-apps/pull/2231) を閉じた（TODO 18。10-26 の課題の 7）。差分の 3 行が、どれも main（[cdk-apps#2285](https://github.com/turingmotors/cdk-apps/pull/2285)）にあることを確かめた。閉じた理由は PR にコメントで残した。
+- 2026-10-27: フェーズ 1 の計画の「伊藤に決めてほしいこと」のうち 2 点が決まった（伊藤）。
+  - 1（Slack）: **bot もチャンネルも新しく作る。**
+  - 3（カナリアの削除）: **今回は通知に出さない。** 将来は、AWS のリソースの変更を見張る仕組みで拾う。
+  - 2（守りの設定の変更をイベント履歴から引く案）は、まだ決まっていない。
+- 2026-10-27: TODO 23 を調べた（cdk-apps の main は 7e64e5ce、aws-cdk-lib は 2.173.2。AWS は ReadOnly）。
+  - **td1-raw の通知の持ち方**: datalake の `RlogDecoder`（`apps/datalake/lib/rlog-decoder/index.ts:40`、2025-03 の [cdk-apps#111](https://github.com/turingmotors/cdk-apps/pull/111)）が、`new s3.Bucket` の td1-raw に `enableEventBridgeNotification()` を呼んでいる。そのため、テンプレートに `Custom::S3BucketNotifications`（`RawBucketNotificationsAC3090B1`、`Managed: true`、設定は `EventBridgeConfiguration` だけ）がある。
+  - **ハンドラーの動き**（`custom-resource-handlers/dist/aws-s3/notifications-resource-handler/index.py`）:
+    - `Managed: true` では、Create・Update のたびに、CDK が持つ設定で丸ごと置き換える（`handle_managed`）。Delete のときは空にする（`{}`）。
+    - `Managed: false`（`fromBucketName`）では、今ある設定を読んで、外部の通知と EventBridge を残したまま足す（`handle_unmanaged`）。Delete のときも、EventBridge は外部の設定として残す。
+  - **いまの td1-raw の通知**: EventBridge と、Databricks の auto-ingest の SNS が 2 本（`collect/`・`control/`）。SNS が残っているのは、このリソースの Update が 2025-10-27 01:39 UTC を最後に走っていないから。ステージ 1 の deploy（10-23・10-26）でも走っていない（バケットポリシーの変更では走らない）。
+  - **前からある危険（監査とは関係ない）**: 次のどれかで Update か Delete が走ると、Databricks の SNS 2 本が消え、auto-ingest が止まる。
+    - datalake で td1-raw に通知を足す・変える。
+    - aws-cdk-lib を上げたときに、このリソースのプロパティが増える（2025-10-27 の Update の原因は確かめていない）。
+    - rlog-decoder の `enableEventBridgeNotification()` を外す（Delete で空になり、EventBridge まで消えて rlog のデコードも止まる）。
+    - 直すなら、2 段階に分ける案がある。①このリソースに `DeletionPolicy: Retain` を付ける。②`fromBucketName` の側（`Managed: false`）に付け替える。①だけで Update が走らないかは、カナリアで確かめてから入れる。直すかどうか・誰が直すかは未定。
+  - **監査のアプリ（PR-B）と td1-raw はぶつからない**: td1-raw の EventBridge はすでに有効で、datalake が持つ設定にも EventBridge が入っている。datalake が丸ごと置き換えても EventBridge は残る。監査のアプリは `fromBucketName` で足すので、Create のときも外部の通知を残す。
+  - **ほかの 11 本**: CDK が通知を持っているのは tuscenes-model だけ。L1 の `EventBridgeEnabled: true` で、ほかの通知は無いので、ぶつからない。残りの 10 本は CDK が通知を持っていない。Databricks の SNS（auto-ingest か `csms-topic-by-path`）が付いているのは tuscenes-raw・tuscenes-annotation・gaming-data-collection・denso-taxi-processed・denso-nx-raw。`Managed: false` で足せば残る。
+  - **新しく見つかった問題（tuscenes-raw）**: default のバスに `tuscenes-NewTripEventRule9F52899F-dXQQ5emHVD08`（ENABLED）がある。中身は、`tuscenes-raw-*` の `*/*/*/*/*/metadata.json` の作成・削除で、`tuscenes-NewTripEvent-Handler` を呼ぶもの。
+    - この Lambda の環境変数には `CLEANING_JOB_FUNCTION_NAME`・`TRIP_VALIDATION_FUNCTION_NAME`・`SUPABASE_SECRET_ARN`・`TOPIC_ARN` がある。最終更新は 2025-04-09 で、直近 90 日の呼び出しは 0 件。
+    - スタック `tuscenes` は cdk-apps の外にあり、最終更新は 2025-05-23（tuscenes-pipeline のものとみられる）。
+    - いまは tuscenes-raw の EventBridge が無効なので、発火しない。datalake の `eventBridgeEnabled: false, // cleaning 処理に必要` は、これを止めておくためのものとみられる（2025-04 の [cdk-apps#169](https://github.com/turingmotors/cdk-apps/pull/169) で tuscenes-pipeline から移したもの）。
+    - **PR-B で tuscenes-raw に EventBridge を入れると、metadata.json の作成・削除で cleaning などが動き出す。** 案は次の 2 つ。(a) tuscenes-raw は EventBridge を入れず、CloudTrail のデータイベントと Inventory だけで報告する。(b) 持ち主に確かめて、このルールを止めるか消してから入れる。伊藤の判断待ち。
+- 2026-10-27: tuscenes-raw の沿革を調べた（伊藤の依頼。cdk-apps と、アーカイブ済みの turingmotors/tuscenes-pipeline・tuscenes-infra の git の履歴、AWS は ReadOnly）。**CDK を整える前からあったバケットではない。** 作ったのは tuscenes-pipeline の CDK（Python）で、2025-04 に cdk-apps に移ってきた。
+  - 2024-02-02: tuscenes-infra（CDK、TypeScript）が前身を作った。`alphaspp-raw`・`alphaspp-data`・`alphaspp-ingest` と、Glue の cleaning の job。スタック `alphaspp-pipeline` はもう無いが、バケットは残っている。`alphaspp-raw-767397804933` は 42 オブジェクト・約 0.9 TB で、`ad01/`〜`ad03/`・`alphaspp01/`・`1.0/2024/04/` がある。第一弾の分類では S10（「不明」「行わない」）にしていた。出所はこれで分かった（TODO 22 の調べ残しの一部）。
+  - 2024-03-12: tuscenes-pipeline（CDK、Python）が `RawDataBucket` を `{STACK_NAME}-raw-{account}` の名前で足した。スタック `tuscenes` の作成は 2024-03-11 なので、名前は `tuscenes-raw-767397804933` になる。2024-06-27 の [tuscenes-pipeline#3](https://github.com/turingmotors/tuscenes-pipeline/pull/3) で、同じ名前を明示する書き方に変わった。
+  - 2024-05-17: `1.0/` のいちばん古いデータ（`1.0/2024/05/17/`）。
+  - tuscenes-pipeline の時代は `event_bridge_enabled=True` だった。`NewTripEvent` が `metadata.json` の作成・削除を受けて、検証（`trip_validation`）と cleaning の job（`create_cleaning_job`。出力は tuscenes-cleaned）を起動し、Supabase と SNS に書いていた。
+  - 2025-04-08: [tuscenes-pipeline#27](https://github.com/turingmotors/tuscenes-pipeline/pull/27)（「cdk-apps にリソース移管します」）で、`s3.Bucket` から `from_bucket_name` に変わった。同じ日の cdk-apps の [cdk-apps#169](https://github.com/turingmotors/cdk-apps/pull/169) で、datalake に `new s3.Bucket(TuscenesRawBucket)` として移った。このとき `eventBridgeEnabled: false, // cleaning 処理に必要` になった。コミットの箇条書きには「cleaning 処理を停止」とある。**コメントの意味は「cleaning を止めるために必要」**と読める。収集も 2025-04 に終わっている。
+  - 2025-05-23: tuscenes-pipeline の最後の変更（「tuscenes studio を削除」、[tuscenes-pipeline#30](https://github.com/turingmotors/tuscenes-pipeline/pull/30)）。リポジトリはアーカイブ済み。それでもスタック `tuscenes` は残っていて、`NewTripEventRule`（ENABLED）と Lambda も生きている。tuscenes-raw の EventBridge が無効なので、発火していないだけ。
+  - 第二弾への影響: 先に出した案 (a)・(b) の前提は変わらない。(b) の「持ち主」は、アーカイブ済みのリポジトリが残したスタックになる。ルールを止めるのは、残骸の片付けにあたる。
+- 2026-10-27: tuscenes-raw の扱いを決めた（伊藤）。
+  - **(b) にする。** 本件の障害になるルール `tuscenes-NewTripEventRule…` を、伊藤が自分の手で止める（TODO 25）。そのうえで、PR-B で 12 本すべてに同じ形で EventBridge を入れる。
+  - 比べた案: (a) tuscenes-raw だけ EventBridge を入れず、CloudTrail だけで報告する。ライフサイクルで消えた分と一括削除の種類が見えず、1 本だけ別の処理が残るので採らなかった。
+  - カナリアの記録で確かめたこと（(a) を比べるため）: CloudTrail では、単発の `DeleteObject` の応答に `x-amz-delete-marker` と `x-amz-version-id` が載る。一括削除のオブジェクトごとの記録には、`resources` のキーしか載らない（版も種類も無い）。ライフサイクルの削除は CloudTrail に出ない。
+  - **スタック `tuscenes` 全体の片付けは、別の資料に起票した: [tuscenes-stack-cleanup.md](tuscenes-stack-cleanup.md)**（積んでいる。そのうちやる）。ルール 3 本・Lambda 7 本・IAM ユーザー `tuscenes-basicai-user`・バケット 5 本などの中身と注意点は、そちらにまとめた。
+- 2026-10-27: 伊藤が `tuscenes-NewTripEventRule9F52899F-dXQQ5emHVD08` を止めた（TODO 25）。ReadOnly で `DISABLED` を確かめた。ほかのルール（tuscenes の NewSceneEvent・CleaningJobStateChange、rlog-decoder、監査のアプリ）は ENABLED のまま。これで PR-B で tuscenes-raw にも EventBridge を入れられる。
+- 2026-10-27 のセッションの終わり。引き継ぎ（これより前の引き継ぎより、こちらを正とする）:
+  - **今日の結果:**
+    - TODO 19（SAS）は済み。期限の前に自動で差し替わり、転送も成功していた。今後は手で見なくてよい。
+    - TODO 18 は済み。[cdk-apps#2231](https://github.com/turingmotors/cdk-apps/pull/2231) を閉じた。
+    - TODO 23 を調べた。監査のアプリと td1-raw はぶつからない。td1-raw の通知の持ち方には、前からある危険がある。
+    - tuscenes-raw は (b) に決め、古いルールを止めた（TODO 25）。スタック `tuscenes` の片付けは [tuscenes-stack-cleanup.md](tuscenes-stack-cleanup.md) に起票した（積んでいる）。
+    - カナリアの失効は、まだ起きていない（仕様どおり）。
+  - **フェーズ 1 の計画の決定の状況:** 1（Slack）は、bot もチャンネルも新しく作る。3（カナリアの削除）は、通知に出さない。2（守りの設定の変更をイベント履歴から引く案）は未定。
+  - **次にやること（10-28）:**
+    1. **Slack の bot の準備**（伊藤と一緒に）。手順は計画の 0-2・0-3。
+       - 新しいチャンネルと bot（Slack アプリ）を作る。権限は `chat:write`。1b で本人へのメンションをするなら `users:read.email` も。
+       - bot のトークンを Secrets Manager の `original-bucket-audit/slack-bot-token` に置く（伊藤が Full 権限で。手順書はエージェントが用意する）。
+       - 先例は garuda の `alarm_notify.py`（Web API を urllib3 で直接呼ぶ）。
+    2. カナリアの失効の確認（10-28 の午後 JST 以降。ReadOnly）。ログのバケットの `events/2026/10/28/` 以降で、`expire/20261026T064825Z.txt` の `Object Deleted` を 2 件（削除マーカーの作成と、古い版の完全な削除）探す。`reason` がライフサイクル由来であること。10-29 になっても出なければ、ルールか経路を疑う。
+    3. そのあと PR-A に着手する。
+  - **決まっていないこと:**
+    - 守りの設定の変更を、CloudTrail のイベント履歴から引く案でよいか。
+    - td1-raw の通知の持ち方（TODO 23。`Managed: true` の丸ごと上書き）を直すか、誰が直すか。
+    - [cdk-apps#2267](https://github.com/turingmotors/cdk-apps/pull/2267) のレビューで出た課題の 1〜6。
+    - [cdk-apps#1967](https://github.com/turingmotors/cdk-apps/pull/1967)（graph226 さん、denso-nx の DataSync を 10 本に分ける。9-18 からレビュー待ち）を TODO に足すか。マージされると denso-nx-raw に書き込む DataSync が増え、PR-B の主体の一覧に効く。
+  - **PR-B に向けたメモ:** tuscenes-raw の古いルールは止めた。datalake の `eventBridgeEnabled: false, // cleaning 処理に必要` のコメントを直すこと。td1-raw・tuscenes-model は、EventBridge がすでに有効。
+  - **作業場所:** cdk-apps は触っていない（読んだだけ）。scratchpad に、tuscenes-pipeline・tuscenes-infra の clone と、カナリアのログの写しがある（使い捨て）。
+  - **環境のメモ:** `jbcontext` の CLI はこの devbox に無い。MCP の検索ツールは personal-workspace の索引しか無く、cdk-apps は検索できない。
