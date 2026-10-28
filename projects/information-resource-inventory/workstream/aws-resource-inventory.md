@@ -1,7 +1,7 @@
 # AWS リソースの棚卸し
 
 - 開始: 2026-10-28
-- 状態: **優先度 A〜C の調査、Coder・NAT Gateway の掘り下げ、確定のための深掘りを終え、[掃除の候補のリスト](aws-resource-inventory/cleanup-candidates.md)を作った**（2026-10-28）。次は伊藤がリストを見て、片付けるもの・持ち主に確かめるものを決める。片付けの手順書はまだ
+- 状態: **優先度 A〜C の調査、Coder・NAT Gateway の掘り下げ、確定のための深掘りを終え、[掃除の候補のリスト](aws-resource-inventory/cleanup-candidates.md)を作り、チーム向けの記事を [Notion に下書き](https://app.notion.com/p/407a93b3e6f281ebb9e1f041231cce43)で上げた**（2026-10-28）。次は伊藤がチームに共有し、片付けるもの・持ち主に確かめるものを決める。片付けの手順書と、Coder 旧版の EFS の中身の確認（後回し）はまだ
 - 所属: project:information-resource-inventory
 
 AWS アカウント tuscenes-prod（767397804933）のリソースを総ざらいし、掃除の候補のリストを作る。
@@ -48,6 +48,10 @@ AWS アカウント tuscenes-prod（767397804933）のリソースを総ざら�
 - [x] 段階 1・2（優先度 C）: Route 53・Step Functions・DynamoDB・Cognito・Batch・EFS・VPC エンドポイント・アラーム・Scheduler・SSM など（[collect/stage1-c.sh](aws-resource-inventory/collect/stage1-c.sh)）
 - [x] Coder の掘り下げ（旧版の状態・費用・洗い出し・削除の注意と順番、新版について気づいたこと）→ リストの 5 章
 - [x] NAT Gateway の掘り下げ（経路・接続数・Databricks のワークスペースとの対応）→ リストの 6 章
+- [x] cdk-apps で管理されているかの区分（リストの 0 章、2026-10-28）
+- [x] チーム共有用の記事（[原本](aws-resource-inventory/notion-tuscenes-prod-inventory.md)、[Notion](https://app.notion.com/p/407a93b3e6f281ebb9e1f041231cce43)、下書き）
+- [ ] 伊藤が Notion の Status を「提案中」にしてチームに共有する
+- [ ] （後回し）Coder の旧版の EFS 28.8 TB の中身の確認
 - [ ] 伊藤の判断を受けて、片付けの手順書を書く（Coder の旧版から）
 - [ ] （別に検討）Coder の新版の利用の実態を把握する手当て
 - [x] 深掘りで確定（2026-10-28）: KMS（us-west-2 の 2 本は 90 日イベントなし）、ECR の pull の日時の原因（10-27 の安本さんとみられる走査）、tuscenes-tmp の `2.1/` は無い、セキュリティグループ・起動テンプレートの参照、Coder の旧版は人に使われていない（スキャナーだけ）、LDAP はスキャナーだけで旧リポジトリの残り、vm-alarm は毎回 403 で失敗、alphard_route_gen は認証なしの Function URL を公開、Databricks の NAT とワークスペースの対応（mono-e2e のコード）、外部ロケーションのコードからの参照、持ち主のリポジトリ（GitHub）
@@ -62,7 +66,7 @@ AWS アカウント tuscenes-prod（767397804933）のリソースを総ざら�
 - 注意: Config の件数は削除済みの記録を含むことがある（IAM ロールは Config・実数とも 694 本で一致、EC2Fleet は 65,073 件と過大）。数は直接の API で数える。
 - 主な発見（詳細はリスト）:
   - スタック `github-oidc-provider`（コードなし）が、44 本のロールが頼る GitHub の OIDC プロバイダーを持つ。隣の使われていないスタックと一緒に消すと全 CI が止まる。
-  - `tuscenes-tmp` の `2.1/` への `.json`・`.csv` の作成で、`tuscenes-CleaningJob-Function` が今も起動する（通知はどのスタックも持たない）。tuscenes-stack-cleanup に書き足す必要がある。
+  - `tuscenes-tmp` の `2.1/` への `.json`・`.csv` の作成で、`tuscenes-CleaningJob-Function` が今も起動する（通知はどのスタックも持たない）。tuscenes-stack-cleanup に書き足し済み。
   - turingmotors の全リポジトリから引き受けられるロールが 2 本（2024 年から未使用）、AdministratorAccess の未使用ロールが 1 本、Slack のトークンを平文で持つ未使用の Lambda が 1 本。
   - 持ち主のいないまま毎日動く Lambda `vm-alarm-dev-periodic_task`。
   - 優先度 A: 使われていない NAT Gateway 4 本、割り当ての無い EIP 2 個、元の DB の無い RDS のスナップショット、ECR 22.5 TB（半分は 180 日より前の push）、保持期間が無期限のログ 9 TB。Coder の旧版（us-west-2）。
@@ -74,8 +78,12 @@ AWS アカウント tuscenes-prod（767397804933）のリソースを総ざら�
   - mono-e2e の Databricks の Terraform は `projects/databricks-terraform`（account 層・workspace 層）。ワークスペースは `e2e`（org 3913775780464502）と `e2e-dev`（7474655342656585）を管理。`workshop`・`secondee` は管理外。
   - GitHub のコード検索は、アーカイブ済みのリポジトリや消えたコードを拾わないことが多い。リポジトリ名の検索と、手元のリポジトリの `git log -S` のほうが当たった。
 - CloudTrail: 管理イベントは Control Tower のトレイルで、ログ用のアカウント（617808723336）のバケットに送られている。このアカウントでは、イベント履歴の直近 90 日しか見られない。90 日より前の利用者は、IAM のサービスの最終アクセス（`generate-service-last-accessed-details`）と、GitHub の実行履歴で絞り込んだ。
-- ECR の最終 pull は、何かが毎日全イメージを pull しているため、使われているかの根拠にならない。push の日付を使う。
+- ECR の最終 pull は、2026-10-27 の SSO の FullAccess のセッションによる全体の走査で一斉に更新されたので、使われているかの根拠にならない。push の日付を使う。
 - スタック `tuscenes` は [tuscenes-stack-cleanup.md](../../aws-data-protection/workstream/tuscenes-stack-cleanup.md) で調べ済み。結果を再利用し、二重に調べない。
+
+- Coder の旧版の EFS（`fs-09f1fe18ed5debda4`、28.7 TB が Archive）の中身の確認は後回しにした（2026-10-28 伊藤）。手法の案: (1) マウントせずに見る（ライフサイクルの設定・メトリクス・AWS Backup の有無。無料・読み取りだけ）、(2) 同じ VPC に小さな EC2 を立て、SSM で入って `ro,noatime` でマウントし、上位の階層の `du` と更新日時の分布だけを集める（数ドル。書き込みの権限が要るので、伊藤が実行するか一時的に権限をもらう）、(3) Lambda にマウントして走査（15 分の制限で手間）。中身を読むと Archive からの取り出し料金（$0.03/GB）がかかるので、メタデータだけにする。ホームディレクトリなので `.ssh` などは名前も記録しない。
+- cdk-apps の管理の有無は、HEAD でスタック名を引用符つきで `git grep` し、無ければ `git log -S'"<名前>"' -- apps` で過去にあったかを見た。
+- Notion の記事は、原本（`notion-tuscenes-prod-inventory.md`）を直してから Notion を更新する。チーム向けには個人名と判断のメモを外している。
 
 ## 関連リンク
 
