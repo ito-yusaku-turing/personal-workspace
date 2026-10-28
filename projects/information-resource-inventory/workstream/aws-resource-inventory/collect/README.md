@@ -13,6 +13,7 @@ AWS の読み取りの API を呼び、応答を伏せ字にして `~/aws/tuscen
 - `stage1-events-s3-lambda.sh <region>...`: EventBridge・Lambda・呼び出し回数（90 日）
 - `stage1-s3.sh`: バケット一覧・リージョン・通知（global に置く）
 - `stage1-a.sh <region>...`: 優先度 A（EC2・EBS・スナップショット・AMI・EIP・NAT・ELB と ターゲットの状態・RDS・SageMaker・EKS・ECS・CloudWatch Logs・ECR のイメージ）と VPC
+- `stage1-c.sh <region>...`: 優先度 C（Glue・Step Functions の最終実行・DynamoDB・Firehose・API Gateway・Batch・CodeBuild・Cognito・EFS・DataSync・アラーム・Scheduler・SSM パラメータのメタデータ・Amplify・Backup・ピアリング・TGW）、インスタンスプロファイル、Route 53 のレコード
 - `stage1-misc.sh <region>...`: Secrets Manager（メタデータだけ）・KMS・セキュリティグループ・ENI・EC2・ACM・SQS の送信数、CloudFront・Route 53
 
 IAM は `cap.sh` を直接呼んだ（`get-account-authorization-details`・`generate-credential-report`・`get-credential-report` など）。クレデンシャルレポートの CSV は `jq -r .Content | base64 -d` で取り出す。

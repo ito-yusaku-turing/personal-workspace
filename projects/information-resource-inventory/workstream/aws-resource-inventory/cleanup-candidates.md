@@ -1,6 +1,6 @@
 # tuscenes-prod の掃除の候補（2026-10-28 時点）
 
-AWS アカウント tuscenes-prod（767397804933）の棚卸しの結果。伊藤の判断用のリストで、チーム向けには書いていない。セキュリティの観点（優先度 B）・グローバルなサービス・優先度 A を見終えた時点のもの。優先度 C は VPC だけ見た（末尾の「まだ見ていないもの」）。
+AWS アカウント tuscenes-prod（767397804933）の棚卸しの結果。伊藤の判断用のリストで、チーム向けには書いていない。セキュリティの観点（優先度 B）・グローバルなサービス・優先度 A・優先度 C を見終えた時点のもの。Coder の一式と NAT Gateway は掘り下げた（5 章・6 章）。
 
 - 一次情報: `~/aws/tuscenes-prod/2026-10-28/`（機微な値は伏せ字）。集計の表は同じ場所の `derived/`。
 - 集計のスクリプト: [analyze/](analyze/README.md)。取得の道具: [collect/](collect/README.md)。
@@ -19,7 +19,7 @@ AWS アカウント tuscenes-prod（767397804933）の棚卸しの結果。伊�
 | S4 | Lambda `alphard_route_gen` | 環境変数に **Slack の OAuth トークンと署名の秘密を平文**で持つ | 呼び出し 90 日 0 回、最終更新 2024-08-22 | なし | Slack 側でトークンを失効させてから、関数とロール `alphard_route_gen-role-6jn8wddo` を消す |
 | S5 | IAM ユーザー `jadd-datasync`・`jadd-remote-sync-kohei.watanabe` | **AmazonS3FullAccess・AmazonS3ExpressFullAccess**。キーは無効 | 2025-10-11・2025-10-20 | なし | 消す |
 | S6 | IAM ユーザー `shio-secretsmanager_GetSecretValue`・`sasaki` | シークレットの読み取り＋S3（shio は FullAccess）。キーは無効 | 2025-08-07・2026-05-28 | なし | 消す |
-| S7 | ロール `tuscenes-sampler-test-role-n1huu9jg`・`tuscenes-processing`・`AmazonEMRStudio_RuntimeRole`・`ecsTaskExecutionRole`・`CoderWorkspaceRole` | S3FullAccess や SecretsManagerReadWrite | 2024-07〜2025-10 | なし | 消す。`ecsTaskExecutionRole` は既定の名前なので、参照するタスク定義が無いことを確かめてから |
+| S7 | ロール `tuscenes-sampler-test-role-n1huu9jg`・`tuscenes-processing`・`AmazonEMRStudio_RuntimeRole`・`ecsTaskExecutionRole` | S3FullAccess や SecretsManagerReadWrite | 2024-07〜2025-03 | なし | 消す。`ecsTaskExecutionRole` は既定の名前なので、参照するタスク定義が無いことを確かめてから。`CoderWorkspaceRole`（SecretsManagerReadWrite、2025-10-08）はスタック `Coder` が持つので、5 章で一緒に片付ける |
 | S8 | 外部のアカウントを信頼するロール `MiroReadOnlyAccess-vui2`（Miro）・`tiledb-cloud-role`（TileDB）・`NewRelicInfrastructure-Integrations-02198610953f`（New Relic） | 社外の主体が引き受けられる | 2025-01-14・2024-05-22・未使用 | なし | 連携をやめていれば消す |
 | S9 | ロール `Flyte-ClusterCreationRole360249B6-H9KZJoLii5eR` | 信頼ポリシーの主体が `AROA…` の ID のまま（**元のロールが消えている**）。IAM・PassRole を持つ | 2025-02-28 | なし（スタック `Flyte` は消えた） | Flyte の残りのロール 4 本と一緒に消す |
 | S10 | ロール `tuscenes-cicd-GithubActionsRoleF5CC769F-TsH727j5snzo` | `alphaspp-*`・`tuscenes-*` の全ブランチと PR から引き受けられる。PassRole と、ECS の更新・ECR への push を持つ | 2026-03-27。使ったのは [turingmotors/tuscenes-processor](https://github.com/turingmotors/tuscenes-processor) の CI（main への push で、ECR への push とシークレットの読み取り）。このリポジトリはその後アーカイブされた | スタック `tuscenes-cicd`（コードなし） | スタックごと消す。同系統でアーカイブされていないのは `tuscenes-calibration-check`（最終 push 2025-10-27）だけ。念のため、そのワークフローがこのロールを使っていないことを確かめる |
@@ -166,15 +166,12 @@ us-west-2・ap-northeast-1 を見た。一次情報は同じく `~/aws/tuscenes-
 
 | # | 対象 | 根拠 | 持ち主 | 案 |
 | --- | --- | --- | --- | --- |
-| A1 | NAT Gateway `nat-0b516a81ce3a4585b`（VPC `ml-ops-vpc`、2024-02-06 作成） | 90 日の転送量 0。VPC の中には NAT しか無い | なし | VPC ごと消す |
-| A2 | NAT Gateway `nat-05e298c48aaacd9a0`・`nat-07ca4f856cea2eb54`（Databricks のワーカーの VPC） | 90 日の転送量 0。VPC の中には NAT しか無い。作成日がスタック `databricks-workspace-stack-d3570`（2025-10-14）・`-d0cfc`（2025-08-27）と一致 | Databricks のワークスペースのスタック | Databricks のワークスペースの側で、クラシックの計算資源を使っていないか確かめる。`nat-0e70ef49932572130`（2026-07 作成、最後の転送は 2026-08-28）も同じ形 |
-| A3 | NAT Gateway `nat-0b99844221c18fd5d`（`Coder/Vpc`） | 90 日の転送量 0 | Coder（us-west-2） | A6 と合わせて判断 |
+| A1〜A3 | NAT Gateway | 6 章に移した | | |
 | A4 | Elastic IP `34.208.220.170`（`auto-labeling-eip-us-west-2a`）・`54.244.115.207`（`Flyte/Vpc/PublicSubnet1`） | どこにも割り当てられていない | なし（Flyte のスタックは消えた） | 解放する |
 | A5 | RDS の手動のスナップショット: us-west-2 の `flyte-snapshot-*`（クラスター 2・インスタンス 2、2024-11〜2025-05）・`tuscenes-pipeline-snapshot-*`・`tuscenes-snapshot-studiodatabase*`（2024-03〜05）、ap-northeast-1 の `coder*-snapshot-*`（2025-02・2025-06 の 5 個） | 元の DB はもう無い（Flyte・tuscenes studio）か、移行の際の残り | なし | 中身が要らなければ消す |
-| A6 | **us-west-2 の Coder 一式**（スタック `Coder`、106 リソース。ALB・Aurora 2 台（db.t4g.medium）・NAT・EFS） | スタックの最終更新は 2025-01-14。今使われている Coder は ap-northeast-1（`coder-v2.turing-ai.dev`）とみられる。ただし ALB は 90 日で 34 万リクエスト、Aurora の最大接続数は 8 で、何かが動いている | Coder（cdk-apps） | **要確認**。旧環境が残っているだけなら大きい。持ち主に確かめる |
-| A7 | EKS `CoderWorkspaceCluster`（us-west-2、2025-02 作成） | ノードグループ 0。スタック `CoderWorkspace`（us-west-2）のロール 8 本は一度も使われていない | CoderWorkspace | 要確認（クラスター 1 本で月 $73 前後） |
+| A6・A7 | Coder の一式 | 5 章に移した（伊藤によると Coder は運用を全面的に止めている。片付けの対象） | | |
 | A8 | EBS の未アタッチ 3 本（78 GiB）: `vol-0bac9cc937635e469`（CoderWorkspace の PVC、2025-02）・`vol-008879c07bd29b519`（Skypilot の PVC、2026-07）・`vol-00d62035721cd73d5`（2024-10） | どこにも付いていない | — | 消す |
-| A9 | 停止中の EC2（Coder のワークスペース）: us-west-2 7 台・ap-northeast-1 7 台 | 停止が 90 日を超えるもの 10 台（停止した日）: ap-northeast-1 の `coder-debug`（t4g.micro、2025-02-18。キーペア `mats`）・`coder-toshiyukikato-replay-005`（07-06）・`coder-tatsuyasuzuki-test3-suzuki`（07-10）・`coder-tatsuyasuzuki-test2-tensorrt`（07-11）・`coder-keishiishihara-openpilot-2`（07-22）、us-west-2 の `coder-hayataebisawa-a`（2026-02-05）・`coder-ryuozaki-vins`（06-19）・`coder-yutaide-GPU`（06-22）・`coder-yutonakamura-scarlet-lizard-2`（07-19）・`coder-takumaseno-openpilot`（07-27） | Coder | Coder の側でワークスペースを消す（EBS が残り続ける） |
+| A9 | 停止中の EC2（Coder のワークスペース。5 章で一緒に片付ける）: us-west-2 7 台・ap-northeast-1 7 台 | 停止が 90 日を超えるもの 10 台（停止した日）: ap-northeast-1 の `coder-debug`（t4g.micro、2025-02-18。キーペア `mats`）・`coder-toshiyukikato-replay-005`（07-06）・`coder-tatsuyasuzuki-test3-suzuki`（07-10）・`coder-tatsuyasuzuki-test2-tensorrt`（07-11）・`coder-keishiishihara-openpilot-2`（07-22）、us-west-2 の `coder-hayataebisawa-a`（2026-02-05）・`coder-ryuozaki-vins`（06-19）・`coder-yutaide-GPU`（06-22）・`coder-yutonakamura-scarlet-lizard-2`（07-19）・`coder-takumaseno-openpilot`（07-27） | Coder | Coder の側でワークスペースを消す（EBS が残り続ける） |
 | A10 | **ECR（us-west-2）22.5 TB**（月 $2,200 前後） | push から 180 日を超えたイメージが 1,907 個・10.5 TB。大きいのは `closed-loop-scenario-test`（5.1 TB）・`3dgs-train`（2.9 TB）・`openpilot-replay`（1.4 TB、最終 push 2025-09-18）。最終 push が 180 日を超えたリポジトリは 17 本（`alphaspp-ui`・`alphaspp-devkit`・`tsuk-test`・`rerun-data-api`・`tuscenes-validator`・`jupyter`・`sagemaker-studio` など） | 各チーム | ライフサイクルポリシーを入れる。古い系統のリポジトリは消す |
 | A11 | **CloudWatch Logs（us-west-2）9.0 TB**。保持期間が無期限のロググループが 368 個・9.0 TB | 最大は `/aws/batch/job`（8.1 TB）。ほかに VideoFrameGenerator の Lambda（390 GB）、ClosedLoopScenarioTestEks の Container Insights（計 410 GB） | 各スタック | 保持期間を決める（費用に加え、ログに機微な情報が残り続ける） |
 
@@ -196,7 +193,90 @@ us-west-2・ap-northeast-1 を見た。一次情報は同じく `~/aws/tuscenes-
 - `nuscenes-all`・`argoverse2-all`・`semantic-kitti` は公開データセットの写しとみられる（取り直せる）。
 - Flyte の残り: `flyte-bucket83908e77-*`・`flyte-userdatabucket58c9ae06-*`（スタックなし）。
 
-## 5. 報告だけのリージョン
+## 5. Coder の一式（掘り下げ）
+
+伊藤によると、Coder は運用を全面的に止めた（2026-10-28）。片付けの対象として、関係するものを洗い出した。**ただし基盤は今も動いている**（下の「今の状態」）。
+
+### 今の状態（2026-10-28）
+
+- us-west-2 の旧 Coder（スタック `Coder`、ECS）: サーバーのタスクが 1 つ動いている（今日 07:08 UTC にも入れ替わった）。ALB には毎日数百〜1 万件のリクエストがある（90 日で 34 万件）。Aurora の最大接続数は 8。
+- ap-northeast-1 の Coder v2（スタック `Coder`、EKS `Coder-Cluster`、`coder-v2.turing-ai.dev`）: ノード 2 台が動いている。k8s が作った ALB `k8s-coder-coder-a7d165dea7` には毎日数千〜5 万件のリクエストがある（90 日で 78 万件）。
+- ワークスペース用の EKS（スタック `CoderWorkspace`、us-west-2・ap-northeast-1）: ノードが計 3 台動いている。
+- **動いているワークスペースは 0 台。** 停止中が 14 台（us-west-2 7・ap-northeast-1 7）。どれも「起動の 1 分以内に停止」していて、Coder の側の操作の跡とみられる。最新は 2026-10-27。
+- ALB のアクセスログは両方とも無効なので、リクエストが人によるものか（外からのスキャンなどか）は、AWS からは分からない。
+- ロールが今日使われているのは、ノード・タスクなど基盤のもの。人が使った形跡ではない。
+
+### 費用（2026-09 の 1 か月）
+
+| 内訳 | 額 |
+| --- | ---: |
+| スタック `Coder`・`CoderWorkspace` のタグの付いた費用 | $1,740 |
+| 　うち EKS（ap-northeast-1 2 本で $864、us-west-2 1 本で $432。**バージョン 1.32 で、延長サポートの料金（1 本 $432/月）**） | $1,296 |
+| 　うち RDS（Aurora。ap-northeast-1 $257、us-west-2 $108） | $365 |
+| ワークスペースの EBS（停止中 14 台、計 7.9 TB の gp3。タグなし。試算） | 約 $630 |
+| EFS（ほぼ Archive の階層。us-west-2・ap-northeast-1 の合計） | 約 $290 |
+| **合計（概算）** | **約 $2,700/月** |
+
+### 洗い出し
+
+| 区分 | リージョン | 対象 | 消すときの注意 |
+| --- | --- | --- | --- |
+| スタック | us-west-2 | `Coder`（106 リソース。VPC・NAT・ALB・ECS・Aurora 2 台・EFS 3 本・S3 `coder-assets-*`・シークレット 2 個・ロール 7 本）と、入れ子の kubectl のスタック | EFS 3 本と S3 は `Retain`（残る）。Aurora は `Snapshot`（最終スナップショットができる） |
+| スタック | ap-northeast-1 | `Coder`（61 リソース。VPC・NAT・EKS `Coder-Cluster`・Aurora 1 台）と、入れ子の kubectl のスタック | Aurora は `Snapshot`。**k8s が作った ALB `k8s-coder-coder-a7d165dea7` とセキュリティグループ 2 個（`k8s-traffic-CoderCluster-*`・`k8s-coder-coder-*`）はスタックの外**。先に k8s の側で Ingress を消すか、手で消さないと、VPC の削除で止まる |
+| スタック | us-west-2・ap-northeast-1・us-east-1 | `CoderWorkspace`（EKS `CoderWorkspaceCluster`・共有 EFS。us-east-1 は EFS だけ） | **共有 EFS は `Delete`。スタックを消すと中身ごと消える**（us-west-2 1.5 TB・ap-northeast-1 3.2 TB。90 日間の読み書きは 0） |
+| ワークスペース（スタックの外） | us-west-2 | 停止中の EC2 7 台（default VPC）と EBS 3.8 TB | Coder の側で消すのが本来。Coder を止めたなら、AWS で直接消す |
+| ワークスペース（スタックの外） | ap-northeast-1 | 停止中の EC2 7 台（default VPC 6・Coder の VPC 1）と EBS 4.1 TB | Coder の VPC にいる 1 台は、スタックの削除（VPC の削除）を止める。先に消す |
+| EFS（スタックの外） | ap-northeast-1 | `Coder/CsiFileSystem`（5.7 GB、マウントターゲット 0） | 持ち主なし。消す |
+| EFS（`Retain` で残るもの） | us-west-2 | `Coder/DataFileSystem`（**28.8 TB、ほぼ Archive**、90 日間の読み書き 0）・`Coder/HomeFileSystem`・`Coder/SharedFileSystem`（どちらも空） | 28.8 TB の中身が誰の何かを確かめてから決める。ユーザーのデータの可能性がある |
+| RDS のスナップショット | ap-northeast-1 | `coder*-snapshot-*` 5 個（2025-02・2025-06） | A5 |
+| シークレット | us-west-2 | `coder/oidc/github`・`coder/oidc/google`（スタックの外） | **GitHub・Google の OAuth アプリの側で失効させてから消す** |
+| ロール | — | スタックの中の約 30 本と `CoderWorkspaceRole`（SecretsManagerReadWrite） | スタックと一緒に消える |
+| ロググループ | us-west-2・ap-northeast-1 | `/aws/lambda/Coder-*`・`/aws/lambda/CoderWorkspace-*`（計 21 個）、us-west-2 の `Coder-LogGroup*`・`Coder-ServiceTaskDefnginxLogGroup*`（4 個。nginx の 3 個は古い世代の残りとみられる） | スタックの外のものは手で消す |
+| SSO | 組織 | 許可セット `ContractorCoder`（このアカウントには `AWSReservedSSO_ContractorCoder_*` として見える） | Identity Center の側（identity リポジトリなど）で外す |
+| 証明書 | ap-northeast-1 | ACM `coder-v2.turing-ai.dev`（ALB が使用中） | ALB を消した後に消す。DNS（turing-ai.dev のゾーンはこのアカウントに無い）の `coder-v2` のレコードも外す |
+| ECR・S3 | us-west-2 | S3 `coder-assets-767397804933`（`Retain`） | 中身を見て消す |
+
+順番の案: (1) ワークスペースの EC2 と EBS を消す → (2) ap-northeast-1 の k8s の Ingress（ALB・セキュリティグループ）を消す → (3) 共有 EFS の中身が要らないことを確かめる → (4) スタックを消す（入れ子は親と一緒に消える）→ (5) 残ったもの（EFS・S3・最終スナップショット・ロググループ・シークレット・証明書）を片付ける → (6) OAuth アプリ・SSO の許可セット・DNS を外す。
+
+## 6. NAT Gateway（掘り下げ）
+
+NAT Gateway は、1 本で月 $33 ほど（時間料金。転送量は別）かかる。どのサブネットが経路に使っているか、そのサブネットに何がいるか、90 日間の接続数と転送量を見た。
+
+| NAT | VPC | 作成 | 経路に使うサブネットの中身 | 90 日の最大接続数・転送量 | 判定 |
+| --- | --- | --- | --- | --- | --- |
+| `nat-0b516a81ce3a4585b` | `ml-ops-vpc`（持ち主なし） | 2024-02-06 | サブネット 3、ENI 0 | 0・0 | **消す**。VPC には NAT と S3 のゲートウェイエンドポイントしか無い。VPC・EIP ごと消す |
+| `nat-0b99844221c18fd5d` | `Coder/Vpc`（us-west-2） | 2024-05-06 | EFS のマウントターゲット 9・RDS 2 | 0・0 | 5 章で Coder と一緒に消える |
+| `nat-015fe2e1fa8d7964c` | `Coder/Vpc`（ap-northeast-1） | 2025-02-12 | EKS・RDS | 435・8.5 GB | 5 章で Coder と一緒に消える |
+| `nat-07ca4f856cea2eb54` | Databricks のワーカーの VPC（ワークスペース `workshop`、スタック `databricks-workspace-stack-d0cfc`） | 2025-08-27 | — | 0・0 | **Databricks のワークスペース `workshop` を消す**（VPC と NAT は Databricks が作ったもので、ワークスペースと一緒に片付ける） |
+| `nat-05e298c48aaacd9a0` | Databricks のワーカーの VPC（ワークスペース `secondee`、スタック `databricks-workspace-stack-d3570`） | 2025-10-14 | — | 0・0 | 同上（`secondee`） |
+| `nat-0e70ef49932572130` | Databricks のワーカーの VPC（`workerenv-747465534265`。どのワークスペースかは、CloudFormation からは分からない） | 2026-07-10 | — | 25・0.08 GB（最後は 2026-08-28） | Databricks のアカウントの画面で、どのワークスペースか確かめる |
+| `nat-08633f1f1c3de9bc0` | Databricks のワーカーの VPC（`workerenv-391377578046`、主のワークスペース `e2e` とみられる） | 2024-08-29 | — | 4,096・454 GB | 使用中 |
+| `nat-0b855302db270f550` | VideoFrameExtractorStack | 2026-01-15 | ECS | 154・372 GB | 使用中 |
+| `nat-06819f9c66c51eb18` | SkypilotApiServer | 2026-08-17 | EKS・NLB・Lambda | 69・21 GB | 使用中 |
+
+- Databricks のワークスペースのスタック（`databricks-workspace-*`）は、Databricks の画面のクイックスタートが作ったもの。消すときは、C3-2 と同じく、カスタムリソースが保存された Databricks のトークンで API を呼ぶ。ワークスペースは Databricks のアカウントの画面で消すのが筋。
+- Databricks の VPC には、持ち主のいない S3 のゲートウェイエンドポイントが 1 つずつある（ワークスペースと一緒に消える）。
+
+片付けで止まる NAT は 5 本（`ml-ops-vpc`・Coder 2・Databricks 2）、月 $165 前後。
+
+## 7. 優先度 C
+
+| 種別 | 結果 | 候補 |
+| --- | --- | --- |
+| Route 53（`apps.turing-ai.dev`） | API Gateway を指す A レコード 5 本は、どれもドメインが実在する | Vercel を指す CNAME 3 本（`digital-signage`・`jadd-studio-signage`・`jadd-studio`）は、Vercel の側にプロジェクトがあるかを AWS からは確かめられない。消えていればサブドメインの乗っ取りの余地になる |
+| Step Functions（26） | 90 日間実行の無いものが 2 本 | `BulkPipelineStateMachine74302C4C-BcRAHN9RFO0Z`・`ScenarioTestClosedLoop-Run-StateMachine`（どちらも一度も実行されていない） |
+| DynamoDB（15） | 持ち主のスタックが無いもの | `tuscenes-table`（0 件、2024-03）・`turing-video-status`（0 件、2025-02）・`test-007`（0 件、2024-12）・`alphaspp-scene-table`（101 件、2024-02）・`vad-e2e_test-data`（4 件、2025-01） |
+| Cognito（3） | どれもスタックが無い | `FlyteUserPool`（2024-11。Flyte は消えた）・`DataHub-Auth`（2024-12）・`UserPool6BA7E5F2-qHTym8tzlxyc`（2024-11）。利用者の情報（メールアドレスなど）を持ちうるので、要らなければ消す |
+| AWS Batch（計算環境 28） | 持ち主のいないもの 1 | `auto-labeling-compute-env`。スタック `sfn-auto-labeling`・`Infra-ECS-Cluster-auto-labeling-*`、EIP `auto-labeling-eip-us-west-2a`（A4）と合わせて、auto-labeling の一式（2024-09〜10）として片付ける |
+| EFS | 5 章 | `Coder/CsiFileSystem` |
+| VPC エンドポイント（20、すべて S3 のゲートウェイ型） | 持ち主のいないもの 5 | `ml-ops-vpc` と Databricks の VPC 4 つ。VPC と一緒に消える |
+| CloudWatch のアラーム（43） | すべて OK。消えたリソースを見張るもの（INSUFFICIENT_DATA）は無い | 通知先の無いアラームが 15 本（us-west-2） |
+| EventBridge Scheduler（8） | どれも実在のターゲットを指す | — |
+| SSM パラメータ（144） | SecureString 45。1 年以上更新されていないもの 18 | 値は見ていない |
+| Glue・Amplify・Backup・VPC ピアリング・Transit Gateway | どれも無い（Glue は `default` データベースだけ） | — |
+| IAM のインスタンスプロファイル（75） | 動いているインスタンスで使われていないもの 65 | 起動テンプレートや Batch が使うものもあるので、ロールと一緒に判断する |
+
+## 8. 報告だけのリージョン
 
 [stage0-overview.md](stage0-overview.md) を参照。要点:
 
@@ -205,8 +285,9 @@ us-west-2・ap-northeast-1 を見た。一次情報は同じく `~/aws/tuscenes-
 - ap-southeast-3（ジャカルタ）: EC2 は 2026-01 で止まった。VPC・サブネット 6 などのネットワークと、ロール `ec2-s3-download-role-ap-southeast-3` が残る。
 - ap-northeast-3（大阪）: 形跡なし。
 
-## 6. まだ見ていないもの
+## 9. まだ見ていないもの
 
-- 優先度 C: VPC エンドポイント（取得済み・未集計）・Glue・Step Functions・DynamoDB・Kinesis Firehose・API Gateway など。VPC は us-west-2 の 30 個のうち、ENI が 0 のものが 13 個（多くは AWS Batch 用の CDK の VPC で、ジョブが無いときは空になる）。持ち主のいない `tuscenes/Vpc`（ENI 0）がある。
+- VPC は us-west-2 の 30 個のうち、ENI が 0 のものが 13 個（多くは AWS Batch 用の CDK の VPC で、ジョブが無いときは空になる）。持ち主のいない `tuscenes/Vpc`（ENI 0）がある。中身は細かく見ていない。
+- Coder の ALB へのリクエストの出どころ（アクセスログが無効）。
 - KMS のキーの利用状況（CloudTrail が要る。管理イベントはログ用のアカウント 617808723336 に送られていて、このアカウントの ReadOnly では 90 日より前を見られない）。
 - ECR のイメージを毎日 pull している主体。
