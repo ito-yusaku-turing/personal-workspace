@@ -74,6 +74,8 @@ tuscenes-prod（767397804933、us-west-2）に、CloudFormation のスタック 
 - tuscenes-raw・tuscenes-dataset: datalake（cdk-apps）に移った。スタックからは `from_bucket_name` で参照しているだけ。
 - Secrets Manager の `supabase`: Lambda が `SUPABASE_SECRET_ARN` で参照しているが、スタックの外。最終アクセスは 2026-05-28、最終変更は 2026-09-30 なので、ほかの誰かが使っているとみられる。**消さない。**
 - ECR の `tuscenes-validator`（検証の Lambda のイメージ）。
+- **tuscenes-tmp の S3 の通知（2026-10-28 に棚卸しで分かった）**: `2.1/` の下の `.json`・`.csv` の作成（`s3:ObjectCreated:*`、Id `1`・`2`）で、このスタックの `tuscenes-CleaningJob-Function` を起動する。どのスタックも持っていない（バケットは cdk-apps の Datalake が持つが、通知は持たない）。手で付けたか、昔のスタックの名残とみられる。Lambda の呼び出しは直近 90 日で 0 回なので、今は誰もそこに書いていない。ただし tuscenes-tmp は Databricks から今も読まれている（外部ロケーションのロールの最終利用 2026-10-27）ので、**`2.1/` に書けば cleaning の job（SageMaker）が動く状態**にある。出典: [AWS リソースの棚卸し](../../information-resource-inventory/workstream/aws-resource-inventory/cleanup-candidates.md) の C1-1。
+- スタック `tuscenes-cicd`（ロール `tuscenes-cicd-GithubActionsRole…`）: `tuscenes-*`・`alphaspp-*` の GitHub Actions 用。最後の利用は 2026-03-27 の [turingmotors/tuscenes-processor](https://github.com/turingmotors/tuscenes-processor) の CI（main への push。ECR への push とシークレットの読み取り）で、このリポジトリもアーカイブ済み。このスタックとは別に片付けられる。出典は同じく棚卸しの S10。
 - 前身のバケット `alphaspp-raw`・`alphaspp-data`（スタック `alphaspp-pipeline` は削除済み）。
 - AWS Chatbot の設定（SNS の購読先）。
 
@@ -83,6 +85,7 @@ tuscenes-prod（767397804933、us-west-2）に、CloudFormation のスタック 
 - **バケット 5 本は、スタックを消しても残る**（`Retain`）。スタックの外に出るだけで、中身もポリシーも残る。tuscenes-testdata は今も使われているので、残すのが前提。ほかの 4 本は、中身を見てから別に決める。
 - **tuscenes-basicai-datasets は原本の候補（S4）。** 第一弾で「中身と経緯が分からない」として外したもの。片付けの中で、持ち主・中身・残すかを決める。
 - **スタックの削除で消えるのは、ルール 3 本・Lambda 7 本・ロール 8 本・IAM ユーザー 1 本・SNS のトピック**など（バケット以外）。IAM ユーザーとロールが消えると、第一弾の洗い出し（[principals-2026-10-20.md](done/s3-bucket-access-control/principals-2026-10-20.md)）の主体も減る。
+- **tuscenes-tmp の通知を先に外す。** スタックを消すと `tuscenes-CleaningJob-Function` が消え、tuscenes-tmp の通知は消えた関数を指したまま残る（宛先の消えた配線）。そうなると、あとで誰かがこのバケットの通知の設定を書き換えるとき、宛先の検証で失敗しうる。Id `1`・`2` の 2 本だけを外す（`put-bucket-notification-configuration` は丸ごと置き換えなので、ほかの設定が無いことを確かめてから）。
 - ルール `NewTripEventRule` は、第二弾で手で止めた後、スタックから見て設定がずれた状態（drift）になっている。スタックを消すときは問題にならない。
 
 ## 設計判断と理由
@@ -98,12 +101,14 @@ tuscenes-prod（767397804933、us-west-2）に、CloudFormation のスタック 
   - [ ] `tuscenes-IssueRegister-Function` の中身と、td1-raw からの起動の許可の経緯
   - [ ] AWS Chatbot のつなぎ先（Slack のチャンネル）
   - [ ] tuscenes-cleaned に Databricks の通知が付いていないこと
+  - [ ] tuscenes-tmp の通知（`2.1/` → `tuscenes-CleaningJob-Function`）の出どころ。外してよいか
 - [ ] 片付けの手順書を書く（スタックの削除。バケットは残る。削除の前後の確認と、戻せないことの明記）
 - [ ] 伊藤が実行する（Full 権限）
 - [ ] 残ったバケットの扱い（cdk-apps で持つか、消すか）を決める
 
 ## 次セッションへの引き継ぎ
 
+- 2026-10-28: AWS リソースの棚卸しで、tuscenes-tmp の通知が `tuscenes-CleaningJob-Function` を起動する形で残っていると分かった（「スタックの外にあって、関係するもの」と「注意」に追記）。
 - 起票しただけで、何も変えていない。調べた数字は 2026-10-27 時点。着手するときは、数字（呼び出し数・最終利用・オブジェクト数）を取り直す。
 - 調べるのは ReadOnly（`--profile readonly`）で。書き込みは伊藤が Full 権限で行う。
 
