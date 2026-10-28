@@ -16,13 +16,14 @@ AWS アカウント tuscenes-prod（767397804933）の棚卸しの結果。伊�
 | S1 | ロール `github-actions-file-publishing-role-11JuEiVbjOnX` | **turingmotors の全リポジトリ・全 ref**（`repo:turingmotors/*:ref:*`）から引き受けられる | 2024-04-09 | スタック `github-actions-file-publishing`（コードなし） | スタックごと消す。**`github-oidc-provider` のスタックは消さない**（下の C3-1） |
 | S2 | ロール `github-actions-image-publishing-role-dpzyqzl6r1zt` | turingmotors の**全リポジトリの main** から引き受けられる | 2024-07-08 | スタック `github-actions-image-publishing`（コードなし） | 同上 |
 | S3 | ロール `CodeCatalystWorkflowDevelopmentRole-tuscenes-prod` | **AdministratorAccess** | 2024-03-14 | なし（手で作った） | 消す。`AWSRoleForCodeCatalystSupport`（2024-03-13）も |
-| S4 | Lambda `alphard_route_gen` | 環境変数に **Slack の OAuth トークンと署名の秘密を平文**で持つ | 呼び出し 90 日 0 回、最終更新 2024-08-22 | なし | Slack 側でトークンを失効させてから、関数とロール `alphard_route_gen-role-6jn8wddo` を消す |
+| S4 | Lambda `alphard_route_gen` | 環境変数に **Slack の OAuth トークンと署名の秘密を平文**で持つ。**認証なし（AuthType NONE）の Function URL がインターネットに公開されている**（2024-03-13 から。コードの中で Slack の署名は確かめている）。リソースポリシーに、td1-raw の S3 からの起動の許可が残る（今の td1-raw の通知には無い）。中身は Slack のコマンドで経路の GPX を作って返す bot | 呼び出し 90 日 0 回、最終更新 2024-08-22 | なし（`alphardpp` 系のリポジトリはアーカイブ済み） | Slack 側でアプリのトークンを失効させてから、関数（URL ごと）とロール `alphard_route_gen-role-6jn8wddo` を消す |
 | S5 | IAM ユーザー `jadd-datasync`・`jadd-remote-sync-kohei.watanabe` | **AmazonS3FullAccess・AmazonS3ExpressFullAccess**。キーは無効 | 2025-10-11・2025-10-20 | なし | 消す |
 | S6 | IAM ユーザー `shio-secretsmanager_GetSecretValue`・`sasaki` | シークレットの読み取り＋S3（shio は FullAccess）。キーは無効 | 2025-08-07・2026-05-28 | なし | 消す |
 | S7 | ロール `tuscenes-sampler-test-role-n1huu9jg`・`tuscenes-processing`・`AmazonEMRStudio_RuntimeRole`・`ecsTaskExecutionRole` | S3FullAccess や SecretsManagerReadWrite | 2024-07〜2025-03 | なし | 消す。`ecsTaskExecutionRole` は既定の名前なので、参照するタスク定義が無いことを確かめてから。`CoderWorkspaceRole`（SecretsManagerReadWrite、2025-10-08）はスタック `Coder` が持つので、5 章で一緒に片付ける |
 | S8 | 外部のアカウントを信頼するロール `MiroReadOnlyAccess-vui2`（Miro）・`tiledb-cloud-role`（TileDB）・`NewRelicInfrastructure-Integrations-02198610953f`（New Relic） | 社外の主体が引き受けられる | 2025-01-14・2024-05-22・未使用 | なし | 連携をやめていれば消す |
 | S9 | ロール `Flyte-ClusterCreationRole360249B6-H9KZJoLii5eR` | 信頼ポリシーの主体が `AROA…` の ID のまま（**元のロールが消えている**）。IAM・PassRole を持つ | 2025-02-28 | なし（スタック `Flyte` は消えた） | Flyte の残りのロール 4 本と一緒に消す |
 | S10 | ロール `tuscenes-cicd-GithubActionsRoleF5CC769F-TsH727j5snzo` | `alphaspp-*`・`tuscenes-*` の全ブランチと PR から引き受けられる。PassRole と、ECS の更新・ECR への push を持つ | 2026-03-27。使ったのは [turingmotors/tuscenes-processor](https://github.com/turingmotors/tuscenes-processor) の CI（main への push で、ECR への push とシークレットの読み取り）。このリポジトリはその後アーカイブされた | スタック `tuscenes-cicd`（コードなし） | スタックごと消す。同系統でアーカイブされていないのは `tuscenes-calibration-check`（最終 push 2025-10-27）だけ。念のため、そのワークフローがこのロールを使っていないことを確かめる |
+| S12 | **スタック `LDAP`（OpenLDAP、ECS）と、インターネット向けの NLB `LDAP-Service-O2zAfUQ81x4q`** | ディレクトリのサーバーがインターネットに公開されている。ログ（90 日）を集計すると、来ているのはスキャナーだけ: 匿名の BIND と rootDSE の照会、毎回違う名前での BIND（パスワード違い err=49 が 56 回）。成功した名前つきの認証は無い。返ったエントリは最大 1 件で、中身は列挙されていない。接続の 99.9% は NLB のヘルスチェック | 2025-01-31（スタックの最終更新） | [turingmotors/ldap](https://github.com/turingmotors/ldap)（2025-01-31 にアーカイブ）。後継の [turingmotors/turing-infra-ldap](https://github.com/turingmotors/turing-infra-ldap) は別の EKS（`gaggle-management`、ベース DN `dc=cm,dc=cluster`）で動いていて、これとは別物 | スタックごと消す。ECR `ldap`、ロググループ `LDAP-*`（2.1 GB、無期限）も |
 | S11 | セキュリティグループ `launch-wizard-1`・`launch-wizard-2`・`ssh-public`・`sky-sg-ubuntu-7523`・`sky-sg-yasumoto-3278`（us-west-2） | **SSH（22）を全世界に開放**。どこにも付いていない | — | なし | 消す |
 
 ほかに気づいたこと（掃除ではなく、設定の見直しの候補）:
@@ -39,7 +40,7 @@ AWS アカウント tuscenes-prod（767397804933）の棚卸しの結果。伊�
 
 | # | 対象 | 状態 | 何が起きるか |
 | --- | --- | --- | --- |
-| C1-1 | **`tuscenes-tmp` の S3 通知 → `tuscenes-CleaningJob-Function`**（新しく分かった） | 通知が 2 本（`2.1/` の下の `.json`・`.csv` の作成）。どのスタックも持っていない。Lambda の呼び出しは 90 日 0 回 | `tuscenes-tmp` の `2.1/` に `.json`・`.csv` を置くと、**cleaning の job（SageMaker）が起動する**。tuscenes-tmp は Databricks から今も読まれている（ロールの最終利用 2026-10-27）。[tuscenes-stack-cleanup.md](../../../aws-data-protection/workstream/tuscenes-stack-cleanup.md) には未記載 |
+| C1-1 | **`tuscenes-tmp` の S3 通知 → `tuscenes-CleaningJob-Function`**（新しく分かった） | 通知が 2 本（`2.1/` の下の `.json`・`.csv` の作成）。どのスタックも持っていない。Lambda の呼び出しは 90 日 0 回。**`2.1/` というプレフィックスは今は存在しない**（2026-10-28 に一覧して確認）。バケットのほかのプレフィックスは多くの人が使っている | `tuscenes-tmp` の `2.1/` に `.json`・`.csv` を置くと、**cleaning の job（SageMaker）が起動する**。tuscenes-tmp は Databricks から今も読まれている（ロールの最終利用 2026-10-27）。[tuscenes-stack-cleanup.md](../../../aws-data-protection/workstream/tuscenes-stack-cleanup.md) には未記載 |
 | C1-2 | ルール `tuscenes-NewSceneEventRule…`（tuscenes-cleaned） | ENABLED。tuscenes-cleaned の EventBridge は有効だが、バケットは空 | 調査済み（tuscenes-stack-cleanup） |
 | C1-3 | ルール `tuscenes-CleaningJobStateChangeRule…` | ENABLED | cleaning の job が動けば発火する。C1-1 とつながっている |
 
@@ -59,7 +60,7 @@ AWS アカウント tuscenes-prod（767397804933）の棚卸しの結果。伊�
 | --- | --- | --- | --- |
 | C3-1 | **スタック `github-oidc-provider`** | コードなし（2024-02-09 作成）。**GitHub の OIDC プロバイダーを持っていて、44 本のロールがこれに頼る** | S1・S2 の片付けで、隣のスタックと一緒に消してはいけない。消すと全リポジトリの GitHub Actions が AWS に入れなくなる。削除の保護を付けるか、cdk-apps に取り込む（import）のが望ましい |
 | C3-2 | **スタック `databricks-s3-ingest-*` 31 本** | Databricks の画面（S3 の取り込みのクイックスタート）が作ったもの。コードなし。29 本は Unity Catalog の外部ロケーションとして使用中 | 消すとき、カスタムリソースが**スタックに保存された Databricks の個人アクセストークン**（NoEcho）で Databricks の API を呼ぶ。トークンが失効していれば削除は失敗する。Databricks 側の外部ロケーション・ストレージ資格情報を先に片付けるのが安全 |
-| C3-3 | Lambda `vm-alarm-dev-periodic_task` とルール `vm-alarm-dev-periodic_task-event` | スタックなし（Serverless Framework 製とみられる）。**毎日 10:00 UTC に動いている**（90 日で 270 回）。最終更新 2024-02-29。環境変数 `GOOGLE_APPLICATION_CREDENTIALS` | 持ち主と用途が不明のまま動いている。持ち主を探す |
+| C3-3 | Lambda `vm-alarm-dev-periodic_task` とルール `vm-alarm-dev-periodic_task-event`、ロール `vm-alarm-dev` | Chalice 製。毎日 10:00 UTC に、GCP のプロジェクト `e2e-sandbox-414801` で起動したままの VM を Slack に知らせる仕組み。**毎回 GCP から 403 で失敗していて、何もしていない**（直近 10 日の実行ログ）。コードは [turingmotors/vm-alarm](https://github.com/turingmotors/vm-alarm)（2024-02-29 にアーカイブ）。**Slack のワークフローの起動 URL がコードに平文で書かれている** | 消す（関数・ルール・ロール）。Slack 側のワークフローの起動 URL も無効にする |
 | C3-4 | CloudFront `E1K5TKF3VZ5EWE`（turing-video-frames、ap-northeast-1 のバケット） | スタックなし。90 日で 34 万リクエスト。バケットはスタック `VideoFrameExtractorOutputStack` が持つ | 手で作った配信。バケット側の変更（ポリシー・削除）で壊れうる。シークレット `video-frame-extractor/cloudfront-private-key`（ap-northeast-1）は一度も読まれていない |
 | C3-5 | `tuscenes-tmp` の通知（C1-1） | バケットは Datalake が持つが、通知はどのスタックも持たない | 二重の持ち主の形 |
 | C3-6 | コードの見当たらない CDK のスタック | `sfn-auto-labeling`（2024-10）・`DatabricksAutoLoader`（2024-11）・`LDAP`（2025-01）・`tuscenes-cicd`（2025-02）・`SharedBackend`（2025-02）・`YoutubeCollectorStack`（2026-02）、Amplify の 2 本 | 誰も deploy しないので drift しても気づかない |
@@ -113,8 +114,8 @@ AWS アカウント tuscenes-prod（767397804933）の棚卸しの結果。伊�
 | 対象 | 状態 | 案 |
 | --- | --- | --- |
 | `amplify-d3u7ftafn08oup-main-branch-3a3f2d1bf5`・`databricks-s3-ingest-55042`・`databricks-s3-ingest-764d8` | ROLLBACK_COMPLETE（作成に失敗した殻） | 消す |
-| `databricks-s3-ingest-e2441`（databricks-auto-ingest、2025-02-25）・`-10067`（mlflow-sandbox、2026-02-25）・`-f0b4a`（tuscenes-cleaned、2026-03-26）・`-e3370`（turing-video-frames、作成した日だけ） | 外部ロケーションのロールが 180 日以上使われていない | Databricks 側の外部ロケーションを確かめてから。C3-2 の注意 |
-| `databricks-s3-ingest-9109d`（tuscenes-map、2026-04-06）・`-f4a68`（tuscenes-dataset、2026-07-01） | 90〜180 日 | 様子見 |
+| `databricks-s3-ingest-e2441`（databricks-auto-ingest、2025-02-25）・`-10067`（mlflow-sandbox、2026-02-25）・`-f0b4a`（tuscenes-cleaned、2026-03-26）・`-e3370`（turing-video-frames、作成した日だけ） | 外部ロケーションのロールが 180 日以上使われていない。**mono-e2e のコード（Databricks の Terraform・ジョブ）のどこからも参照されていない**（使われている外部ロケーション 9 つはコードから参照されている） | Databricks 側の外部ロケーション・ストレージ資格情報を先に消し、その後でスタックを消す。C3-2 の注意 |
+| `databricks-s3-ingest-9109d`（tuscenes-map、2026-04-06）・`-f4a68`（tuscenes-dataset、2026-07-01） | 90〜180 日。mono-e2e のコードからは参照されていない（バケット自体は別の経路で使われている） | 様子見 |
 | `github-actions-file-publishing`・`github-actions-image-publishing` | S1・S2 | 消す（`github-oidc-provider` は残す） |
 | `tuscenes` | 調査済み | tuscenes-stack-cleanup で扱う |
 | C3-6 のスタック | コードなし | 中身を見て判断 |
@@ -153,8 +154,9 @@ AWS アカウント tuscenes-prod（767397804933）の棚卸しの結果。伊�
 ### そのほか
 
 - SQS（us-west-2 99 本）: 90 日の送信が 0 件のものが 39 本。うち 34 本は Databricks の取り込み（file events）が作ったキュー。
-- セキュリティグループ: us-west-2 の 100 個のうち、どの ENI にも付いていないもの（default を除く）が 42 個。全世界への SSH は S11。ap-northeast-1 は 0 個。
-- KMS: カスタマー管理のキーは 3 本（us-west-2 の `alias/turing/ssm`・`alias/ssm`、ap-northeast-1 の `alias/ssm`）。使われているかは CloudTrail でしか分からないので、まだ判定していない。
+- セキュリティグループ: us-west-2 の 100 個のうち、どの ENI にも付いていないもの（default を除く）は 42 個。ほかのセキュリティグループ・起動テンプレート・Batch・Lambda・ELB・EKS・RDS からの参照まで突き合わせると、**本当にどこからも参照されていないのは 18 個**。スタックの中の 6 個（スタックが持つので放置でよい）と、スタックの外の 12 個（Databricks のワーカー用 6 個は 6 章のワークスペースと一緒に、`ecs-i58gva37`、全世界への SSH の 5 個は S11）。ap-northeast-1 は 0 個。
+- 起動テンプレート: 74 本のうち、Auto Scaling・Batch・CloudFormation のどれからも参照されていないものが 27 本（26 本は AWS Batch が作った古い世代）。優先度は低い。
+- KMS: カスタマー管理のキーは 3 本。**us-west-2 の `alias/turing/ssm`（2024-04）・`alias/ssm`（2024-06）は、直近 90 日の CloudTrail にイベントが 1 件も無い**（片付けの候補。消すには 7〜30 日の待ち期間を置く。先に無効化して様子を見るのが安全）。ap-northeast-1 の `alias/ssm` は使われている（2026-10-27 に Decrypt など）。
 - CloudFront: 5 本とも使われている。Route 53 は `apps.turing-ai.dev` の 1 ゾーン。ACM の証明書は全部使用中。
 - IAM の OIDC プロバイダー 4 つは、どれも信頼するロールがある。
 
@@ -177,7 +179,7 @@ us-west-2・ap-northeast-1 を見た。一次情報は同じく `~/aws/tuscenes-
 
 ### 気づいたこと
 
-- **ECR のイメージは、ほぼ全部（5,248 個）の最終 pull が 2026-10-27 だった。** 何かが毎日すべてのイメージを pull している（脆弱性のスキャナーなどとみられる。主体は未確認）。そのため、ECR の「最終 pull」は使われているかの根拠にならない。上の A10 は push の日付で見た。
+- **ECR のイメージは、ほぼ全部（5,248 個）の最終 pull が 2026-10-27 だった。** 原因は、同じ日の 14:37 以降（JST）に、SSO の FullAccess のセッション（安本さんとみられる。Mac の boto3）がアカウント全体を走査したこと。この 20 分あまりで 12,000 件を超える読み取りがあり、ECR の `BatchGetImage`（最終 pull の日時を更新する）やレイヤーの取得を含んでいた。毎日起きているわけではない。いずれにせよ、この日以降の ECR の「最終 pull」は使われているかの根拠にならない。上の A10 は push の日付で見た。
 - EBS のボリュームの 127 本（149 本中、us-west-2）が暗号化されていない。
 - EKS のクラスター 5 本は、すべて API のエンドポイントを全世界（`0.0.0.0/0`）に公開している。
 - 動いている EC2（us-west-2 125 台・ap-northeast-1 4 台）は、すべて IMDSv2 を必須にしていた。停止中の Coder のワークスペースの多くは IMDSv1 を許している。
@@ -206,7 +208,9 @@ Coder は 2 つの版がある（2026-10-28 伊藤）。**片付けの対象は�
 
 ### 旧版の状態（2026-10-28）
 
-- サーバーの ECS のタスクが 1 つ動いている（今日 07:08 UTC にも入れ替わった）。ALB には毎日数百〜1 万件のリクエストがある（90 日で 34 万件）。Aurora の最大接続数は 8。アクセスログは無効なので、リクエストの出どころは分からない。
+- サーバーの ECS のタスクが 1 つ動いている（今日 07:08 UTC にも入れ替わった）。ALB には毎日数百〜1 万件のリクエストがある（90 日で 34 万件）。Aurora の最大接続数は 8（サーバー自身の接続）。
+- **人には使われていない（2026-10-28 に確定）**。サーバーのログ（直近 30 日、7,729 行）に、ログイン・ワークスペースの操作の記録は無い。中身は定期処理（古いデータの削除・レポートの生成）とサーバーの再起動だけ。nginx に残ったリクエストは `/admin`・`/signup`・`/register`・`/api/auth/signin` などへの POST（Coder に無いパス）で、宛先も IP アドレスや EC2 のホスト名が多い。インターネットのスキャナーとみられる。
+- **旧版のドメイン `coder.turing-ai.dev` が、まだ旧版の ALB を指している**（nginx のログの宛先に 51 件）。turing-ai.dev のゾーンはこのアカウントに無いので、DNS の側でレコードを外す。
 - NAT Gateway の 90 日の転送量は 0。EFS 3 本の 90 日間の読み書きは 0。
 - **スタックに載っているのに実体が無いものがある**: EKS `Coder-AutoCluster` と Aurora `coder-slurmdb7993b14f-*`（どちらも describe で見つからない）。スタックの外で消したとみられる。スタックを消すときに、ここで止まらないか注意する。
 - 新版への移行の跡: ap-northeast-1 の RDS のスナップショット `coder-snapshot-databaseb269d8bb-*`（2025-02-12）は、旧版の DB（`coder-databaseb269d8bb-*`）を写したもの。
@@ -239,7 +243,7 @@ Coder は 2 つの版がある（2026-10-28 伊藤）。**片付けの対象は�
 - us-west-2 の `CoderWorkspace` のスタック・EKS `CoderWorkspaceCluster`・ワークスペースの EC2 は新版のもの。
 - `Coder-*` で始まるロールのうち、`Coder-Cluster*`・`Coder-WorkspaceRole…` は新版（ap-northeast-1 のスタック）のもの。
 
-順番の案: (1) 28.8 TB の EFS の中身を確かめる → (2) ECS のサービスを 0 にして、何か困る人が出ないか様子を見る → (3) スタックを消す（入れ子は親と一緒に消える）→ (4) 残ったもの（EFS・S3・最終スナップショット・ロググループ）を片付ける。
+順番の案: (1) 28.8 TB の EFS の中身を確かめる → (2) ECS のサービスを 0 にして、何か困る人が出ないか様子を見る → (3) DNS の `coder.turing-ai.dev` を外す → (4) スタックを消す（入れ子は親と一緒に消える）→ (5) 残ったもの（EFS・S3・最終スナップショット・ロググループ）を片付ける。
 
 ### 新版について気づいたこと（片付けではない）
 
@@ -261,11 +265,12 @@ NAT Gateway は、1 本で月 $33 ほど（時間料金。転送量は別）か�
 | `nat-015fe2e1fa8d7964c` | `Coder/Vpc`（ap-northeast-1、Coder の新版） | 2025-02-12 | EKS・RDS | 435・8.5 GB | 使用中 |
 | `nat-07ca4f856cea2eb54` | Databricks のワーカーの VPC（ワークスペース `workshop`、スタック `databricks-workspace-stack-d0cfc`） | 2025-08-27 | — | 0・0 | **Databricks のワークスペース `workshop` を消す**（VPC と NAT は Databricks が作ったもので、ワークスペースと一緒に片付ける） |
 | `nat-05e298c48aaacd9a0` | Databricks のワーカーの VPC（ワークスペース `secondee`、スタック `databricks-workspace-stack-d3570`） | 2025-10-14 | — | 0・0 | 同上（`secondee`） |
-| `nat-0e70ef49932572130` | Databricks のワーカーの VPC（`workerenv-747465534265`。どのワークスペースかは、CloudFormation からは分からない） | 2026-07-10 | — | 25・0.08 GB（最後は 2026-08-28） | Databricks のアカウントの画面で、どのワークスペースか確かめる |
-| `nat-08633f1f1c3de9bc0` | Databricks のワーカーの VPC（`workerenv-391377578046`、主のワークスペース `e2e` とみられる） | 2024-08-29 | — | 4,096・454 GB | 使用中 |
+| `nat-0e70ef49932572130` | Databricks のワーカーの VPC（`workerenv-747465534265`）。**dev 用のワークスペース `e2e-dev`**（workspace_id 7474655342656585。mono-e2e の `projects/databricks-terraform/account/dev_workspace.tf` で管理） | 2026-07-10 | — | 25・0.08 GB（最後は 2026-08-28） | 使用中のワークスペースなので残す |
+| `nat-08633f1f1c3de9bc0` | Databricks のワーカーの VPC（`workerenv-391377578046`。主のワークスペース `e2e`、org 3913775780464502 で確定） | 2024-08-29 | — | 4,096・454 GB | 使用中 |
 | `nat-0b855302db270f550` | VideoFrameExtractorStack | 2026-01-15 | ECS | 154・372 GB | 使用中 |
 | `nat-06819f9c66c51eb18` | SkypilotApiServer | 2026-08-17 | EKS・NLB・Lambda | 69・21 GB | 使用中 |
 
+- `workshop`・`secondee` のワークスペースは、mono-e2e の Databricks の Terraform（`projects/databricks-terraform`）に出てこない（管理外）。`workshop` は、同じ名前のアカウントのグループが空になっていて、2026-09-15 に DENSO 向けの共用アカウントを無効化してグループから外した記録がある（[mono-e2e#5330](https://github.com/turingmotors/mono-e2e/pull/5330)）。DENSO 向けワークショップ用で、役目を終えたとみられる。`secondee` の用途は分からない。
 - Databricks のワークスペースのスタック（`databricks-workspace-*`）は、Databricks の画面のクイックスタートが作ったもの。消すときは、C3-2 と同じく、カスタムリソースが保存された Databricks のトークンで API を呼ぶ。ワークスペースは Databricks のアカウントの画面で消すのが筋。
 - Databricks の VPC には、持ち主のいない S3 のゲートウェイエンドポイントが 1 つずつある（ワークスペースと一緒に消える）。
 
@@ -275,11 +280,11 @@ NAT Gateway は、1 本で月 $33 ほど（時間料金。転送量は別）か�
 
 | 種別 | 結果 | 候補 |
 | --- | --- | --- |
-| Route 53（`apps.turing-ai.dev`） | API Gateway を指す A レコード 5 本は、どれもドメインが実在する | Vercel を指す CNAME 3 本（`digital-signage`・`jadd-studio-signage`・`jadd-studio`）は、Vercel の側にプロジェクトがあるかを AWS からは確かめられない。消えていればサブドメインの乗っ取りの余地になる |
-| Step Functions（26） | 90 日間実行の無いものが 2 本 | `BulkPipelineStateMachine74302C4C-BcRAHN9RFO0Z`・`ScenarioTestClosedLoop-Run-StateMachine`（どちらも一度も実行されていない） |
+| Route 53（`apps.turing-ai.dev`） | API Gateway を指す A レコード 5 本は、どれもドメインが実在する | Vercel を指す CNAME 3 本のうち、`jadd-studio`・`jadd-studio-signage` は今も使われている（jadd_studio3・jadd-studio-signage・mono-e2e・cdk-apps のコードが参照）。**`digital-signage` はどのコードからも参照されていない**（`jadd-studio-signage` の前身とみられる）。Vercel の側にプロジェクトが無ければ、サブドメインの乗っ取りの余地になる（伊藤が Vercel の管理画面で確かめる） |
+| Step Functions（26） | 90 日間実行の無いものが 2 本 | `BulkPipelineStateMachine74302C4C-BcRAHN9RFO0Z`（cdk-apps の DensoNx、2026-05 の [cdk-apps#1159](https://github.com/turingmotors/cdk-apps/pull/1159) で追加。一度も実行されていない）・`ScenarioTestClosedLoop-Run-StateMachine`（cdk-apps の closed-loop-scenario-test。一度も実行されていない）。どちらもコードにあるので、持ち主に聞く |
 | DynamoDB（15） | 持ち主のスタックが無いもの | `tuscenes-table`（0 件、2024-03）・`turing-video-status`（0 件、2025-02）・`test-007`（0 件、2024-12）・`alphaspp-scene-table`（101 件、2024-02）・`vad-e2e_test-data`（4 件、2025-01） |
 | Cognito（3） | どれもスタックが無い | `FlyteUserPool`（2024-11。Flyte は消えた）・`DataHub-Auth`（2024-12）・`UserPool6BA7E5F2-qHTym8tzlxyc`（2024-11）。利用者の情報（メールアドレスなど）を持ちうるので、要らなければ消す |
-| AWS Batch（計算環境 28） | 持ち主のいないもの 1 | `auto-labeling-compute-env`。スタック `sfn-auto-labeling`・`Infra-ECS-Cluster-auto-labeling-*`、EIP `auto-labeling-eip-us-west-2a`（A4）と合わせて、auto-labeling の一式（2024-09〜10）として片付ける |
+| AWS Batch（計算環境 28） | 持ち主のいないもの 1 | `auto-labeling-compute-env`（コードは `map-auto-labeling` 系のリポジトリで、どれもアーカイブ済み）。スタック `sfn-auto-labeling`・`Infra-ECS-Cluster-auto-labeling-*`、EIP `auto-labeling-eip-us-west-2a`（A4）と合わせて、auto-labeling の一式（2024-09〜10）として片付ける |
 | EFS | 5 章 | `Coder/CsiFileSystem`（新版の残り） |
 | VPC エンドポイント（20、すべて S3 のゲートウェイ型） | 持ち主のいないもの 5 | `ml-ops-vpc` と Databricks の VPC 4 つ。VPC と一緒に消える |
 | CloudWatch のアラーム（43） | すべて OK。消えたリソースを見張るもの（INSUFFICIENT_DATA）は無い | 通知先の無いアラームが 15 本（us-west-2） |
@@ -300,6 +305,8 @@ NAT Gateway は、1 本で月 $33 ほど（時間料金。転送量は別）か�
 ## 9. まだ見ていないもの
 
 - VPC は us-west-2 の 30 個のうち、ENI が 0 のものが 13 個（多くは AWS Batch 用の CDK の VPC で、ジョブが無いときは空になる）。持ち主のいない `tuscenes/Vpc`（ENI 0）がある。中身は細かく見ていない。
-- Coder の ALB へのリクエストの出どころ（アクセスログが無効）。手当ては別に検討する（伊藤）。
-- KMS のキーの利用状況（CloudTrail が要る。管理イベントはログ用のアカウント 617808723336 に送られていて、このアカウントの ReadOnly では 90 日より前を見られない）。
-- ECR のイメージを毎日 pull している主体。
+- Coder の新版の ALB へのリクエストの出どころ（アクセスログが無効）。手当ては別に検討する（伊藤）。旧版は 5 章のとおりスキャナーと分かった。
+- Vercel の CNAME `digital-signage.apps.turing-ai.dev` が、Vercel の側でどのプロジェクトに付いているか（伊藤が管理画面で確かめる）。
+- Coder の旧版の EFS 28.8 TB の中身（API ではファイルの一覧が取れない）。
+- S3 の「中身が変わらないバケット」が読まれているか（Storage Lens は無料版でアクセスの指標が無く、S3 のデータイベントも監査用の 2 本以外は記録していない）。
+- 90 日より前の操作の主体（管理イベントはログ用のアカウント 617808723336 にある）。

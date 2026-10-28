@@ -1,7 +1,7 @@
 # AWS リソースの棚卸し
 
 - 開始: 2026-10-28
-- 状態: **優先度 A〜C の調査と、Coder・NAT Gateway の掘り下げを終え、[掃除の候補のリスト](aws-resource-inventory/cleanup-candidates.md)を作った**（2026-10-28）。次は伊藤がリストを見て、片付けるもの・持ち主に確かめるものを決める。片付けの手順書はまだ
+- 状態: **優先度 A〜C の調査、Coder・NAT Gateway の掘り下げ、確定のための深掘りを終え、[掃除の候補のリスト](aws-resource-inventory/cleanup-candidates.md)を作った**（2026-10-28）。次は伊藤がリストを見て、片付けるもの・持ち主に確かめるものを決める。片付けの手順書はまだ
 - 所属: project:information-resource-inventory
 
 AWS アカウント tuscenes-prod（767397804933）のリソースを総ざらいし、掃除の候補のリストを作る。
@@ -50,8 +50,8 @@ AWS アカウント tuscenes-prod（767397804933）のリソースを総ざら�
 - [x] NAT Gateway の掘り下げ（経路・接続数・Databricks のワークスペースとの対応）→ リストの 6 章
 - [ ] 伊藤の判断を受けて、片付けの手順書を書く（Coder の旧版から）
 - [ ] （別に検討）Coder の新版の利用の実態を把握する手当て
-- [ ] KMS のキーの利用（管理イベントはログ用のアカウントにあり、このアカウントからは 90 日より前を見られない）
-- [ ] ECR のイメージを毎日 pull している主体
+- [x] 深掘りで確定（2026-10-28）: KMS（us-west-2 の 2 本は 90 日イベントなし）、ECR の pull の日時の原因（10-27 の安本さんとみられる走査）、tuscenes-tmp の `2.1/` は無い、セキュリティグループ・起動テンプレートの参照、Coder の旧版は人に使われていない（スキャナーだけ）、LDAP はスキャナーだけで旧リポジトリの残り、vm-alarm は毎回 403 で失敗、alphard_route_gen は認証なしの Function URL を公開、Databricks の NAT とワークスペースの対応（mono-e2e のコード）、外部ロケーションのコードからの参照、持ち主のリポジトリ（GitHub）
+- [ ] Vercel の `digital-signage` の確認（伊藤）
 
 ## 次セッションへの引き継ぎ
 
@@ -68,6 +68,11 @@ AWS アカウント tuscenes-prod（767397804933）のリソースを総ざら�
   - 優先度 A: 使われていない NAT Gateway 4 本、割り当ての無い EIP 2 個、元の DB の無い RDS のスナップショット、ECR 22.5 TB（半分は 180 日より前の push）、保持期間が無期限のログ 9 TB。Coder の旧版（us-west-2）。
 - Coder: 同じ名前のスタック `Coder` が us-west-2（旧版）と ap-northeast-1（新版）にある。集計の `derived/iam-owner.json` はスタック名だけでリージョンを区別しないので、取り違えに注意する（一度取り違えた）。旧版は月 $400 前後で、EFS 3 本が `Retain`（28.8 TB が残る）、実体の無いリソース 2 つ（EKS `Coder-AutoCluster`・Aurora `coder-slurmdb*`）がスタックに載っている。シークレット `coder/oidc/*` は 2026-10-27 に読まれていて、新版が使うとみられる（消さない）。新版は EKS 3 本が 1.32 の延長サポートで計 $1,296/月。`CoderWorkspace` の共有 EFS は `DeletionPolicy: Delete`。
 - Cost Explorer はスタックのタグ（`aws:cloudformation:stack-name`）で費用を分けられる（コスト配分タグが有効）。`global/ce/cost-by-stack-2026-09.json`。
+- 深掘りの方法のメモ:
+  - ログの中身（Coder・LDAP）は、生のログを一時置き場でだけ扱い、`~/aws` には残していない。LDAP は 2.1 GB あるので CloudWatch Logs Insights でサーバー側で集計した（スキャン 0.3 GB）。名前・IP アドレスは集計だけにした。
+  - Lambda のコードは、許可を得て一時置き場に取得して読んだ（リポジトリには入れていない）。
+  - mono-e2e の Databricks の Terraform は `projects/databricks-terraform`（account 層・workspace 層）。ワークスペースは `e2e`（org 3913775780464502）と `e2e-dev`（7474655342656585）を管理。`workshop`・`secondee` は管理外。
+  - GitHub のコード検索は、アーカイブ済みのリポジトリや消えたコードを拾わないことが多い。リポジトリ名の検索と、手元のリポジトリの `git log -S` のほうが当たった。
 - CloudTrail: 管理イベントは Control Tower のトレイルで、ログ用のアカウント（617808723336）のバケットに送られている。このアカウントでは、イベント履歴の直近 90 日しか見られない。90 日より前の利用者は、IAM のサービスの最終アクセス（`generate-service-last-accessed-details`）と、GitHub の実行履歴で絞り込んだ。
 - ECR の最終 pull は、何かが毎日全イメージを pull しているため、使われているかの根拠にならない。push の日付を使う。
 - スタック `tuscenes` は [tuscenes-stack-cleanup.md](../../aws-data-protection/workstream/tuscenes-stack-cleanup.md) で調べ済み。結果を再利用し、二重に調べない。
