@@ -1,6 +1,6 @@
 # tuscenes-prod の掃除の候補（2026-10-28 時点）
 
-AWS アカウント tuscenes-prod（767397804933）の棚卸しの結果。伊藤の判断用のリストで、チーム向けには書いていない。セキュリティの観点（優先度 B）・グローバルなサービス・優先度 A・優先度 C を見終えた時点のもの。Coder の一式と NAT Gateway は掘り下げた（5 章・6 章）。
+AWS アカウント tuscenes-prod（767397804933）の棚卸しの結果。伊藤の判断用のリストで、チーム向けには書いていない。セキュリティの観点（優先度 B）・グローバルなサービス・優先度 A・優先度 C を見終えた時点のもの。Coder（旧版が片付けの対象）と NAT Gateway は掘り下げた（5 章・6 章）。
 
 - 一次情報: `~/aws/tuscenes-prod/2026-10-28/`（機微な値は伏せ字）。集計の表は同じ場所の `derived/`。
 - 集計のスクリプト: [analyze/](analyze/README.md)。取得の道具: [collect/](collect/README.md)。
@@ -168,10 +168,10 @@ us-west-2・ap-northeast-1 を見た。一次情報は同じく `~/aws/tuscenes-
 | --- | --- | --- | --- | --- |
 | A1〜A3 | NAT Gateway | 6 章に移した | | |
 | A4 | Elastic IP `34.208.220.170`（`auto-labeling-eip-us-west-2a`）・`54.244.115.207`（`Flyte/Vpc/PublicSubnet1`） | どこにも割り当てられていない | なし（Flyte のスタックは消えた） | 解放する |
-| A5 | RDS の手動のスナップショット: us-west-2 の `flyte-snapshot-*`（クラスター 2・インスタンス 2、2024-11〜2025-05）・`tuscenes-pipeline-snapshot-*`・`tuscenes-snapshot-studiodatabase*`（2024-03〜05）、ap-northeast-1 の `coder*-snapshot-*`（2025-02・2025-06 の 5 個） | 元の DB はもう無い（Flyte・tuscenes studio）か、移行の際の残り | なし | 中身が要らなければ消す |
-| A6・A7 | Coder の一式 | 5 章に移した（伊藤によると Coder は運用を全面的に止めている。片付けの対象） | | |
-| A8 | EBS の未アタッチ 3 本（78 GiB）: `vol-0bac9cc937635e469`（CoderWorkspace の PVC、2025-02）・`vol-008879c07bd29b519`（Skypilot の PVC、2026-07）・`vol-00d62035721cd73d5`（2024-10） | どこにも付いていない | — | 消す |
-| A9 | 停止中の EC2（Coder のワークスペース。5 章で一緒に片付ける）: us-west-2 7 台・ap-northeast-1 7 台 | 停止が 90 日を超えるもの 10 台（停止した日）: ap-northeast-1 の `coder-debug`（t4g.micro、2025-02-18。キーペア `mats`）・`coder-toshiyukikato-replay-005`（07-06）・`coder-tatsuyasuzuki-test3-suzuki`（07-10）・`coder-tatsuyasuzuki-test2-tensorrt`（07-11）・`coder-keishiishihara-openpilot-2`（07-22）、us-west-2 の `coder-hayataebisawa-a`（2026-02-05）・`coder-ryuozaki-vins`（06-19）・`coder-yutaide-GPU`（06-22）・`coder-yutonakamura-scarlet-lizard-2`（07-19）・`coder-takumaseno-openpilot`（07-27） | Coder | Coder の側でワークスペースを消す（EBS が残り続ける） |
+| A5 | RDS の手動のスナップショット: us-west-2 の `flyte-snapshot-*`（クラスター 2・インスタンス 2、2024-11〜2025-05）・`tuscenes-pipeline-snapshot-*`・`tuscenes-snapshot-studiodatabase*`（2024-03〜05）、ap-northeast-1 の `coder*-snapshot-*`（2025-02・2025-06 の 5 個。Coder の旧版から新版への移行のときのもの） | 元の DB はもう無い（Flyte・tuscenes studio）か、移行の際の残り | なし | 中身が要らなければ消す。Coder のものは新版の持ち主に確かめる |
+| A6・A7 | Coder | 5 章に移した（旧版だけが片付けの対象。新版は利用中） | | |
+| A8 | EBS の未アタッチ 3 本（78 GiB）: `vol-0bac9cc937635e469`（CoderWorkspace（新版）の PVC、2025-02）・`vol-008879c07bd29b519`（Skypilot の PVC、2026-07）・`vol-00d62035721cd73d5`（2024-10） | どこにも付いていない | — | 消す |
+| A9 | 停止中の EC2（Coder の新版のワークスペース）: us-west-2 7 台・ap-northeast-1 7 台 | 停止が 90 日を超えるもの 10 台（停止した日）: ap-northeast-1 の `coder-debug`（t4g.micro、2025-02-18。キーペア `mats`）・`coder-toshiyukikato-replay-005`（07-06）・`coder-tatsuyasuzuki-test3-suzuki`（07-10）・`coder-tatsuyasuzuki-test2-tensorrt`（07-11）・`coder-keishiishihara-openpilot-2`（07-22）、us-west-2 の `coder-hayataebisawa-a`（2026-02-05）・`coder-ryuozaki-vins`（06-19）・`coder-yutaide-GPU`（06-22）・`coder-yutonakamura-scarlet-lizard-2`（07-19）・`coder-takumaseno-openpilot`（07-27） | Coder | Coder の側でワークスペースを消す（EBS が残り続ける） |
 | A10 | **ECR（us-west-2）22.5 TB**（月 $2,200 前後） | push から 180 日を超えたイメージが 1,907 個・10.5 TB。大きいのは `closed-loop-scenario-test`（5.1 TB）・`3dgs-train`（2.9 TB）・`openpilot-replay`（1.4 TB、最終 push 2025-09-18）。最終 push が 180 日を超えたリポジトリは 17 本（`alphaspp-ui`・`alphaspp-devkit`・`tsuk-test`・`rerun-data-api`・`tuscenes-validator`・`jupyter`・`sagemaker-studio` など） | 各チーム | ライフサイクルポリシーを入れる。古い系統のリポジトリは消す |
 | A11 | **CloudWatch Logs（us-west-2）9.0 TB**。保持期間が無期限のロググループが 368 個・9.0 TB | 最大は `/aws/batch/job`（8.1 TB）。ほかに VideoFrameGenerator の Lambda（390 GB）、ClosedLoopScenarioTestEks の Container Insights（計 410 GB） | 各スタック | 保持期間を決める（費用に加え、ログに機微な情報が残り続ける） |
 
@@ -193,50 +193,62 @@ us-west-2・ap-northeast-1 を見た。一次情報は同じく `~/aws/tuscenes-
 - `nuscenes-all`・`argoverse2-all`・`semantic-kitti` は公開データセットの写しとみられる（取り直せる）。
 - Flyte の残り: `flyte-bucket83908e77-*`・`flyte-userdatabucket58c9ae06-*`（スタックなし）。
 
-## 5. Coder の一式（掘り下げ）
+## 5. Coder（掘り下げ）
 
-伊藤によると、Coder は運用を全面的に止めた（2026-10-28）。片付けの対象として、関係するものを洗い出した。**ただし基盤は今も動いている**（下の「今の状態」）。
+Coder は 2 つの版がある（2026-10-28 伊藤）。**片付けの対象は旧版だけ**。新版は今も使われている。新版の利用の実態が AWS から分からないこと（下の「新版の状態」）への手当ては、別に検討する（伊藤）。
 
-### 今の状態（2026-10-28）
+| 版 | 構成 | 作成 | 扱い |
+| --- | --- | --- | --- |
+| 旧版 | us-west-2 のスタック `Coder`（ECS のサーバー・ALB・Aurora・EFS 3 本・VPC・NAT） | 2024-05-06（最終更新 2025-01-14） | **片付けの対象** |
+| 新版 | ap-northeast-1 のスタック `Coder`（EKS `Coder-Cluster`・Aurora・VPC・NAT、`coder-v2.turing-ai.dev`）と、ワークスペース用のスタック `CoderWorkspace`（us-west-2・ap-northeast-1・us-east-1） | 2025-02-12・13 | 利用中。消さない |
 
-- us-west-2 の旧 Coder（スタック `Coder`、ECS）: サーバーのタスクが 1 つ動いている（今日 07:08 UTC にも入れ替わった）。ALB には毎日数百〜1 万件のリクエストがある（90 日で 34 万件）。Aurora の最大接続数は 8。
-- ap-northeast-1 の Coder v2（スタック `Coder`、EKS `Coder-Cluster`、`coder-v2.turing-ai.dev`）: ノード 2 台が動いている。k8s が作った ALB `k8s-coder-coder-a7d165dea7` には毎日数千〜5 万件のリクエストがある（90 日で 78 万件）。
-- ワークスペース用の EKS（スタック `CoderWorkspace`、us-west-2・ap-northeast-1）: ノードが計 3 台動いている。
-- **動いているワークスペースは 0 台。** 停止中が 14 台（us-west-2 7・ap-northeast-1 7）。どれも「起動の 1 分以内に停止」していて、Coder の側の操作の跡とみられる。最新は 2026-10-27。
-- ALB のアクセスログは両方とも無効なので、リクエストが人によるものか（外からのスキャンなどか）は、AWS からは分からない。
-- ロールが今日使われているのは、ノード・タスクなど基盤のもの。人が使った形跡ではない。
+同じ名前のスタック `Coder` が 2 つのリージョンにあるので、取り違えに注意する。ワークスペース（停止中 14 台）は、両リージョンとも新版のもの（新版のスタックのロール `Coder-WorkspaceRole…` を使う）。新版は us-west-2 にもワークスペースを作る（ロール `Coder-ClusterProvisionerRole…` の最終利用が us-west-2）。
 
-### 費用（2026-09 の 1 か月）
+### 旧版の状態（2026-10-28）
+
+- サーバーの ECS のタスクが 1 つ動いている（今日 07:08 UTC にも入れ替わった）。ALB には毎日数百〜1 万件のリクエストがある（90 日で 34 万件）。Aurora の最大接続数は 8。アクセスログは無効なので、リクエストの出どころは分からない。
+- NAT Gateway の 90 日の転送量は 0。EFS 3 本の 90 日間の読み書きは 0。
+- **スタックに載っているのに実体が無いものがある**: EKS `Coder-AutoCluster` と Aurora `coder-slurmdb7993b14f-*`（どちらも describe で見つからない）。スタックの外で消したとみられる。スタックを消すときに、ここで止まらないか注意する。
+- 新版への移行の跡: ap-northeast-1 の RDS のスナップショット `coder-snapshot-databaseb269d8bb-*`（2025-02-12）は、旧版の DB（`coder-databaseb269d8bb-*`）を写したもの。
+
+### 旧版の費用（2026-09 の 1 か月。概算）
 
 | 内訳 | 額 |
 | --- | ---: |
-| スタック `Coder`・`CoderWorkspace` のタグの付いた費用 | $1,740 |
-| 　うち EKS（ap-northeast-1 2 本で $864、us-west-2 1 本で $432。**バージョン 1.32 で、延長サポートの料金（1 本 $432/月）**） | $1,296 |
-| 　うち RDS（Aurora。ap-northeast-1 $257、us-west-2 $108） | $365 |
-| ワークスペースの EBS（停止中 14 台、計 7.9 TB の gp3。タグなし。試算） | 約 $630 |
-| EFS（ほぼ Archive の階層。us-west-2・ap-northeast-1 の合計） | 約 $290 |
-| **合計（概算）** | **約 $2,700/月** |
+| Aurora（db.t4g.medium 2 台） | $108 |
+| EFS（`Coder/DataFileSystem` 28.8 TB、ほぼ Archive） | 約 $230 |
+| NAT Gateway・ALB | 約 $55 |
+| ECS のタスク | 未確認 |
+| **合計** | **約 $400/月** |
 
-### 洗い出し
+### 旧版の洗い出し（片付けの対象）
 
-| 区分 | リージョン | 対象 | 消すときの注意 |
-| --- | --- | --- | --- |
-| スタック | us-west-2 | `Coder`（106 リソース。VPC・NAT・ALB・ECS・Aurora 2 台・EFS 3 本・S3 `coder-assets-*`・シークレット 2 個・ロール 7 本）と、入れ子の kubectl のスタック | EFS 3 本と S3 は `Retain`（残る）。Aurora は `Snapshot`（最終スナップショットができる） |
-| スタック | ap-northeast-1 | `Coder`（61 リソース。VPC・NAT・EKS `Coder-Cluster`・Aurora 1 台）と、入れ子の kubectl のスタック | Aurora は `Snapshot`。**k8s が作った ALB `k8s-coder-coder-a7d165dea7` とセキュリティグループ 2 個（`k8s-traffic-CoderCluster-*`・`k8s-coder-coder-*`）はスタックの外**。先に k8s の側で Ingress を消すか、手で消さないと、VPC の削除で止まる |
-| スタック | us-west-2・ap-northeast-1・us-east-1 | `CoderWorkspace`（EKS `CoderWorkspaceCluster`・共有 EFS。us-east-1 は EFS だけ） | **共有 EFS は `Delete`。スタックを消すと中身ごと消える**（us-west-2 1.5 TB・ap-northeast-1 3.2 TB。90 日間の読み書きは 0） |
-| ワークスペース（スタックの外） | us-west-2 | 停止中の EC2 7 台（default VPC）と EBS 3.8 TB | Coder の側で消すのが本来。Coder を止めたなら、AWS で直接消す |
-| ワークスペース（スタックの外） | ap-northeast-1 | 停止中の EC2 7 台（default VPC 6・Coder の VPC 1）と EBS 4.1 TB | Coder の VPC にいる 1 台は、スタックの削除（VPC の削除）を止める。先に消す |
-| EFS（スタックの外） | ap-northeast-1 | `Coder/CsiFileSystem`（5.7 GB、マウントターゲット 0） | 持ち主なし。消す |
-| EFS（`Retain` で残るもの） | us-west-2 | `Coder/DataFileSystem`（**28.8 TB、ほぼ Archive**、90 日間の読み書き 0）・`Coder/HomeFileSystem`・`Coder/SharedFileSystem`（どちらも空） | 28.8 TB の中身が誰の何かを確かめてから決める。ユーザーのデータの可能性がある |
-| RDS のスナップショット | ap-northeast-1 | `coder*-snapshot-*` 5 個（2025-02・2025-06） | A5 |
-| シークレット | us-west-2 | `coder/oidc/github`・`coder/oidc/google`（スタックの外） | **GitHub・Google の OAuth アプリの側で失効させてから消す** |
-| ロール | — | スタックの中の約 30 本と `CoderWorkspaceRole`（SecretsManagerReadWrite） | スタックと一緒に消える |
-| ロググループ | us-west-2・ap-northeast-1 | `/aws/lambda/Coder-*`・`/aws/lambda/CoderWorkspace-*`（計 21 個）、us-west-2 の `Coder-LogGroup*`・`Coder-ServiceTaskDefnginxLogGroup*`（4 個。nginx の 3 個は古い世代の残りとみられる） | スタックの外のものは手で消す |
-| SSO | 組織 | 許可セット `ContractorCoder`（このアカウントには `AWSReservedSSO_ContractorCoder_*` として見える） | Identity Center の側（identity リポジトリなど）で外す |
-| 証明書 | ap-northeast-1 | ACM `coder-v2.turing-ai.dev`（ALB が使用中） | ALB を消した後に消す。DNS（turing-ai.dev のゾーンはこのアカウントに無い）の `coder-v2` のレコードも外す |
-| ECR・S3 | us-west-2 | S3 `coder-assets-767397804933`（`Retain`） | 中身を見て消す |
+| 区分 | 対象 | 消すときの注意 |
+| --- | --- | --- |
+| スタック | us-west-2 の `Coder`（106 リソース）と、入れ子の `Coder-CoderAutoCluster…KubectlProvider…` | EFS 3 本と S3 `coder-assets-767397804933` は `Retain`（残る）。Aurora は `Snapshot`（最終スナップショットができる）。実体の無い 2 つ（上）で止まりうる |
+| EFS（`Retain` で残る） | `Coder/DataFileSystem`（**28.8 TB、ほぼ Archive**、90 日間の読み書き 0）・`Coder/HomeFileSystem`・`Coder/SharedFileSystem`（どちらも空） | 28.8 TB の中身が誰の何かを確かめてから決める。新版に移したか、ユーザーのデータが残っているか |
+| S3（`Retain` で残る） | `coder-assets-767397804933`（4 オブジェクト） | 中身を見て消す |
+| シークレット | `DatabaseSecret3B817195-*`・`SlurmDBSecret533AAEEA-*`（スタックの中。最終アクセス 2025-01） | スタックと一緒に消える |
+| ロール | スタックの中の 7 本と `CoderWorkspaceRole`（SecretsManagerReadWrite、最終利用 2025-10-08） | スタックと一緒に消える |
+| ロググループ | `/aws/lambda/Coder-CoderAutoCluster*`・`/aws/lambda/Coder-CustomVpcRestrictDefaultSG*`・`Coder-LogGroup*`・`Coder-ServiceTaskDefnginxLogGroup*`（us-west-2） | スタックの外のものは手で消す |
+| RDS のスナップショット | ap-northeast-1 の `coder-snapshot-databaseb269d8bb-*`（移行のときの写し） | 新版の移行が済んでいれば消す |
 
-順番の案: (1) ワークスペースの EC2 と EBS を消す → (2) ap-northeast-1 の k8s の Ingress（ALB・セキュリティグループ）を消す → (3) 共有 EFS の中身が要らないことを確かめる → (4) スタックを消す（入れ子は親と一緒に消える）→ (5) 残ったもの（EFS・S3・最終スナップショット・ロググループ・シークレット・証明書）を片付ける → (6) OAuth アプリ・SSO の許可セット・DNS を外す。
+**旧版と一緒に消してはいけないもの**:
+
+- シークレット `coder/oidc/github`・`coder/oidc/google`（us-west-2、スタックの外）は、**2026-10-27 に読まれている**。新版が使っているとみられる。
+- us-west-2 の `CoderWorkspace` のスタック・EKS `CoderWorkspaceCluster`・ワークスペースの EC2 は新版のもの。
+- `Coder-*` で始まるロールのうち、`Coder-Cluster*`・`Coder-WorkspaceRole…` は新版（ap-northeast-1 のスタック）のもの。
+
+順番の案: (1) 28.8 TB の EFS の中身を確かめる → (2) ECS のサービスを 0 にして、何か困る人が出ないか様子を見る → (3) スタックを消す（入れ子は親と一緒に消える）→ (4) 残ったもの（EFS・S3・最終スナップショット・ロググループ）を片付ける。
+
+### 新版について気づいたこと（片付けではない）
+
+- 費用（2026-09）: EKS 3 本（`Coder-Cluster`・`CoderWorkspaceCluster` 2 本）が **バージョン 1.32 のまま延長サポートの料金（1 本 $432/月、計 $1,296/月）**。標準サポートのバージョンに上げれば 1 本 $73/月になる。Aurora（ap-northeast-1）$257。
+- 停止中のワークスペース 14 台の EBS が 7.9 TB（約 $630/月）。90 日を超えて止まっているものが 10 台（A9）。Coder の側で消すのが筋。
+- **`CoderWorkspace` の共有 EFS は `DeletionPolicy: Delete`**。スタックを消すと中身ごと消える（us-west-2 1.5 TB・ap-northeast-1 3.2 TB）。
+- ap-northeast-1 の ALB `k8s-coder-coder-a7d165dea7` とセキュリティグループ 2 個は k8s が作ったもので、スタックの外。将来スタックを消すときは、先に k8s の側で消す。
+- ap-northeast-1 の EFS `Coder/CsiFileSystem`（5.7 GB、マウントターゲット 0、スタックなし）は使われていない。消してよい候補。
+- 利用の実態（ALB のリクエストが人によるものか）は、アクセスログが無効なので AWS からは分からない。手当ては別に検討する（伊藤）。
 
 ## 6. NAT Gateway（掘り下げ）
 
@@ -245,8 +257,8 @@ NAT Gateway は、1 本で月 $33 ほど（時間料金。転送量は別）か�
 | NAT | VPC | 作成 | 経路に使うサブネットの中身 | 90 日の最大接続数・転送量 | 判定 |
 | --- | --- | --- | --- | --- | --- |
 | `nat-0b516a81ce3a4585b` | `ml-ops-vpc`（持ち主なし） | 2024-02-06 | サブネット 3、ENI 0 | 0・0 | **消す**。VPC には NAT と S3 のゲートウェイエンドポイントしか無い。VPC・EIP ごと消す |
-| `nat-0b99844221c18fd5d` | `Coder/Vpc`（us-west-2） | 2024-05-06 | EFS のマウントターゲット 9・RDS 2 | 0・0 | 5 章で Coder と一緒に消える |
-| `nat-015fe2e1fa8d7964c` | `Coder/Vpc`（ap-northeast-1） | 2025-02-12 | EKS・RDS | 435・8.5 GB | 5 章で Coder と一緒に消える |
+| `nat-0b99844221c18fd5d` | `Coder/Vpc`（us-west-2、Coder の旧版） | 2024-05-06 | EFS のマウントターゲット 9・RDS 2 | 0・0 | 5 章で旧版と一緒に消える |
+| `nat-015fe2e1fa8d7964c` | `Coder/Vpc`（ap-northeast-1、Coder の新版） | 2025-02-12 | EKS・RDS | 435・8.5 GB | 使用中 |
 | `nat-07ca4f856cea2eb54` | Databricks のワーカーの VPC（ワークスペース `workshop`、スタック `databricks-workspace-stack-d0cfc`） | 2025-08-27 | — | 0・0 | **Databricks のワークスペース `workshop` を消す**（VPC と NAT は Databricks が作ったもので、ワークスペースと一緒に片付ける） |
 | `nat-05e298c48aaacd9a0` | Databricks のワーカーの VPC（ワークスペース `secondee`、スタック `databricks-workspace-stack-d3570`） | 2025-10-14 | — | 0・0 | 同上（`secondee`） |
 | `nat-0e70ef49932572130` | Databricks のワーカーの VPC（`workerenv-747465534265`。どのワークスペースかは、CloudFormation からは分からない） | 2026-07-10 | — | 25・0.08 GB（最後は 2026-08-28） | Databricks のアカウントの画面で、どのワークスペースか確かめる |
@@ -257,7 +269,7 @@ NAT Gateway は、1 本で月 $33 ほど（時間料金。転送量は別）か�
 - Databricks のワークスペースのスタック（`databricks-workspace-*`）は、Databricks の画面のクイックスタートが作ったもの。消すときは、C3-2 と同じく、カスタムリソースが保存された Databricks のトークンで API を呼ぶ。ワークスペースは Databricks のアカウントの画面で消すのが筋。
 - Databricks の VPC には、持ち主のいない S3 のゲートウェイエンドポイントが 1 つずつある（ワークスペースと一緒に消える）。
 
-片付けで止まる NAT は 5 本（`ml-ops-vpc`・Coder 2・Databricks 2）、月 $165 前後。
+片付けで止まる NAT は 4 本（`ml-ops-vpc`・Coder の旧版・Databricks 2）、月 $130 前後。
 
 ## 7. 優先度 C
 
@@ -268,7 +280,7 @@ NAT Gateway は、1 本で月 $33 ほど（時間料金。転送量は別）か�
 | DynamoDB（15） | 持ち主のスタックが無いもの | `tuscenes-table`（0 件、2024-03）・`turing-video-status`（0 件、2025-02）・`test-007`（0 件、2024-12）・`alphaspp-scene-table`（101 件、2024-02）・`vad-e2e_test-data`（4 件、2025-01） |
 | Cognito（3） | どれもスタックが無い | `FlyteUserPool`（2024-11。Flyte は消えた）・`DataHub-Auth`（2024-12）・`UserPool6BA7E5F2-qHTym8tzlxyc`（2024-11）。利用者の情報（メールアドレスなど）を持ちうるので、要らなければ消す |
 | AWS Batch（計算環境 28） | 持ち主のいないもの 1 | `auto-labeling-compute-env`。スタック `sfn-auto-labeling`・`Infra-ECS-Cluster-auto-labeling-*`、EIP `auto-labeling-eip-us-west-2a`（A4）と合わせて、auto-labeling の一式（2024-09〜10）として片付ける |
-| EFS | 5 章 | `Coder/CsiFileSystem` |
+| EFS | 5 章 | `Coder/CsiFileSystem`（新版の残り） |
 | VPC エンドポイント（20、すべて S3 のゲートウェイ型） | 持ち主のいないもの 5 | `ml-ops-vpc` と Databricks の VPC 4 つ。VPC と一緒に消える |
 | CloudWatch のアラーム（43） | すべて OK。消えたリソースを見張るもの（INSUFFICIENT_DATA）は無い | 通知先の無いアラームが 15 本（us-west-2） |
 | EventBridge Scheduler（8） | どれも実在のターゲットを指す | — |
@@ -288,6 +300,6 @@ NAT Gateway は、1 本で月 $33 ほど（時間料金。転送量は別）か�
 ## 9. まだ見ていないもの
 
 - VPC は us-west-2 の 30 個のうち、ENI が 0 のものが 13 個（多くは AWS Batch 用の CDK の VPC で、ジョブが無いときは空になる）。持ち主のいない `tuscenes/Vpc`（ENI 0）がある。中身は細かく見ていない。
-- Coder の ALB へのリクエストの出どころ（アクセスログが無効）。
+- Coder の ALB へのリクエストの出どころ（アクセスログが無効）。手当ては別に検討する（伊藤）。
 - KMS のキーの利用状況（CloudTrail が要る。管理イベントはログ用のアカウント 617808723336 に送られていて、このアカウントの ReadOnly では 90 日より前を見られない）。
 - ECR のイメージを毎日 pull している主体。

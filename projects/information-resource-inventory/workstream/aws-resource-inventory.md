@@ -22,7 +22,7 @@ AWS アカウント tuscenes-prod（767397804933）のリソースを総ざら�
 - **グローバルなサービス（IAM・CloudFront・Route 53・ACM など）も深掘りの対象で、掃除の対象**（2026-10-28 伊藤が決定）。
 - **IAM のレポートの生成**: `generate-credential-report`・`generate-service-last-accessed-details` を呼んでよい（2026-10-28 伊藤が許可）。AWS 側にレポートの作成ジョブができるだけで、リソースは変わらない。
 - **掃除の候補のリストは、まず伊藤の判断用**（2026-10-28 決定）。チーム向けの書き方にはしない。
-- **Coder は運用を全面的に止めたので、一式を片付けの対象にする**（2026-10-28 伊藤）。ただし基盤（サーバー・EKS のノード）は今も動いている。
+- **Coder は 2 つの版があり、片付けの対象は旧版（us-west-2 のスタック `Coder`）だけ**。新版（ap-northeast-1 のスタック `Coder` と `CoderWorkspace` 3 本）は今も使われている（2026-10-28 伊藤。最初に「全面停止」と聞いたのを訂正）。新版の利用の実態が AWS から分からないこと（ALB のアクセスログが無効）への手当ては、別に検討する（伊藤）。
 - **費用**: 調査で $100 未満なら進めてよい（2026-10-28 伊藤）。見積もりは $5 未満（Cost Explorer 1 回 $0.01、GetMetricData 1,000 メトリクスあたり $0.01）。
 - **優先度**: セキュリティを重視する（2026-10-28 伊藤が決定）。
   - B（上位）: IAM ユーザー・アクセスキー・ロール、CloudFormation スタック、Lambda、EventBridge のルール、SNS・SQS、Secrets Manager、KMS、セキュリティグループ
@@ -46,9 +46,10 @@ AWS アカウント tuscenes-prod（767397804933）のリソースを総ざら�
 - [x] `tuscenes-cicd` のロールの 2026-03-27 の利用者 → tuscenes-processor の CI（IAM のサービスの最終アクセスと GitHub の実行履歴で特定）
 - [x] tuscenes-stack-cleanup に tuscenes-tmp の通知の件を追記（2026-10-28 伊藤が許可）
 - [x] 段階 1・2（優先度 C）: Route 53・Step Functions・DynamoDB・Cognito・Batch・EFS・VPC エンドポイント・アラーム・Scheduler・SSM など（[collect/stage1-c.sh](aws-resource-inventory/collect/stage1-c.sh)）
-- [x] Coder の一式の掘り下げ（今の状態・費用・洗い出し・削除の注意と順番）→ リストの 5 章
+- [x] Coder の掘り下げ（旧版の状態・費用・洗い出し・削除の注意と順番、新版について気づいたこと）→ リストの 5 章
 - [x] NAT Gateway の掘り下げ（経路・接続数・Databricks のワークスペースとの対応）→ リストの 6 章
-- [ ] 伊藤の判断を受けて、片付けの手順書を書く（Coder の一式から）
+- [ ] 伊藤の判断を受けて、片付けの手順書を書く（Coder の旧版から）
+- [ ] （別に検討）Coder の新版の利用の実態を把握する手当て
 - [ ] KMS のキーの利用（管理イベントはログ用のアカウントにあり、このアカウントからは 90 日より前を見られない）
 - [ ] ECR のイメージを毎日 pull している主体
 
@@ -64,8 +65,8 @@ AWS アカウント tuscenes-prod（767397804933）のリソースを総ざら�
   - `tuscenes-tmp` の `2.1/` への `.json`・`.csv` の作成で、`tuscenes-CleaningJob-Function` が今も起動する（通知はどのスタックも持たない）。tuscenes-stack-cleanup に書き足す必要がある。
   - turingmotors の全リポジトリから引き受けられるロールが 2 本（2024 年から未使用）、AdministratorAccess の未使用ロールが 1 本、Slack のトークンを平文で持つ未使用の Lambda が 1 本。
   - 持ち主のいないまま毎日動く Lambda `vm-alarm-dev-periodic_task`。
-  - 優先度 A: 使われていない NAT Gateway 4〜5 本、割り当ての無い EIP 2 個、元の DB の無い RDS のスナップショット、ECR 22.5 TB（半分は 180 日より前の push）、保持期間が無期限のログ 9 TB。us-west-2 の Coder 一式（旧環境の可能性）は要確認。
-- Coder: 費用は月 $2,700 前後（EKS 3 本が 1.32 の延長サポートで 1 本 $432/月、Aurora、停止中のワークスペースの EBS 7.9 TB、EFS）。**`CoderWorkspace` の共有 EFS は `DeletionPolicy: Delete`（スタックを消すと中身ごと消える）**、`Coder`（us-west-2）の EFS 3 本は `Retain`（28.8 TB が残る）。ap-northeast-1 は k8s が作った ALB とセキュリティグループがスタックの外にあり、VPC の削除を止める。
+  - 優先度 A: 使われていない NAT Gateway 4 本、割り当ての無い EIP 2 個、元の DB の無い RDS のスナップショット、ECR 22.5 TB（半分は 180 日より前の push）、保持期間が無期限のログ 9 TB。Coder の旧版（us-west-2）。
+- Coder: 同じ名前のスタック `Coder` が us-west-2（旧版）と ap-northeast-1（新版）にある。集計の `derived/iam-owner.json` はスタック名だけでリージョンを区別しないので、取り違えに注意する（一度取り違えた）。旧版は月 $400 前後で、EFS 3 本が `Retain`（28.8 TB が残る）、実体の無いリソース 2 つ（EKS `Coder-AutoCluster`・Aurora `coder-slurmdb*`）がスタックに載っている。シークレット `coder/oidc/*` は 2026-10-27 に読まれていて、新版が使うとみられる（消さない）。新版は EKS 3 本が 1.32 の延長サポートで計 $1,296/月。`CoderWorkspace` の共有 EFS は `DeletionPolicy: Delete`。
 - Cost Explorer はスタックのタグ（`aws:cloudformation:stack-name`）で費用を分けられる（コスト配分タグが有効）。`global/ce/cost-by-stack-2026-09.json`。
 - CloudTrail: 管理イベントは Control Tower のトレイルで、ログ用のアカウント（617808723336）のバケットに送られている。このアカウントでは、イベント履歴の直近 90 日しか見られない。90 日より前の利用者は、IAM のサービスの最終アクセス（`generate-service-last-accessed-details`）と、GitHub の実行履歴で絞り込んだ。
 - ECR の最終 pull は、何かが毎日全イメージを pull しているため、使われているかの根拠にならない。push の日付を使う。
