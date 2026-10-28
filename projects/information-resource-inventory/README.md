@@ -10,6 +10,7 @@ AWS から取った一次情報は、その時点の写しなので git では�
 
 - [workstream/aws-resource-inventory.md](./workstream/aws-resource-inventory.md): **AWS リソースの棚卸し**。tuscenes-prod の us-west-2・ap-northeast-1 を対象に、セキュリティを重視して掃除の候補を作る
   - [workstream/aws-resource-inventory/cleanup-candidates.md](./workstream/aws-resource-inventory/cleanup-candidates.md): **掃除の候補のリスト**（伊藤の判断用）。安全上のリスク・競合しかねないもの・使われていないもの（2026-10-28、優先度 B とグローバルなサービスまで）
+  - [workstream/aws-resource-inventory/notion-tuscenes-prod-inventory.md](./workstream/aws-resource-inventory/notion-tuscenes-prod-inventory.md): チーム共有用の記事「tuscenes-prod の AWS リソースの棚卸し（2026-10）」（Notion に上げる。このファイルが原本）
   - [workstream/aws-resource-inventory/stage0-overview.md](./workstream/aws-resource-inventory/stage0-overview.md): 段階 0 の結果。リージョンごとの費用と形跡、種別ごとの件数（2026-10-28）
   - [workstream/aws-resource-inventory/collect/](./workstream/aws-resource-inventory/collect/README.md): 一次情報を取る道具（保存・ログ・伏せ字）と、段階 1 の取得のスクリプト
   - [workstream/aws-resource-inventory/analyze/](./workstream/aws-resource-inventory/analyze/README.md): 一次情報を集計するスクリプト（IAM・スタック・競合の判定）
