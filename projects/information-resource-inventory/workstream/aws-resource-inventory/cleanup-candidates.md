@@ -7,6 +7,14 @@ AWS アカウント tuscenes-prod（767397804933）の棚卸しの結果。伊�
 - 基準: 「使われていない」は 90 日、IAM は 180 日。日付は UTC。
 - 持ち主: CloudFormation のスタックのリソースと突き合わせた。「コードあり」は、マウント済みのリポジトリ（HEAD）にスタック名が引用符つきで現れること。手がかりであって確証ではない。
 
+## 0. cdk-apps での管理の有無（2026-10-28 に HEAD `c081e538` と履歴で確認）
+
+| 区分 | スタック・リソース |
+| --- | --- |
+| cdk-apps で管理（今もコードにある） | Coder の新版（ap-northeast-1 の `Coder`、`CoderWorkspace-*`）・`Datalake`・`VideoFrameExtractorStack`・`VideoFrameExtractorOutputStack`・`SkypilotApiServer`・`ModelConverter`・`QinertiaRunner`・`ClusterToolkit`・`ClosedLoopScenarioTestEks`・`TuringDataExplorerStack`・`GamingDataCollectionStack`・`Databricks`・`AzureDatabricks`・`DensoNx`。GitHub Actions のロールの多く（`apps/github-actions`。OIDC プロバイダーは ARN で参照するだけ） |
+| かつて cdk-apps にあり、今はコードから外れた（AWS に残る） | **Coder の旧版**（us-west-2 の `Coder`。2025-01 に TypeScript へ移したコードが、2025-02 に東京向けに書き換えられた）・`YoutubeCollectorStack`・RlogVisualizer のロール・Flyte の残り |
+| cdk-apps に一度も無い | `LDAP`（[turingmotors/ldap](https://github.com/turingmotors/ldap)）・`tuscenes`・`tuscenes-cicd`・**`github-oidc-provider`**・`github-actions-file-publishing`・`github-actions-image-publishing`・`sfn-auto-labeling`・`DatabricksAutoLoader`・`SharedBackend`・`NewRelic-AWS-Integration`・`databricks-s3-ingest-*`・`databricks-workspace-*`（Databricks の画面が作成）・`vm-alarm`（Chalice）・`alphard_route_gen` や IAM ユーザーなど手で作ったもの |
+
 ## 1. 先に手を打ちたいもの（安全上のリスクが高い）
 
 広い権限や広い信頼条件を持ったまま、長く使われていない主体。
