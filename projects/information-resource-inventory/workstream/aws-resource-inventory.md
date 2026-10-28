@@ -51,7 +51,7 @@ AWS アカウント tuscenes-prod（767397804933）のリソースを総ざら�
 - [ ] 伊藤の判断を受けて、片付けの手順書を書く（Coder の旧版から）
 - [ ] （別に検討）Coder の新版の利用の実態を把握する手当て
 - [x] 深掘りで確定（2026-10-28）: KMS（us-west-2 の 2 本は 90 日イベントなし）、ECR の pull の日時の原因（10-27 の安本さんとみられる走査）、tuscenes-tmp の `2.1/` は無い、セキュリティグループ・起動テンプレートの参照、Coder の旧版は人に使われていない（スキャナーだけ）、LDAP はスキャナーだけで旧リポジトリの残り、vm-alarm は毎回 403 で失敗、alphard_route_gen は認証なしの Function URL を公開、Databricks の NAT とワークスペースの対応（mono-e2e のコード）、外部ロケーションのコードからの参照、持ち主のリポジトリ（GitHub）
-- [ ] Vercel の `digital-signage` の確認（伊藤）
+- [x] Vercel の `digital-signage` の確認: 伊藤の [turingmotors/digital-signage](https://github.com/turingmotors/digital-signage) の持ち物と分かった（2026-10-28）
 
 ## 次セッションへの引き継ぎ
 

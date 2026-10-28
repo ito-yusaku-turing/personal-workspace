@@ -280,7 +280,7 @@ NAT Gateway は、1 本で月 $33 ほど（時間料金。転送量は別）か�
 
 | 種別 | 結果 | 候補 |
 | --- | --- | --- |
-| Route 53（`apps.turing-ai.dev`） | API Gateway を指す A レコード 5 本は、どれもドメインが実在する | Vercel を指す CNAME 3 本のうち、`jadd-studio`・`jadd-studio-signage` は今も使われている（jadd_studio3・jadd-studio-signage・mono-e2e・cdk-apps のコードが参照）。**`digital-signage` はどのコードからも参照されていない**（`jadd-studio-signage` の前身とみられる）。Vercel の側にプロジェクトが無ければ、サブドメインの乗っ取りの余地になる（伊藤が Vercel の管理画面で確かめる） |
+| Route 53（`apps.turing-ai.dev`） | API Gateway を指す A レコード 5 本は、どれもドメインが実在する | Vercel を指す CNAME 3 本のうち、`jadd-studio`・`jadd-studio-signage` は今も使われている（jadd_studio3・jadd-studio-signage・mono-e2e・cdk-apps のコードが参照）。`digital-signage` は伊藤が作った [turingmotors/digital-signage](https://github.com/turingmotors/digital-signage)（非公開・未アーカイブ、最終 push 2026-08-31）の Vercel プロジェクトの持ち物で、持ち主がいる（伊藤が状況を把握している）。乗っ取りの心配は無く、残すか外すかは伊藤が決める |
 | Step Functions（26） | 90 日間実行の無いものが 2 本 | `BulkPipelineStateMachine74302C4C-BcRAHN9RFO0Z`（cdk-apps の DensoNx、2026-05 の [cdk-apps#1159](https://github.com/turingmotors/cdk-apps/pull/1159) で追加。一度も実行されていない）・`ScenarioTestClosedLoop-Run-StateMachine`（cdk-apps の closed-loop-scenario-test。一度も実行されていない）。どちらもコードにあるので、持ち主に聞く |
 | DynamoDB（15） | 持ち主のスタックが無いもの | `tuscenes-table`（0 件、2024-03）・`turing-video-status`（0 件、2025-02）・`test-007`（0 件、2024-12）・`alphaspp-scene-table`（101 件、2024-02）・`vad-e2e_test-data`（4 件、2025-01） |
 | Cognito（3） | どれもスタックが無い | `FlyteUserPool`（2024-11。Flyte は消えた）・`DataHub-Auth`（2024-12）・`UserPool6BA7E5F2-qHTym8tzlxyc`（2024-11）。利用者の情報（メールアドレスなど）を持ちうるので、要らなければ消す |
@@ -306,7 +306,6 @@ NAT Gateway は、1 本で月 $33 ほど（時間料金。転送量は別）か�
 
 - VPC は us-west-2 の 30 個のうち、ENI が 0 のものが 13 個（多くは AWS Batch 用の CDK の VPC で、ジョブが無いときは空になる）。持ち主のいない `tuscenes/Vpc`（ENI 0）がある。中身は細かく見ていない。
 - Coder の新版の ALB へのリクエストの出どころ（アクセスログが無効）。手当ては別に検討する（伊藤）。旧版は 5 章のとおりスキャナーと分かった。
-- Vercel の CNAME `digital-signage.apps.turing-ai.dev` が、Vercel の側でどのプロジェクトに付いているか（伊藤が管理画面で確かめる）。
 - Coder の旧版の EFS 28.8 TB の中身（API ではファイルの一覧が取れない）。
 - S3 の「中身が変わらないバケット」が読まれているか（Storage Lens は無料版でアクセスの指標が無く、S3 のデータイベントも監査用の 2 本以外は記録していない）。
 - 90 日より前の操作の主体（管理イベントはログ用のアカウント 617808723336 にある）。
