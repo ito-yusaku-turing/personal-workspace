@@ -31,5 +31,6 @@
 - [idp-broker/](./idp-broker/README.md): 社内アプリの認証の入口（IdP）の選定
 - [information-resource-inventory/](./information-resource-inventory/README.md): 情報資源の棚卸し
 - [m2m-auth/](./m2m-auth/README.md): 車載装置・CI 用マシンの認証
+- [personal-dev-hardware/](./personal-dev-hardware/README.md): 作業用 PC など物理的な個人開発環境の管理と購買
 - [tern-ios-auth/](./tern-ios-auth/README.md): Tern iOS アプリの認証
 - [what-did-i-do/](./what-did-i-do/README.md): 自分の操作の通知と、人でない主体の見張り

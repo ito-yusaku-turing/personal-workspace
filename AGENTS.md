@@ -25,6 +25,7 @@ personal-workspace/
 │   ├── idp-broker/               # project:idp-broker。社内アプリの認証の入口（IdP）の選定
 │   ├── information-resource-inventory/ # project:information-resource-inventory。情報資源の棚卸し
 │   ├── m2m-auth/                 # project:m2m-auth。車載装置・CI 用マシンの認証
+│   ├── personal-dev-hardware/    # project:personal-dev-hardware。作業用 PC など物理的な個人開発環境
 │   ├── tern-ios-auth/            # project:tern-ios-auth。Tern iOS アプリの認証
 │   └── what-did-i-do/            # project:what-did-i-do。自分の操作の通知と、人でない主体の見張り
 ├── .claude/commands/   # /commit /push /pr /now /list-workstream
