@@ -1,7 +1,7 @@
 # S3 バケットのデータ保護 第二弾（権限設計のアップグレード）
 
 - 開始: 2026-10-20
-- 状態: **ステージ 1 は 12 本すべてに、ステージ 2 の 1 本目（カナリアと記録の仕組み）も入った。PR-A（毎時の集計と報告）の準備中**（2026-10-27）。Slack は bot もチャンネルも新しく作ると決めた。次は Slack の bot の準備（10-28）。カナリアの失効の確認も 10-28 の午後（JST）以降に。PR-B の障害だった tuscenes-raw の古いルールは止めた（TODO 25）
+- 状態: **BreakGlass 権限の提案（第一版）を Notion に上げ、チームの議論待ち**（2026-10-29）。次は議論の結果を原本に取り込む。WORM 化の検討（TODO 26）は未着手。ステージ 2 の監視は保留
 - 所属: project:aws-data-protection（2026-10-26 に `~/docs/workstream/` から移した）
 - 前段（第一弾、完了）:
   - [走行データ消失リスクへの対応](done/raw-data-security.md)（バケットの種別と処遇、裁定の正本）
@@ -34,6 +34,23 @@
 4. 普段は使わず、必要なときに昇格する（承認ではなく、短いセッション＋通知）。
 
 ## TODO（優先度順）
+
+### 優先度の変更（2026-10-29、伊藤）
+
+**次の 2 件を先にやる。ステージ 2 の監視の仕組み（PR-A 以降）は保留にする。**
+
+- **BreakGlass の議論と設計**（TODO 10・11。ステージ 3 から前に出した）。ステージ 1 の暫定の例外（FullAccess・AWSAdministratorAccess）を差し替える先であり、WORM 化の案 A（ガバナンスモードの迂回を BreakGlass だけに許す）の前提にもなる。今の設計案は [permission-upgrade-plan.md](s3-data-protection-2/permission-upgrade-plan.md) の「ステージ 3 の詳細」と「break-glass の権限セットはどれか」。名簿（誰を BreakGlass にするか）はまだ無い。
+- **原本バケットの WORM 化の検討**（TODO 26）。
+
+保留にしたもの（再開するときは「進捗と引き継ぎ」の 10-27 の引き継ぎと 10-29 の記録から）:
+- Slack の bot の準備（0-2・0-3）、PR-A（毎時の集計と報告）、PR-B（12 本への拡大）。
+- 守りの設定の変更は EventBridge で受けると決めた（10-29）。管理イベントが default のバスに流れるかは未確認。
+- カナリアの失効の確認（ReadOnly で見るだけなので、手が空いたときにやってよい）。カナリアは、WORM 化の検証でも使う。
+
+26. **原本バケットの WORM 化（S3 Object Lock）を検討する**（2026-10-29 に優先度を上げた）。整理の資料は [S3 Object Lock（WORM）の整理](../documents/notion-s3-object-lock.md)（2026-10-26、Notion に上げてある）。
+    - 決めること（資料の 8 章）: 対象のバケット、モード（コンプライアンスかガバナンスか）、鍵の種類と期間（固定か、可変の保持期間か）、消す必要が出たときの手順、既存の版にさかのぼって鍵をかけるか、アカウントの閉鎖にも備えるか。
+    - 資料の推奨（9 章）: カナリアとは別の使い捨てのバケットで試す。監査ログのバケットから入れる。原本は案 A（ガバナンス ＋ RCP で迂回を BreakGlass だけに許す）か、案 B（コンプライアンス ＋ 可変の保持期間）。
+    - BreakGlass（TODO 10）と、SCP・RCP（TODO 24）に関わる。
 
 ### すぐやる
 
@@ -342,10 +359,66 @@
     2. カナリアの失効の確認（10-28 の午後 JST 以降。ReadOnly）。ログのバケットの `events/2026/10/28/` 以降で、`expire/20261026T064825Z.txt` の `Object Deleted` を 2 件（削除マーカーの作成と、古い版の完全な削除）探す。`reason` がライフサイクル由来であること。10-29 になっても出なければ、ルールか経路を疑う。
     3. そのあと PR-A に着手する。
   - **決まっていないこと:**
-    - 守りの設定の変更を、CloudTrail のイベント履歴から引く案でよいか。
+    - ~~守りの設定の変更を、CloudTrail のイベント履歴から引く案でよいか。~~ → EventBridge で受ける方式に決めた（2026-10-29）。
     - td1-raw の通知の持ち方（TODO 23。`Managed: true` の丸ごと上書き）を直すか、誰が直すか。
     - [cdk-apps#2267](https://github.com/turingmotors/cdk-apps/pull/2267) のレビューで出た課題の 1〜6。
     - [cdk-apps#1967](https://github.com/turingmotors/cdk-apps/pull/1967)（graph226 さん、denso-nx の DataSync を 10 本に分ける。9-18 からレビュー待ち）を TODO に足すか。マージされると denso-nx-raw に書き込む DataSync が増え、PR-B の主体の一覧に効く。
   - **PR-B に向けたメモ:** tuscenes-raw の古いルールは止めた。datalake の `eventBridgeEnabled: false, // cleaning 処理に必要` のコメントを直すこと。td1-raw・tuscenes-model は、EventBridge がすでに有効。
   - **作業場所:** cdk-apps は触っていない（読んだだけ）。scratchpad に、tuscenes-pipeline・tuscenes-infra の clone と、カナリアのログの写しがある（使い捨て）。
   - **環境のメモ:** `jbcontext` の CLI はこの devbox に無い。MCP の検索ツールは personal-workspace の索引しか無く、cdk-apps は検索できない。
+- 2026-10-29: フェーズ 1 の計画の「伊藤に決めてほしいこと」の 2（守りの設定の変更の拾い方）が決まった（伊藤）。**イベント履歴（LookupEvents）は使わず、EventBridge で受ける。**
+  - 方式: default のバスに流れる CloudTrail の管理イベント（`detail-type: AWS API Call via CloudTrail`）を、操作の名前（`PutBucketPolicy`・`DeleteBucketPolicy`・`PutBucketVersioning`・`PutBucketLifecycleConfiguration`・`DeleteBucketLifecycle`・`DeleteBucket` など）と対象のバケットで絞るルールで受け、今の Firehose に流す。毎時の集計は、削除と同じく `events/` を読む。
+  - LookupEvents を採らなかった理由: 遅れて届いたイベントを取りこぼしても気づけない。絞り込みの条件が 1 つしか使えない。呼び出しの上限（毎秒 2 回）をアカウント内のほかの利用と共有している。元のイベントが 90 日で消え、削除の記録とは別の経路になる。LookupEvents は、日次の突き合わせ（1b）で漏れを拾う予備の手段として使う余地を残す。
+  - ReadOnly で確かめたこと:
+    - 12 本とカナリアは、すべて us-west-2。ルールは us-west-2 の 1 か所で足りる。
+    - 管理イベントを記録するトレイルは、Control Tower の組織のトレイル `aws-controltower-BaselineCloudTrail`（管理アカウント 617808723336 が持つ、マルチリージョン）だけ。tuscenes-prod の中のトレイル（`garuda-index-access`・`original-bucket-audit`）は、どちらもデータイベントだけ。
+    - **確かめられなかったこと:** 管理イベントが tuscenes-prod の default のバスに実際に流れているか。us-west-2 のルール 56 本の中に `AWS API Call via CloudTrail` を受けるものが無く、過去の流れを見る手段が無い。組織のトレイルの状態（`GetTrailStatus`）も、ReadOnly では管理アカウントのものなので見られない。
+    - そのため、PR-A でルールを入れたら、カナリアのポリシーなどを変えて、`events/` に届くかを最初に確かめる。届かなければ、tuscenes-prod に管理イベントだけのトレイルを足す（組織のトレイルが 1 本目にあたるので、2 本目の写しとして 10 万件あたり $2 かかる。書き込み系だけに絞れば少額）。
+- 2026-10-29: BreakGlass の議論を始めた（伊藤の関心は、大きな企業の組織と人のレイヤーの設計と、BreakGlass の人に課される要件）。資料を 2 本書いた。
+  - 一般論（学習用）: [特権アクセスと break-glass の一般論](../documents/privileged-access-and-break-glass.md)。出典はサブエージェントが原典で確かめた（ISO は二次資料だけ、FISC は未確認）。
+  - 当社への当てはめ（叩き台）: [breakglass-design-draft.md](s3-data-protection-2/breakglass-design-draft.md)。6 章の「決めてほしいこと」が伊藤の判断待ち。
+  - 分かったこと:
+    - 今の設計の「BreakGlass」は、昇格用の権限セットで、本来の意味の break-glass（Okta が止まったときの入口）ではない。名前の扱いは論点 A。
+    - 管理アカウントからの `sts:AssumeRoot` は、S3・SQS の全拒否のポリシーの削除と root の認証情報の管理しかできない。緊急用の入口にはならない（ステージ 1 の戻し道にはなる）。
+    - BreakGlass の利用の通知は、保留にした Slack の bot と、管理イベントを EventBridge で受ける仕組みに頼る。使い始める前に、この 2 つだけ先に作る必要がある。
+    - Okta の認証ポリシーは identity の Terraform に無く、今の設定は確かめていない。
+- 2026-10-29: BreakGlass の方針と、チーム向けの資料の構成を決めた（伊藤）。
+  - **方針:** MLOps チームは日常的に AWS を変更するので、ふだんの権限は今の FullAccess のまま変えない。昇格するのは BreakGlass（原本バケットの古い版の削除と、守りを外す操作）のときだけにする。ステージ 3 の「普段用の権限セット」は、大きく縮められる。
+  - そのため、CDK の deploy のロールを経由する抜け道を塞ぐ TODO 24（SCP）の重みが上がった。
+  - 昇格のときの MFA は、OTP ではなくフィッシングに強い要素を推した（まれにしか使わないので手間は増えない）。
+  - **チーム向けの資料:** [breakglass-proposal.md](s3-data-protection-2/breakglass-proposal.md)（下書き）。対象は MLOps チームと CorpIT チーム（Okta など会社全体のサービスの管理者）。構成は、目次 → BreakGlass 権限とは（設計の考え方・守る側で止める・使ってよい場面とルール・BreakGlass 権限でないもの）→ 今の FullAccess → ギャップ → 移行の手順（担当つき）→ 残るリスク → 決めてほしいこと・お願いしたいこと（チームごと）。呼び名は「BreakGlass 権限」にし、権限であることを明記する。設計の考え方は「許可を待たずに使える」と「使ったことが必ず分かる」の 2 つの性質を軸にする（伊藤のレビュー）。
+  - 叩き台（[breakglass-design-draft.md](s3-data-protection-2/breakglass-design-draft.md)）は、内部の検討の記録として残す。
+  - 次: 伊藤が提案の下書きをレビューする。そのあと Notion に上げるか決める。
+- 2026-10-29: FullAccess の扱いを決めた（伊藤）。**案 A: FullAccess から BreakGlass 権限にあたる操作を削る。** 権限セット自体は書き換えず、原本バケットのバケットポリシーの例外から外すことと、SCP で CDK の deploy のロールを CI 以外から名乗れなくすること（TODO 24）で実現する。
+  - 案 B（新しく権限を設計し、FullAccess を廃止する）を採らなかった理由: FullAccess は複数のアカウントで使われ、EKS（closed-loop-scenario-test）・coder・skypilot がロール名 `AWSReservedSSO_FullAccess_…` を直接参照しているため、影響が大きい。名前と中身の食い違いは今もある（インラインの Deny で td1-raw・tuscenes-raw の削除を拒否している）。名前の見直しは、組織全体の権限設計で別に考える。
+  - 提案の資料は、ギャップの表を外し、「FullAccess はどう変わるか」（今の FullAccess・削るもの・変わらないもの）にまとめた。案 B を採らなかった理由は末尾の補足に書いた。
+- 2026-10-29: tuscenes-prod の FullAccess を持つ人を、リポジトリから数えた（cdk-apps の main 9a5bbd22、identity の main db8f027）。**13 名。** 割り当て先は Okta から同期するグループ 2 つ（`ORG:Autonomous Driving Group 3 Regular Employees` 6 名＝Infrastructure Team と担当役員、`ORG:Autonomous Driving Group 4 Regular Employees` 8 名＝MLOps 1・3 Team と担当役員）で、1 名が両方に入っている。プランの「14 名」は、この重複を数えたものとみられる。
+  - 管理画面で直接した割り当ては、リポジトリからは見えない。AWS で確かめるには管理アカウントの権限が要る（`default` プロファイルは tuscenes-prod の ReadOnly だった）。
+  - Fable のレビュー（高 3・中 9・低 9）を提案に反映した。BreakGlass 権限の中身は AdministratorAccess を仮採用し、S3 に絞る対案を補足 2 に書いた（伊藤）。
+  - BreakGlass 権限を使うときの MFA を検討中。今の構成（Okta → IAM Identity Center）では、権限セットを切り替える瞬間に MFA を求められない。案 2（BreakGlass 権限の専用の Okta ユーザー）＋スマートフォンのパスキーを推した。伊藤の判断待ち。
+- 2026-10-29: BreakGlass 権限の MFA の案を、Fable にセカンドオピニオンとして見てもらった。**案 3（BreakGlass 専用の Okta アプリから、tuscenes-prod の IAM ロールに直接 SAML で入る）を推す点で一致。** 推奨順は 案 3 ＞ 案 1'（下記）＞ 案 1 ＞ 案 2 ＞ assume role 案。伊藤の判断待ち。
+  - 事実の確認（公式ドキュメント）: IAM Identity Center は外部 IdP のとき MFA を持たず、権限セットの選択時に MFA を求める手段は無い。フェデレーションのセッションには `aws:MultiFactorAuthPresent` が無い。Okta の認証ポリシーはアプリごとに付き、グループ別に「毎回」「フィッシングに強い要素（パスキー・FastPass）」を設定できる。同期されるパスキーもフィッシングに強い要素として扱われる（Okta の「Block synced passkeys」の今の値は要確認）。
+  - 案 3 に足すこと: 信頼ポリシーで `saml:sub` を 2〜3 名に固定する（Okta の管理者が自分を割り当てるだけでは入れない）。SCP でロールと SAML プロバイダーの変更（`UpdateAssumeRolePolicy`・`UpdateSAMLProvider` など）を deploy の経路以外から拒否する。Okta の公式の AWS アプリは IAM ユーザーのキーが要るので、汎用の SAML アプリにする。CLI は最初は対象外にし、コンソールと CloudShell で使う。
+  - 通知の落とし穴: `AssumeRoleWithSAML` は CloudTrail で `readOnly: true`。EventBridge のルールは `ENABLED_WITH_ALL_CLOUDTRAIL_MANAGEMENT_EVENTS` で作る必要がある。記録されるリージョンは、実際のイベントで確かめる。
+  - 案 1'（途中段階）: IAM Identity Center のアプリの Okta の認証ポリシーに BreakGlass のグループ用のルール（毎回・フィッシングに強い要素）を足し、AWS アクセスポータルのセッションを短くする。新しい AWS のリソースは要らない。
+  - 注意: 想定する脅威の一番上は誤操作で、それを止めるのはバケットポリシー。MFA の議論で例外の差し替え（手順 7）を止めない。
+- 2026-10-29: **BreakGlass 権限の入り方は案 3 に決めた（伊藤）。** BreakGlass 専用の Okta アプリ（汎用の SAML、入るたびにフィッシングに強い要素）から、tuscenes-prod の IAM ロール `BreakGlass` に直接入る。つなぎの案 1' は入れない。
+  - 提案の資料に「4. BreakGlass 権限の入り方と MFA の実装」を足した（Okta の設定、MFA の要素〈パスキーを推す・物理キーを予備〉、AWS の設定〈`saml:aud`・`saml:sub` で 2〜3 名に固定〉、SCP での守り、通知〈`ENABLED_WITH_ALL_CLOUDTRAIL_MANAGEMENT_EVENTS`〉、使うときの流れ〈CLI は対象外、CloudShell〉、確かめること）。移行の手順は 11 段になった。対案の案 1・案 2（と assume role）は補足 3 に書いた。
+  - 叩き台（breakglass-design-draft.md）は、権限セットの案のままで古い。記録として残す。
+- 2026-10-29: BreakGlass 権限の提案を**第一版**として Notion に上げた（https://app.notion.com/p/408a93b3e6f281b38292d14cbbed304c 、ドキュメント置き場、Status は下書き）。手元の原本の冒頭に URL を書いた。直すときは、先に手元の原本を直してから Notion を更新する。
+  - Notion 版では、プラン（permission-upgrade-plan.md）への相対リンクを題名だけにした。プランの Notion の URL は手元に記録が無い。
+- 2026-10-29 のセッションの終わり。引き継ぎ（これより前の引き継ぎより、こちらを正とする）:
+  - **今日の結果:**
+    - 優先度を組み替えた。BreakGlass の議論と設計、原本バケットの WORM 化の検討（TODO 26）を先にやる。ステージ 2 の監視（PR-A 以降）は保留。守りの設定の変更は EventBridge で受けると決めた。
+    - BreakGlass 権限の提案を書き、第一版を Notion に上げた（[breakglass-proposal.md](s3-data-protection-2/breakglass-proposal.md)、https://app.notion.com/p/408a93b3e6f281b38292d14cbbed304c ）。決めたこと: FullAccess は変えずに削る（案 A）、BreakGlass 権限の中身は AdministratorAccess（仮）、入り方は専用の Okta アプリから IAM ロール `BreakGlass` に直接 SAML（案 3）、MFA はスマートフォンのパスキー。
+    - 一般論の学習用の資料を書いた（[privileged-access-and-break-glass.md](../documents/privileged-access-and-break-glass.md)）。
+    - tuscenes-prod の FullAccess は 13 名（リポジトリから数えた）。
+  - **次にやること:**
+    1. 伊藤がチームで提案を議論する。Notion のコメントや編集を読んで、手元の原本に取り込んでから Notion を更新する。
+    2. 議論の結果を待つあいだにできること: WORM 化の検討（TODO 26。[S3 Object Lock の整理](../documents/notion-s3-object-lock.md) が起点）、TODO 24（SCP。提案の 2.2 の ②・③ と重なる）の仕様の調査。
+  - **決まっていないこと:** 提案の移行の手順 1（BreakGlass 権限を持つ人、Slack のチャンネル、通知を確かめる人）と、4.7 の確かめること（CorpIT への確認が主）。プランの Notion の URL（提案の Notion 版で、リンクにできていない）。
+  - **注意:**
+    - 叩き台（breakglass-design-draft.md）は権限セットの案のままで古い。記録として残している。
+    - 共有済みのプランの「FullAccess 14 名」は、重複を数えたもの。正しくは 13 名。プランを上げ直すときに直す。
+    - `default` の AWS プロファイルは tuscenes-prod の ReadOnly で、管理アカウントの権限ではない。
+

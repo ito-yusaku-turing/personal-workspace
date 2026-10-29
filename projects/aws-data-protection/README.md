@@ -8,6 +8,8 @@ tuscenes-prod（767397804933）の S3 原本バケットを、消失や破壊か
 
 - [workstream/s3-data-protection-2.md](./workstream/s3-data-protection-2.md): **S3 バケットのデータ保護 第二弾（権限設計のアップグレード）**。古い版ごと消す・守りを外す操作ができる 37 主体を権限設計から直す。ステージ 1〜4 と通し番号の TODO で進める
   - [workstream/s3-data-protection-2/permission-upgrade-plan.md](./workstream/s3-data-protection-2/permission-upgrade-plan.md): チーム共有用のアップグレードプラン（4 原則と進め方。Notion に上げる）
+  - [workstream/s3-data-protection-2/breakglass-proposal.md](./workstream/s3-data-protection-2/breakglass-proposal.md): **BreakGlass 権限の導入の提案**。MLOps チームと CorpIT チーム向け。BreakGlass 権限の考え方・今の FullAccess・ギャップ・移行の手順・残るリスク・お願いしたいこと（2026-10-29、第一版。Notion: https://app.notion.com/p/408a93b3e6f281b38292d14cbbed304c ）
+  - [workstream/s3-data-protection-2/breakglass-design-draft.md](./workstream/s3-data-protection-2/breakglass-design-draft.md): BreakGlass の設計の叩き台（内部の検討の記録。チーム向けは上の提案）（2026-10-29）
   - [workstream/s3-data-protection-2/stage2-hourly-report.md](./workstream/s3-data-protection-2/stage2-hourly-report.md): ステージ 2「原本バケットの削除の毎時の報告」の設計（cdk-apps `apps/original-bucket-audit`、カナリア）
   - [workstream/s3-data-protection-2/bucket-policy/](./workstream/s3-data-protection-2/bucket-policy/test-runbook.md): ステージ 1 のバケットポリシー一式。生成・比較・シミュレーションのスクリプト、12 本分の生成結果（`rendered/`）、使い捨てバケットで試す手順書（`test-runbook.md`）
   - `workstream/s3-data-protection-2/stage2-verify/cdk/cdk.out/`: ステージ 2 の検証用スタック（`S2vProbeStack`）の合成結果。CDK のソースは移す前から残っていない
@@ -33,4 +35,5 @@ tuscenes-prod（767397804933）の S3 原本バケットを、消失や破壊か
 
 - [documents/raw-data-security.md](./documents/raw-data-security.md): **走行データ消失リスク調査（2026-10）**。安本さんの調査（Notion から取り込み）。workstream の G 番号はこの資料の所見 ID
 - [documents/notion-s3-object-lock.md](./documents/notion-s3-object-lock.md): **S3 Object Lock（WORM）の整理**。チーム共有用（Notion に上げる）。仕組み・モード・今の守りへの重なり方・費用・決めること（2026-10-26）
+- [documents/privileged-access-and-break-glass.md](./documents/privileged-access-and-break-glass.md): **特権アクセスと break-glass の一般論**。学習用。組織と人のレイヤーの設計、緊急用のアクセス、特権を持つ人の要件を、NIST・ISO・Microsoft・AWS・政府統一基準・IPA を根拠にまとめた（2026-10-29）
 - [documents/aws-privilege-hierarchy.md](./documents/aws-privilege-hierarchy.md): **AWS の権限の階層**。複数アカウントの組織での権限の階層の一般論と、うちの組織への当てはめ（管理アカウントへの CI の経路の調査を含む）
