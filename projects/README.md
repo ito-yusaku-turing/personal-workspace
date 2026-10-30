@@ -11,7 +11,7 @@
 
 注力している順に並べる。1件は `- [<project-id>/workstream/<名前>.md](./<同じパス>): 一言メモ` の1行にする。状態そのものは各 workstream の `- 状態:` 行に書き、ここには写さない。
 
-- [aws-data-protection/workstream/s3-data-protection-2.md](./aws-data-protection/workstream/s3-data-protection-2.md): 要件の問い a〜h に答えた。次は requirements.md の 5 章の骨格に選択肢を当てはめる
+- [aws-data-protection/workstream/s3-data-protection-2.md](./aws-data-protection/workstream/s3-data-protection-2.md): 要件を固め、BreakGlass は撤回の方向・WORM は本命の候補。掃除の手順書（cleanup-runbook.md）を伊藤が実施する段。次は全体設計（解除の経路の設定・2 人目の確認）
 - [tern-ios-auth/workstream/tern-backend-api.md](./tern-ios-auth/workstream/tern-backend-api.md):
 - [m2m-auth/workstream/m2m-auth.md](./m2m-auth/workstream/m2m-auth.md):
 - [information-resource-inventory/workstream/aws-resource-inventory.md](./information-resource-inventory/workstream/aws-resource-inventory.md): tuscenes-prod の総ざらい

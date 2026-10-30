@@ -36,6 +36,8 @@
 ## TODO（優先度順）
 
 > **2026-10-30 の注:** 下の TODO と「優先度の変更（2026-10-29）」は、個別の手段を前提にした並び。議論を要件の明確化まで戻したので、今の出発点は [requirements.md](s3-data-protection-2/requirements.md)。TODO は、要件が固まってから並べ直す。
+>
+> **2026-10-30 の追記:** 要件は固まった（requirements.md の 3 章）。TODO 10・11（BreakGlass）は撤回の方向。TODO 13・14（IAM ユーザー・使われていない強いロール）は [cleanup-runbook.md](s3-data-protection-2/cleanup-runbook.md) で片付ける。TODO 26（WORM）は本命の候補。並べ直しは、全体設計を決めるときに行う。
 
 ### 優先度の変更（2026-10-29、伊藤）
 
@@ -516,3 +518,24 @@
   - 棚卸しの案件（information-resource-inventory）の掃除の候補と重なるもの（S3・S5〜S7・C3-6）は、この手順書で片付ける。棚卸しのリストの冒頭にその旨を書いた。
   - 消す前の定義を `cleanup/backup/` に控えた。削除のスクリプト（`cleanup/`）は既定で空実行。ReadOnly で空実行して確かめた。
   - 削除しないもの: Databricks の Unity Catalog のロール（使用中。Databricks の担当と直し方を相談）、S3BatchDeleteLidar（mono-e2e の lidar-cleaner が参照）、us-east-1・us-east-2 の bootstrap（Coder の旧版のスタックが載っている）など。
+- 2026-10-30 のセッションの終わり。引き継ぎ（これより前の引き継ぎより、こちらを正とする）:
+  - **今日の結果:**
+    - 現状を整理した（[current-state.md](s3-data-protection-2/current-state.md)）。誰が何をできるか（全 740 主体を判定。例外に届く経路は 22 主体）、今の構成の弱点 W1〜W16、SCP は S3 と deploy のロールに効いていないこと。
+    - 12 本の書き込みの記録を始めた（[cdk-apps#2387](https://github.com/turingmotors/cdk-apps/pull/2387)、07:18 UTC に deploy。マージと deploy は pw-1030-pr）。
+    - 要件の問い a〜h に答えた（[requirements.md](s3-data-protection-2/requirements.md) の要件 6〜14）。脅威は誤操作＋乗っ取り、取り返しのつかない操作は即時に通知、意図して消すときは判断の記録＋2 人目の確認。
+    - BreakGlass は撤回の方向、WORM は「外せない層」の本命の候補（仮決定）にした（[option-reassessment.md](s3-data-protection-2/option-reassessment.md)）。ホールドの解除は、GitHub Actions の専用の workflow から Batch Operations で行う案（7 章）。
+    - 掃除の手順書を作った（[cleanup-runbook.md](s3-data-protection-2/cleanup-runbook.md)、番号 1〜13）。
+  - **次にやること:**
+    1. 伊藤が掃除の 1〜11 を実施し、番号で知らせる。エージェントは実施の前（直前にやり直す）と後を ReadOnly で確かめ、手順書の「状態」の列を埋める。12（sfn-auto-labeling）と 13（SageMaker の `e2e`）は扱いを決めてから。
+    2. 全体設計: 解除の経路に要る設定（option-reassessment.md の 7.2: バケットポリシーで `PutObjectRetention` 全体を Deny、SCP で解除用のロールの受け渡しを絞る、ルールセットの「最後の push の承認」）と、2 人目の確認の強め方を決める。そのあと requirements.md の 5 章の骨格に選択肢を当てはめる。
+    3. 即時の通知の仕組み（今は誰にも通知されない。W8〜W10）。毎時の報告の設計（stage2-hourly-report.md）は、要件 10 に合わせて見直す。
+    4. Databricks の Unity Catalog のロール（deploy のロールを引き受けられる）の直し方を、Databricks の担当と相談する。
+    5. 最後に Notion を直す（BreakGlass の提案・プランの原則 4）。
+  - **待っていること・人に頼むこと:**
+    - 管理アカウントの権限が要る調べ: 管理画面で直接した SSO の割り当て、Control Tower のガードレールの中身、SCP が実際に付いているか（CorpIT か、管理アカウントに入れる人）。
+    - Batch Operations の確かめは、別のセッション（pw-1030-pr）が進めている。このセッションでは触らない。
+  - **注意:**
+    - 掃除の控え（`cleanup/backup/`）は 2026-10-30 の `get-account-authorization-details` から作った。実施が遅れたら、直前の状態と食い違っていないか確かめる。
+    - 控えの IAM ユーザーの JSON に、アクセスキーの ID が入ったまま一度 push した（cf4b5d2）。f0433d3 で伏せ字にした。キーは無効で、ユーザーごと消す予定。
+    - 全主体の判定の一次情報（`iam.json`）は scratchpad にだけ置いた（git には入れていない）。取り直すときは `aws --profile readonly iam get-account-authorization-details > iam.json` → `iam-scan/escalation.py iam.json out.json`。
+    - cdk-apps のローカルのブランチ `original-bucket-audit-trail-12` は、マージ済みで残っている。

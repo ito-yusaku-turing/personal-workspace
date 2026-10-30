@@ -1,6 +1,6 @@
 # ステージ 2: 原本バケットの削除の毎時の報告（設計）
 
-- 状態: 1 本目の PR（[cdk-apps#2267](https://github.com/turingmotors/cdk-apps/pull/2267)、カナリアと記録の仕組み）は 2026-10-26 にマージし、deploy した。カナリアでの確認の 4 点のうち 3 点が済み、失効の確認だけが残っている（下の「カナリアでの確認の結果」）。次は毎時の集計と報告の PR
+- 状態: 1 本目の PR（[cdk-apps#2267](https://github.com/turingmotors/cdk-apps/pull/2267)、カナリアと記録の仕組み）は 2026-10-26 にマージし、deploy した。カナリアでの確認の 4 点のうち 3 点が済み、失効の確認だけが残っている（下の「カナリアでの確認の結果」）。**2026-10-30 の追記:** 12 本の書き込みの記録は先に始めた（[cdk-apps#2387](https://github.com/turingmotors/cdk-apps/pull/2387)。トレイルだけ。S3 のイベントと Inventory はカナリアのまま）。要件が「取り返しのつかない操作は即時に通知」になったので（[requirements.md](requirements.md) の要件 10）、毎時の報告の設計は、全体設計の中で見直す
 - 親: [S3 バケットのデータ保護 第二弾](../s3-data-protection-2.md) のステージ 2
 - 置き場所: cdk-apps の新しいアプリ `apps/original-bucket-audit`（tuscenes-prod、us-west-2）
 - 構想での位置づけ: 「今日なに消したかわかる君」（原本バケットの戻せない削除などを、規則で必ず知らせる部品）。集める部分は、構想全体の「事実の層」の最初でもある。構想は [project:what-did-i-do の構想](../../../what-did-i-do/documents/notion-what-did-i-do-concept.md)（2026-10-26）。段階 3（毎時の報告）は、構想に合わせて設計し直す
