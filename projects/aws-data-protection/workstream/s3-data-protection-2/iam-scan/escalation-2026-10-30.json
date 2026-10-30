@@ -1,0 +1,445 @@
+{
+ "power": [
+  {
+   "arn": "arn:aws:iam::767397804933:role/AWSControlTowerExecution",
+   "hits": {
+    "deploy のロールの引き受け": "allow",
+    "cfn-exec の名前のロールの作成": "allow",
+    "cfn-exec・deploy の信頼の変更": "allow",
+    "cfn-exec を渡す": "allow",
+    "ロールにポリシーを付ける": "allow",
+    "ロールにインラインを書く": "allow",
+    "ロールの信頼の変更": "allow",
+    "ユーザーにポリシーを付ける": "allow",
+    "ユーザーにインラインを書く": "allow",
+    "アクセスキーの作成": "allow",
+    "ログインの作成・変更": "allow",
+    "ポリシーの版の作成": "allow"
+   },
+   "last_used": "2025-09-12T04:17:58+00:00",
+   "trust": [
+    "AWS:arn:aws:iam::210332786925:root"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/GithubActions-CdkDeployRole9C8BD064-IT9EkYWJ2rUK",
+   "hits": {
+    "deploy のロールの引き受け": "allow"
+   },
+   "last_used": "2026-10-30T06:07:57+00:00",
+   "trust": [
+    "Federated:arn:aws:iam::767397804933:oidc-provider/token.actions.githubusercontent.com"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/aws-controltower-AdministratorExecutionRole",
+   "hits": {
+    "deploy のロールの引き受け": "allow",
+    "cfn-exec の名前のロールの作成": "allow",
+    "cfn-exec・deploy の信頼の変更": "allow",
+    "cfn-exec を渡す": "allow",
+    "ロールにポリシーを付ける": "allow",
+    "ロールにインラインを書く": "allow",
+    "ロールの信頼の変更": "allow",
+    "ユーザーにポリシーを付ける": "allow",
+    "ユーザーにインラインを書く": "allow",
+    "アクセスキーの作成": "allow",
+    "ログインの作成・変更": "allow",
+    "ポリシーの版の作成": "allow"
+   },
+   "last_used": null,
+   "trust": [
+    "AWS:arn:aws:iam::494249021538:role/aws-controltower-AuditAdministratorRole"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/aws-reserved/sso.amazonaws.com/us-west-2/AWSReservedSSO_AWSAdministratorAccess_619c2f8a913e315a",
+   "hits": {
+    "deploy のロールの引き受け": "allow",
+    "cfn-exec の名前のロールの作成": "allow",
+    "cfn-exec・deploy の信頼の変更": "allow",
+    "cfn-exec を渡す": "allow",
+    "ロールにポリシーを付ける": "allow",
+    "ロールにインラインを書く": "allow",
+    "ロールの信頼の変更": "allow",
+    "ユーザーにポリシーを付ける": "allow",
+    "ユーザーにインラインを書く": "allow",
+    "アクセスキーの作成": "allow",
+    "ログインの作成・変更": "allow",
+    "ポリシーの版の作成": "allow"
+   },
+   "last_used": "2026-10-30T05:58:59+00:00",
+   "trust": [
+    "Federated:arn:aws:iam::767397804933:saml-provider/AWSSSO_8f412d6696ffa96f_DO_NOT_DELETE"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/aws-reserved/sso.amazonaws.com/us-west-2/AWSReservedSSO_FullAccess_ed608317ee39a850",
+   "hits": {
+    "deploy のロールの引き受け": "allow",
+    "cfn-exec の名前のロールの作成": "allow",
+    "cfn-exec・deploy の信頼の変更": "allow",
+    "cfn-exec を渡す": "allow",
+    "ロールにポリシーを付ける": "allow",
+    "ロールにインラインを書く": "allow",
+    "ロールの信頼の変更": "allow",
+    "ユーザーにポリシーを付ける": "allow",
+    "ユーザーにインラインを書く": "allow",
+    "アクセスキーの作成": "allow",
+    "ログインの作成・変更": "allow",
+    "ポリシーの版の作成": "allow"
+   },
+   "last_used": "2026-10-30T07:12:35+00:00",
+   "trust": [
+    "Federated:arn:aws:iam::767397804933:saml-provider/AWSSSO_8f412d6696ffa96f_DO_NOT_DELETE"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/cdk-hnb659fds-cfn-exec-role-767397804933-ap-northeast-1",
+   "hits": {
+    "deploy のロールの引き受け": "allow",
+    "cfn-exec の名前のロールの作成": "allow",
+    "cfn-exec・deploy の信頼の変更": "allow",
+    "cfn-exec を渡す": "allow",
+    "ロールにポリシーを付ける": "allow",
+    "ロールにインラインを書く": "allow",
+    "ロールの信頼の変更": "allow",
+    "ユーザーにポリシーを付ける": "allow",
+    "ユーザーにインラインを書く": "allow",
+    "アクセスキーの作成": "allow",
+    "ログインの作成・変更": "allow",
+    "ポリシーの版の作成": "allow"
+   },
+   "last_used": "2026-10-21T09:03:47+00:00",
+   "trust": [
+    "Service:cloudformation.amazonaws.com"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/cdk-hnb659fds-cfn-exec-role-767397804933-us-east-1",
+   "hits": {
+    "deploy のロールの引き受け": "allow",
+    "cfn-exec の名前のロールの作成": "allow",
+    "cfn-exec・deploy の信頼の変更": "allow",
+    "cfn-exec を渡す": "allow",
+    "ロールにポリシーを付ける": "allow",
+    "ロールにインラインを書く": "allow",
+    "ロールの信頼の変更": "allow",
+    "ユーザーにポリシーを付ける": "allow",
+    "ユーザーにインラインを書く": "allow",
+    "アクセスキーの作成": "allow",
+    "ログインの作成・変更": "allow",
+    "ポリシーの版の作成": "allow"
+   },
+   "last_used": "2026-01-27T08:26:25+00:00",
+   "trust": [
+    "Service:cloudformation.amazonaws.com"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/cdk-hnb659fds-cfn-exec-role-767397804933-us-east-2",
+   "hits": {
+    "deploy のロールの引き受け": "allow",
+    "cfn-exec の名前のロールの作成": "allow",
+    "cfn-exec・deploy の信頼の変更": "allow",
+    "cfn-exec を渡す": "allow",
+    "ロールにポリシーを付ける": "allow",
+    "ロールにインラインを書く": "allow",
+    "ロールの信頼の変更": "allow",
+    "ユーザーにポリシーを付ける": "allow",
+    "ユーザーにインラインを書く": "allow",
+    "アクセスキーの作成": "allow",
+    "ログインの作成・変更": "allow",
+    "ポリシーの版の作成": "allow"
+   },
+   "last_used": "2025-07-15T04:41:42+00:00",
+   "trust": [
+    "Service:cloudformation.amazonaws.com"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/cdk-hnb659fds-cfn-exec-role-767397804933-us-west-2",
+   "hits": {
+    "deploy のロールの引き受け": "allow",
+    "cfn-exec の名前のロールの作成": "allow",
+    "cfn-exec・deploy の信頼の変更": "allow",
+    "cfn-exec を渡す": "allow",
+    "ロールにポリシーを付ける": "allow",
+    "ロールにインラインを書く": "allow",
+    "ロールの信頼の変更": "allow",
+    "ユーザーにポリシーを付ける": "allow",
+    "ユーザーにインラインを書く": "allow",
+    "アクセスキーの作成": "allow",
+    "ログインの作成・変更": "allow",
+    "ポリシーの版の作成": "allow"
+   },
+   "last_used": "2026-10-30T07:18:00+00:00",
+   "trust": [
+    "Service:cloudformation.amazonaws.com"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/cdk-hnb659fds-deploy-role-767397804933-ap-northeast-1",
+   "hits": {
+    "cfn-exec を渡す": "allow"
+   },
+   "last_used": "2026-10-21T09:03:49+00:00",
+   "trust": [
+    "AWS:arn:aws:iam::767397804933:root",
+    "AWS:arn:aws:iam::767397804933:root"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/cdk-hnb659fds-deploy-role-767397804933-us-east-1",
+   "hits": {
+    "cfn-exec を渡す": "allow"
+   },
+   "last_used": "2026-01-27T08:26:25+00:00",
+   "trust": [
+    "AWS:arn:aws:iam::767397804933:root",
+    "AWS:arn:aws:iam::767397804933:root"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/cdk-hnb659fds-deploy-role-767397804933-us-east-2",
+   "hits": {
+    "cfn-exec を渡す": "allow"
+   },
+   "last_used": "2025-07-15T04:41:45+00:00",
+   "trust": [
+    "AWS:arn:aws:iam::767397804933:root",
+    "AWS:arn:aws:iam::767397804933:root"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/cdk-hnb659fds-deploy-role-767397804933-us-west-2",
+   "hits": {
+    "cfn-exec を渡す": "allow"
+   },
+   "last_used": "2026-10-30T07:18:05+00:00",
+   "trust": [
+    "AWS:arn:aws:iam::767397804933:root",
+    "AWS:arn:aws:iam::767397804933:root"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/service-role/CodeCatalystWorkflowDevelopmentRole-tuscenes-prod",
+   "hits": {
+    "deploy のロールの引き受け": "allow",
+    "cfn-exec の名前のロールの作成": "allow",
+    "cfn-exec・deploy の信頼の変更": "allow",
+    "cfn-exec を渡す": "allow",
+    "ロールにポリシーを付ける": "allow",
+    "ロールにインラインを書く": "allow",
+    "ロールの信頼の変更": "allow",
+    "ユーザーにポリシーを付ける": "allow",
+    "ユーザーにインラインを書く": "allow",
+    "アクセスキーの作成": "allow",
+    "ログインの作成・変更": "allow",
+    "ポリシーの版の作成": "allow"
+   },
+   "last_used": "2024-03-14T02:31:28+00:00",
+   "trust": [
+    "Service:codecatalyst-runner.amazonaws.com",
+    "Service:codecatalyst.amazonaws.com"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/stacksets-exec-ff6bf58b4ea65bd878839a71faebc74a",
+   "hits": {
+    "deploy のロールの引き受け": "allow",
+    "cfn-exec の名前のロールの作成": "allow",
+    "cfn-exec・deploy の信頼の変更": "allow",
+    "cfn-exec を渡す": "allow",
+    "ロールにポリシーを付ける": "allow",
+    "ロールにインラインを書く": "allow",
+    "ロールの信頼の変更": "allow",
+    "ユーザーにポリシーを付ける": "allow",
+    "ユーザーにインラインを書く": "allow",
+    "アクセスキーの作成": "allow",
+    "ログインの作成・変更": "allow",
+    "ポリシーの版の作成": "allow"
+   },
+   "last_used": "2026-10-29T00:22:20+00:00",
+   "trust": [
+    "AWS:arn:aws:iam::210332786925:role/aws-service-role/stacksets.cloudformation.amazonaws.com/AWSServiceRoleForCloudFormationStackSetsOrgAdmin"
+   ]
+  }
+ ],
+ "via": [],
+ "conditional_only": [
+  {
+   "arn": "arn:aws:iam::767397804933:role/AWS-QuickSetup-SSM-ManageInstanceProfile-o693l",
+   "hits": {
+    "ロールにポリシーを付ける": "conditional"
+   },
+   "last_used": "2026-10-30T07:27:39+00:00",
+   "trust": [
+    "Service:ssm.amazonaws.com"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/AWS-QuickSetup-SSM-ManageInstanceProfile-x96t4",
+   "hits": {
+    "ロールにポリシーを付ける": "conditional"
+   },
+   "last_used": "2026-10-23T01:52:45+00:00",
+   "trust": [
+    "Service:ssm.amazonaws.com"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/Coder-ClusterProvisionerRole5A5401D6-SfPcwuJH2Dfx",
+   "hits": {
+    "cfn-exec の名前のロールの作成": "conditional",
+    "cfn-exec・deploy の信頼の変更": "conditional",
+    "cfn-exec を渡す": "conditional(スタック作成なし)",
+    "ロールにポリシーを付ける": "conditional",
+    "ロールにインラインを書く": "conditional",
+    "ロールの信頼の変更": "conditional",
+    "ポリシーの版の作成": "conditional"
+   },
+   "last_used": "2026-10-29T11:45:29+00:00",
+   "trust": [
+    "Service:pods.eks.amazonaws.com"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/Coder-ServiceTaskDefTaskRole0CFE2F57-pI7xAbczeAm7",
+   "hits": {
+    "cfn-exec の名前のロールの作成": "conditional",
+    "cfn-exec・deploy の信頼の変更": "conditional",
+    "cfn-exec を渡す": "conditional(スタック作成なし)",
+    "ロールにポリシーを付ける": "conditional",
+    "ロールにインラインを書く": "conditional",
+    "ロールの信頼の変更": "conditional",
+    "ポリシーの版の作成": "conditional"
+   },
+   "last_used": "2026-10-30T07:09:16+00:00",
+   "trust": [
+    "Service:ecs-tasks.amazonaws.com"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/Coder-WorkspaceRole736431E1-QNn6za9CHBGQ",
+   "hits": {
+    "cfn-exec を渡す": "conditional"
+   },
+   "last_used": "2026-10-29T11:38:43+00:00",
+   "trust": [
+    "Service:ec2.amazonaws.com"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/CoderWorkspace-ClusterWorkspaceRoleCB6131B7-soWYRnYcQ7Vo",
+   "hits": {
+    "cfn-exec を渡す": "conditional"
+   },
+   "last_used": null,
+   "trust": [
+    "Service:pods.eks.amazonaws.com"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/CoderWorkspace-ClusterWorkspaceRoleCB6131B7-vGvHsN3RkavH",
+   "hits": {
+    "cfn-exec を渡す": "conditional"
+   },
+   "last_used": "2025-02-26T09:01:36+00:00",
+   "trust": [
+    "Service:pods.eks.amazonaws.com"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/CoderWorkspaceRole",
+   "hits": {
+    "cfn-exec を渡す": "conditional"
+   },
+   "last_used": "2025-10-08T12:09:05+00:00",
+   "trust": [
+    "Service:ec2.amazonaws.com"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/aws-reserved/sso.amazonaws.com/us-west-2/AWSReservedSSO_JADDViewer_0467b1be8aab6820",
+   "hits": {
+    "cfn-exec を渡す": "conditional"
+   },
+   "last_used": "2026-04-02T06:37:12+00:00",
+   "trust": [
+    "Federated:arn:aws:iam::767397804933:saml-provider/AWSSSO_8f412d6696ffa96f_DO_NOT_DELETE"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/databricks-uc-3913775780464502-db_s3_external_cluster-st152026da",
+   "hits": {
+    "deploy のロールの引き受け": "conditional"
+   },
+   "last_used": "2026-10-30T07:22:30+00:00",
+   "trust": [
+    "AWS:arn:aws:iam::414351767826:role/unity-catalog-prod-UCMasterRole-14S5ZJVKOTYTL",
+    "AWS:arn:aws:iam::767397804933:role/databricks-uc-3913775780464502-db_s3_external_cluster-st152026da"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/service-role/AmplifySSRLoggingRole-52d50884-b105-44ed-8b52-2d86946e2877",
+   "hits": {
+    "deploy のロールの引き受け": "conditional"
+   },
+   "last_used": null,
+   "trust": [
+    "Service:amplify.amazonaws.com"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/service-role/AmplifySSRLoggingRole-5b46255c-3458-4ab2-878c-2b9cdbae3713",
+   "hits": {
+    "deploy のロールの引き受け": "conditional"
+   },
+   "last_used": null,
+   "trust": [
+    "Service:amplify.amazonaws.com"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/service-role/AmplifySSRLoggingRole-683b81da-c0cf-4630-be52-15a33095a719",
+   "hits": {
+    "deploy のロールの引き受け": "conditional"
+   },
+   "last_used": "2024-12-05T14:41:14+00:00",
+   "trust": [
+    "Service:amplify.amazonaws.com"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/service-role/AmplifySSRLoggingRole-b7a383c1-2940-4ee2-a48a-33516325fa5c",
+   "hits": {
+    "deploy のロールの引き受け": "conditional"
+   },
+   "last_used": null,
+   "trust": [
+    "Service:amplify.amazonaws.com"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/service-role/AmplifySSRLoggingRole-ec4a12d0-1421-49dc-8c4c-033ebee9f385",
+   "hits": {
+    "deploy のロールの引き受け": "conditional"
+   },
+   "last_used": "2024-12-12T02:44:28+00:00",
+   "trust": [
+    "Service:amplify.amazonaws.com"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/service-role/AmplifySSRLoggingRole-fbaa926b-d34d-4cb8-b6ca-43a4dd8c768c",
+   "hits": {
+    "deploy のロールの引き受け": "conditional"
+   },
+   "last_used": null,
+   "trust": [
+    "Service:amplify.amazonaws.com"
+   ]
+  }
+ ]
+}

@@ -505,3 +505,9 @@
   - マルチパートの `UploadPart` も 1 件ずつ記録される。費用の見積もり（月 400 万件）は PUT のリクエストの数から出したもので、`UploadPart` を含むとみているが、1 か月後に実際の件数で確かめる。
   - pw-1030-pr の指摘で、worm-design.md の消し方（「BreakGlass が Batch Operations で版を指定して消す」）を直した。Batch Operations には削除の操作が無いので、ライフサイクル（本命）か `LambdaInvoke` にした。
   - cdk-apps の作業用の worktree（scratchpad の `cdk-trail`）は、登録がすでに外れていた（中身のディレクトリは scratchpad に残っている）。cdk-apps のローカルのブランチ `original-bucket-audit-trail-12` は残してある（マージ済み）。
+- 2026-10-30: **調べ残しを片付けた**（伊藤の依頼。current-state.md の 3.2・4・5 章）。
+  - **全主体（ロール 703・ユーザー 37）を手元で判定した。** `get-account-authorization-details` を 1 回取り、`iam-scan/escalation.py` で、例外を名乗れる操作と権限の昇格、ロールの乗り継ぎを判定した。条件付きのものはシミュレーターで確かめ直した。
+  - **新しく 7 本見つかった。** Databricks の Unity Catalog のロール `databricks-uc-3913775780464502-db_s3_external_cluster-st152026da`（2026-07-29 に Databricks 側が作成、今日も使用。自分を引き受けるための `sts:AssumeRole` が `Resource: *` なので deploy のロールも引き受けられる）と、Amplify のログ用のロール 6 本（AWS 管理のポリシー `AmplifyBackendDeployFullAccess` が deploy のロールの引き受けを許す。Amplify のアプリは残っておらず、残りもの）。ほかは、10-20 からの 119 本のシミュレーターの結果と同じ 15 主体。
+  - **SCP は、S3 と deploy のロールに何も効かない**（tuscenes-prod に付くのは `iam-guardrails` の 1 本だけ）。3.2 の経路は、どれも SCP では止まらない。
+  - 残った調べ残し: 管理画面で直接した SSO の割り当てと、Control Tower のガードレールの中身・SCP が実際に付いているか。どちらも管理アカウントの権限が要る。
+  - pw-1030-pr からも、#2387 の deploy の後の確認 2 が済んだと連絡があった（td1-raw の記録が 07:20:52 UTC から。見張りを止めた時点で `PutObject` 1,752 件など）。

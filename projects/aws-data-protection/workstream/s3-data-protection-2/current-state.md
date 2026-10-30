@@ -56,10 +56,14 @@ deploy のロール（`cdk-hnb659fds-deploy-role-*`）は、アカウント内�
 | `aws-controltower-AdministratorExecutionRole` | 監査アカウント（494249021538）のロール | 同上 | — |
 | `stacksets-exec-ff6b…` | 管理アカウントの StackSets | 同上 | 2026-02-02 |
 | `CodeCatalystWorkflowDevelopmentRole-tuscenes-prod` | CodeCatalyst の space | 同上 | 2024-03-14 |
+| `databricks-uc-3913775780464502-db_s3_external_cluster-st152026da` | Databricks の Unity Catalog（アカウント 414351767826 の `UCMasterRole`、ExternalId つき）。2026-07-29 に Databricks 側の仕組みが作った（タグ `DatabricksExternalBucket=cluster-storage-usage-reports-…`）。IaC には無い | deploy のロールの引き受け。インラインのポリシーが、自分を引き受けるための `sts:AssumeRole` を `Resource: *` で許している（条件は「主体が自分か UCMasterRole」なので、常に満たされる）。Databricks の権限の境界を付けても、シミュレーターは allowed | 2026-10-30 |
+| `AmplifySSRLoggingRole-*`（6 本） | Amplify のサービスだけ。Amplify のアプリは 4 リージョンとも残っていない | deploy のロールの引き受け。AWS 管理のポリシー `AmplifyBackendDeployFullAccess` が、同じアカウントの `cdk-*-deploy-role-*` の引き受けを許している | 2024-12 以前か未使用 |
 | tuscenes-prod の root | パスワード有効・MFA なし | バケットポリシーを消せる（AWS の仕様） | CorpIT に削除を依頼中（[aws-root-credentials.md](../aws-root-credentials.md)） |
 | 管理アカウントの管理者 | root の一元管理 | `S3UnlockBucketPolicy` でポリシーを消せる。Control Tower のロールにも入れる | — |
 
 FullAccess・AWSAdministratorAccess も deploy のロールを引き受けられるが、もともと 3.1 なので数えていない。
+
+Databricks のロールと Amplify のロールは、2026-10-30 に全 740 主体を判定して見つかった（4 章）。
 
 `tuscenes-cicd-GithubActionsRole…`（tuscenes-* と alphaspp-* のリポジトリ、最終利用 2026-03-27）は、cfn-exec-role を渡す権限（`iam:PassRole`）だけを持つ。CloudFormation のスタックを作る権限は無いので、これだけでは守りを外せないとみている（確かめていない）。
 
@@ -101,13 +105,21 @@ FullAccess・AWSAdministratorAccess も deploy のロールを引き受けられ
 - IAM ユーザーは 37（2026-10-20 は 38。jadd_studio_amplify の削除）。
 - deploy のロール 4 本の信頼は `767397804933:root`。cfn-exec-role 4 本の信頼は CloudFormation だけ。
 - `GithubActions-CdkDeployRole…` の信頼は `repo:turingmotors/cdk-apps:ref:refs/heads/main` だけ。
-- ポリシーシミュレーターで、10-20 の一覧の 66 主体と、名前に GitHub・Deploy・Admin・SSO を含むロール（計 119）に、deploy のロールの引き受け、cfn-exec-role の `PassRole`・信頼の変更・ポリシーの付与、ロールの作成、スタックの作成・更新を当てた。結果が 3.2 の表。
+- ポリシーシミュレーターで、10-20 の一覧の 66 主体と、名前に GitHub・Deploy・Admin・SSO を含むロール（計 119）に、deploy のロールの引き受け、cfn-exec-role の `PassRole`・信頼の変更・ポリシーの付与、ロールの作成、スタックの作成・更新を当てた。
+- **全主体（ロール 703・ユーザー 37）を手元で判定した**（2026-10-30。`get-account-authorization-details` を 1 回取り、[iam-scan/escalation.py](iam-scan/escalation.py) で判定。結果は [iam-scan/escalation-2026-10-30.json](iam-scan/escalation-2026-10-30.json)）。判定した操作は、deploy のロールの引き受け、cfn-exec という名前のロールの作成、cfn-exec・deploy のロールの信頼の変更、cfn-exec を渡してスタックを作ること、ロール・ユーザーへのポリシーの付与、アクセスキー・ログインの作成、ポリシーの版の作成。引き受けられるロールを辿る乗り継ぎも見た。
+  - 条件の無い許可で当たったのは 15 主体で、上のシミュレーターの結果と同じ。ユーザーは 0。乗り継ぎで新しく届く主体は無かった。
+  - 条件付きの許可で当たった 16 主体は、条件を読み、シミュレーターでも確かめ直した。**Databricks のロール 1 本と Amplify のログ用のロール 6 本は allowed（3.2 に足した）。** Coder のロール（タグ `coder:provisioned` の付いたロールだけを触れる。該当するロールは無い）、JADDViewer と Coder のワークスペース（SageMaker にだけロールを渡せる）、SSM の Quick Setup（決まったポリシーだけを付けられる）は、届かない。
+- **SCP の効き方（2026-10-30、cdk-apps の main の `apps/organization-policy/lib/iam-guardrails.ts` を読んだ）:**
+  - リポジトリで管理している SCP のうち、tuscenes-prod に付くのは `iam-guardrails` の 1 本だけ。RCP は無い。中身は、IAM ユーザーの作成、SSO の SAML provider の変更、SSO のロールのパス（`/aws-reserved/`）でのロールの作成・削除と信頼の変更、中央管理のロール（`/central/`）とその OIDC provider・EKS の access entry の変更の Deny。どれも `AWSControlTowerExecution`（一部は StackSets の実行ロールも）を例外にしている。
+  - **S3 と、`cdk-hnb659fds-*` のロールには何も効かない。** 3.2 の経路は、どれも SCP では止まらない。効いているのは、SSO の例外のロールを偽装させないこと（3.1 の前提）と、IAM ユーザーの裏口を新しく作らせないこと。
+  - Control Tower のロールと StackSets の実行ロールの名前を偽装できないのは、OU に付いた Control Tower のガードレール（GRIAMROLEPOLICY）に頼っている（コードのコメントによる。このガードレールはリポジトリの外で、確かめていない）。
+  - SCP は、外から引き受けられたロール（Databricks のロールなど）にも効く。管理アカウントの主体と service-linked role には効かない。2 枚目の守り（TODO 24）で 3.2 の経路を止めるなら、Databricks と Amplify のロールも対象に含められる。
+  - SCP が実際に付いているかは、管理アカウントの権限が要るので確かめていない。
 - 証跡: Control Tower の証跡（全リージョン、管理イベントすべて）と、監査のアプリの証跡（カナリアのデータイベントだけ）。
 
 ## 5. 見えていないこと
 
-- **残りのロール約 620 本は、シミュレーターにかけていない。** S3 を壊す権限は無い（10-20 に確認）が、deploy のロールを引き受けたり、ロールを作ったりできる主体が、3.2 に加わる可能性がある。全部にかけるのは、指示を受けてから行う。
-- SCP の効き方（シミュレーターは SCP を見ない）。とくに Control Tower のロールに SCP が効くか。
+- Control Tower のガードレール（GRIAMROLEPOLICY）の中身と、SCP が実際に付いているか（管理アカウントの権限が要る）。
 - SSO の割り当てのうち、管理画面で直接したもの（`JADDViewer` など）。確かめるには管理アカウントの権限が要る。
 - cdk-apps の `main` にマージできる人（GitHub のブランチの保護とレビューの必須の設定）。
 - 他のアカウント（amman-pipeline・e2e-dev・biz-dev）の同じ集計。
@@ -123,7 +135,7 @@ FullAccess・AWSAdministratorAccess も deploy のロールを引き受けられ
 | W1 | **例外の 14 名は、ふだんの権限のまま、確認も通知も無しに、古い版を消せる・守りを外せる。** 誤操作が 1 回で通る。MFA は Okta の設定次第で、今の設定は確かめていない | 誤操作・乗っ取り・悪意 |
 | W2 | **cdk-apps の `main` へのマージで、12 本の守りを外せる。** deploy のロールはアカウントに 1 組で、どのアプリの PR からでも 12 本のライフサイクル・ポリシーを変えられる。ライフサイクルに「古い版を失効させる」規則を書けば、レビューを通ったふつうの PR で大量に消える。承認は 1 名（CODEOWNERS。既定は MLOps 1・3、アプリによっては企画 1 も） | 誤操作・悪意 |
 | W3 | **承認なしでマージできる GitHub App がある。** ルールセット `main-image-digest-auto-merge` が、App `cdk-apps-auto-merge` に PR での迂回を許している。2026-10-30 に確かめた: 権限はマージだけ、認証情報は `main` からしか使えない environment に置かれ、イメージの digest の更新の workflow だけが使う。おそれは小さいが、鍵が漏れれば開いている PR を承認なしでマージできる。**あわせて、`main` のルールは承認のあとの push に承認し直しを求めない**（作者が承認後に変更を足してマージできる） | 乗っ取り・誤操作 |
-| W4 | **deploy のロールの信頼がアカウント全体（`767397804933:root`）。** 引き受ける権限を持つ主体はだれでも入れる。Control Tower の 2 本・StackSets・使われていない CodeCatalyst のロールが該当する。`cdk-hnb659fds-*` を守る SCP は無い（TODO 24） | 乗っ取り |
+| W4 | **deploy のロールの信頼がアカウント全体（`767397804933:root`）。** 引き受ける権限を持つ主体はだれでも入れる。Control Tower の 2 本・StackSets・使われていない CodeCatalyst のロールに加え、**Databricks の Unity Catalog のロール（外の Databricks のアカウントから入る）と、残りものの Amplify のログ用のロール 6 本**が該当する（2026-10-30 に全主体を判定）。`cdk-hnb659fds-*` を守る SCP は無い（TODO 24） | 乗っ取り |
 | W5 | **アカウントの外から外せる。** root（パスワード有効・MFA なし。CorpIT に削除を依頼中）と、管理アカウントの管理者 | 乗っ取り・悪意 |
 | W6 | **守りは同じアカウントの中の 1 枚だけ。** 例外の主体が外せば、その後は何でもできる。組織の層（SCP・RCP）の 2 枚目は無い | 乗っ取り・悪意 |
 | W7 | **ふつうの削除・上書きができる主体が多い（55）。** 戻せるが、量が多いと W12 になる。使われていない強いロールと、長期キーの IAM ユーザー（4 本）が残っていて、乗っ取りの入口になる | 誤操作・乗っ取り |
