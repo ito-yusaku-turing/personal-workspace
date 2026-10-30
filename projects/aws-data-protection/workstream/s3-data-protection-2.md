@@ -1,7 +1,7 @@
 # S3 バケットのデータ保護 第二弾（権限設計のアップグレード）
 
 - 開始: 2026-10-20
-- 状態: **全体設計に視点を戻し、現状を整理した**（2026-10-30）。できていることと、だれが何をできるかを [current-state.md](s3-data-protection-2/current-state.md) にまとめた。次は [requirements.md](s3-data-protection-2/requirements.md) の問い a〜h（とくに b＝脅威の範囲）に答える
+- 状態: **全体設計に視点を戻し、現状を整理した**（2026-10-30）。できていることと、だれが何をできるかを [current-state.md](s3-data-protection-2/current-state.md) にまとめた。12 本の書き込みの記録だけを先に始める PR（[cdk-apps#2387](https://github.com/turingmotors/cdk-apps/pull/2387)）がレビュー待ち。次は [requirements.md](s3-data-protection-2/requirements.md) の問い a〜h（とくに b＝脅威の範囲）に答える
 - 所属: project:aws-data-protection（2026-10-26 に `~/docs/workstream/` から移した）
 - 前段（第一弾、完了）:
   - [走行データ消失リスクへの対応](done/raw-data-security.md)（バケットの種別と処遇、裁定の正本）
@@ -474,3 +474,10 @@
     - 監査のアプリ（[cdk-apps#2267](https://github.com/turingmotors/cdk-apps/pull/2267)）は 10-26 に deploy 済みで、カナリアのデータイベントを記録している。requirements.md の「PR あり・保留」を直した。
     - 管理イベントは Control Tower の証跡に残る（通知は無い）。
   - 見えていないこと: 残りのロール約 620 本のシミュレーション（指示を受けてから）、SCP の効き方、管理画面で直接した SSO の割り当て、cdk-apps の `main` にマージできる人。
+- 2026-10-30: **12 本の書き込みの記録だけを先に始める PR を出した**（[cdk-apps#2387](https://github.com/turingmotors/cdk-apps/pull/2387)。伊藤の判断: 削除の記録が 12 本に無いのはまずい。記録は後から取り直せない）。
+  - 中身: 監査のアプリのトレイルの対象を、カナリア＋12 本にした（`TRAIL_TARGET_BUCKETS`）。S3 のイベント（EventBridge）と Inventory はカナリアだけのまま（`AUDIT_TARGET_BUCKETS`）。td1-raw の通知や tuscenes-raw の古いルールには触れない。
+  - **記録の範囲は書き込み系すべて**（伊藤が決定）。PR-B の「削除系に絞る」計画をやめた。要件 3（意図しない操作はすべて検知の対象）に合わせるため。費用は月 $4 前後。
+  - 確かめたこと: 12 本とも us-west-2。変更前後の synth の差は `Trail` の `resources.ARN` だけ。deploy 済みの template と main の synth は一致。テスト 12 件が通る。
+  - 次: チームのレビュー → マージ（伊藤）→ deploy の後、`get-event-selectors` で 13 本と、`trail/` に原本バケットの `PutObject` が出ることを ReadOnly で確かめる。
+  - 記録されないもの: ライフサイクルの失効（S3 のイベントを足すまで）、バケットの設定の変更（Control Tower の証跡に残る）。ログのバケットの守り（古い版を 1 日で消す、例外の主体なら消せる）は、監査ログの問題として分けて扱う。
+  - 作業場所: cdk-apps の worktree は scratchpad の `cdk-trail`（ブランチ `original-bucket-audit-trail-12`、push 済み）。
