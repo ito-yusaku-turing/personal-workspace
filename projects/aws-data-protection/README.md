@@ -9,6 +9,7 @@ tuscenes-prod（767397804933）の S3 原本バケットを、消失や破壊か
 - [workstream/s3-data-protection-2.md](./workstream/s3-data-protection-2.md): **S3 バケットのデータ保護 第二弾（権限設計のアップグレード）**。古い版ごと消す・守りを外す操作ができる 37 主体を権限設計から直す。ステージ 1〜4 と通し番号の TODO で進める
   - [workstream/s3-data-protection-2/permission-upgrade-plan.md](./workstream/s3-data-protection-2/permission-upgrade-plan.md): チーム共有用のアップグレードプラン（4 原則と進め方。Notion に上げる）
   - [workstream/s3-data-protection-2/breakglass-proposal.md](./workstream/s3-data-protection-2/breakglass-proposal.md): **BreakGlass 権限の導入の提案**。MLOps チームと CorpIT チーム向け。BreakGlass 権限の考え方・今の FullAccess・ギャップ・移行の手順・残るリスク・お願いしたいこと（2026-10-29、第一版。Notion: https://app.notion.com/p/408a93b3e6f281b38292d14cbbed304c ）
+  - [workstream/s3-data-protection-2/worm-design.md](./workstream/s3-data-protection-2/worm-design.md): **原本バケットの WORM 化の設計**（TODO 26）。決めたこと（12 本・ガバナンスが基準・無期限・今の版だけ）、無期限の表し方、ガバナンスの強さ、ライフサイクルとの衝突、消す必要が出る想定ケース（2026-10-30）
   - [workstream/s3-data-protection-2/breakglass-design-draft.md](./workstream/s3-data-protection-2/breakglass-design-draft.md): BreakGlass の設計の叩き台（内部の検討の記録。チーム向けは上の提案）（2026-10-29）
   - [workstream/s3-data-protection-2/stage2-hourly-report.md](./workstream/s3-data-protection-2/stage2-hourly-report.md): ステージ 2「原本バケットの削除の毎時の報告」の設計（cdk-apps `apps/original-bucket-audit`、カナリア）
   - [workstream/s3-data-protection-2/bucket-policy/](./workstream/s3-data-protection-2/bucket-policy/test-runbook.md): ステージ 1 のバケットポリシー一式。生成・比較・シミュレーションのスクリプト、12 本分の生成結果（`rendered/`）、使い捨てバケットで試す手順書（`test-runbook.md`）
