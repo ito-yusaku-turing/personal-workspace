@@ -1,6 +1,7 @@
 # 原本バケットの WORM 化の設計
 
 - 作成: 2026-10-30 ／ 伊藤
+- 状態: **全体設計の選択肢の 1 つ（2026-10-30）。** 大枠の決定までで止め、細かい数字や設定（30 日・費用・試し）は検討の記録として残す。全体の要件は [requirements.md](requirements.md)
 - 親: [S3 バケットのデータ保護 第二弾](../s3-data-protection-2.md) の TODO 26
 - 前提の資料: [S3 Object Lock（WORM）の整理](../../documents/notion-s3-object-lock.md)（以下「整理」。章の番号はこの資料のもの）
 - 添付: [比較と調査の記録](worm-reference.md)（以下「参考」。比べた表、AWS の仕様、12 本の今の設定）
