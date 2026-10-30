@@ -1,7 +1,7 @@
 # S3 バケットのデータ保護 第二弾（権限設計のアップグレード）
 
 - 開始: 2026-10-20
-- 状態: **要件の問い a〜h に答えた**（2026-10-30）。要件と設計への影響は [requirements.md](s3-data-protection-2/requirements.md) の 3 章・4.1。12 本の記録だけを先に始める PR（[cdk-apps#2387](https://github.com/turingmotors/cdk-apps/pull/2387)）はレビュー待ち。次は 5 章の骨格（止める・遅らせる・気づく・戻す・判断の経路）に選択肢を当てはめて比べる
+- 状態: **BreakGlass は撤回の方向、WORM は本命の候補（仮決定、2026-10-30）**。ホールドの解除の経路を調べた（[option-reassessment.md](s3-data-protection-2/option-reassessment.md) の 7 章）。12 本の記録だけを先に始める PR（[cdk-apps#2387](https://github.com/turingmotors/cdk-apps/pull/2387)）はレビュー待ち。次は 7.2 の設定と 2 人目の確認の強め方を決め、5 章の骨格に選択肢を当てはめる
 - 所属: project:aws-data-protection（2026-10-26 に `~/docs/workstream/` から移した）
 - 前段（第一弾、完了）:
   - [走行データ消失リスクへの対応](done/raw-data-security.md)（バケットの種別と処遇、裁定の正本）
@@ -493,3 +493,10 @@
   - BreakGlass: 必要性が下がった。「許可を待たずに使える」が要件 12（2 人目の確認）とぶつかり、乗っ取りへの守りとしても WORM より弱い。意図した削除と守りの変更の経路を cdk-apps の PR だけにすれば、記録・2 人目・通知を、人に強い権限を持たせずに満たせる見込み。非常時の入口は、管理アカウントからポリシーを外す道がすでにある。
   - WORM: 有用性が上がった。乗っ取りを含めたので、アカウントの中の誰にも外せない層が要り、WORM がいちばん直接に効く（管理アカウントの乗っ取りにも 30 日の猶予）。前提は試しの Q4 と、解除の経路を BreakGlass から PR に置き直すこと。
   - 決めてほしいこと（6 章）: BreakGlass を置かないか、WORM を本命にするか、解除の経路、共有済みの資料（Notion の提案・プランの原則 4）の扱い。
+- 2026-10-30: **再評価への回答（伊藤）: BreakGlass は撤回の方向、WORM は本命の候補（仮決定）、Notion の修正は最後。** BreakGlass の提案の手元の原本と WORM の設計の冒頭に書いた。
+- 2026-10-30: **ホールドの解除の経路を調べた**（option-reassessment.md の 7 章。調べた場所の一覧つき。AWS と GitHub のドキュメントの裏付けはサブエージェント）。
+  - 結論: CloudFormation にジョブの型が無いので、CDK ではなく GitHub Actions の専用の workflow から Batch Operations のジョブを作る形にする。OIDC のロールは environment の `sub` に固定する。
+  - GitHub の environment の承認者は、Team プランの非公開リポジトリでは使えない。2 人目の確認は PR の承認に頼る。今の `main` のルールは、承認のあとの push に承認し直しを求めない（W3 の行に足した）。
+  - 固定の保持期限を指定するリクエストでもホールドは外れるので、バケットポリシーは `s3:PutObjectRetention` 全体を Deny する。解除用のロールを渡すことは SCP で絞る（TODO 24）。
+  - CloudTrail のイベント名は `PutObjectLockRetention`。EventBridge の `Object Retention Updated` で即時に通知できる。コンプライアンスでも解除できることは、ドキュメントで確かめられた（試しの Q4 は確認の意味になった）。
+  - W3 の App は `cdk-apps-auto-merge`。権限はマージだけで、認証情報は `main` からしか使えない environment にある。おそれは小さい。

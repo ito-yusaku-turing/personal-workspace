@@ -3,6 +3,7 @@
 - 作成: 2026-10-30 ／ 伊藤（下書きはエージェント）
 - 親: [S3 バケットのデータ保護 第二弾](../s3-data-protection-2.md)
 - 前提: [requirements.md](requirements.md) の要件 1〜14（2026-10-30 に問い a〜h に答えたもの）、[current-state.md](current-state.md) の弱点 W1〜W16
+- 状態: **1・2・4 は回答済み（6 章）。3 は調べ終えた（7 章）**
 - 対象: [BreakGlass の提案](breakglass-proposal.md)（第一版、2026-10-29）と [WORM 化の設計](worm-design.md)（大枠、2026-10-30）
 
 2 つとも、要件を固める前に設計したもの。固まった要件に照らして、要るか・役に立つかを見直す。
@@ -146,7 +147,70 @@ FullAccess（13 名）はふだんの権限のまま残し、原本バケット�
 
 ## 6. 決めてほしいこと
 
+**2026-10-30 の回答（伊藤）:**
+
+1. **BreakGlass は撤回する方向で検討を進める。**
+2. **WORM は「外せない層」の本命の候補にする（仮決定）。** 確定ではない。
+3. ホールドの解除を cdk-apps の PR から行う形を調べる（7 章）。
+4. Notion（BreakGlass の提案・プラン）の修正は最後にする。
+
+当初の問い:
+
 1. **BreakGlass の扱い。** 置かない（cdk-apps の PR を唯一の経路にする）方向でよいか。置かないなら、バケットポリシーの例外から FullAccess・AWSAdministratorAccess を外すことになり、チームへの周知が要る。
 2. **WORM を「外せない層」の本命にするか。** するなら、試し（Q4）を再開する。
 3. **解除の経路。** WORM のホールドの解除を、cdk-apps の PR から行う形を調べてよいか。
 4. **共有済みの資料の扱い。** BreakGlass の提案（Notion、第一版）と、プランの原則 4（承認ではなく通知）を、この再評価に合わせて直すか。
+
+## 7. 解除の経路の調査（2026-10-30）
+
+問い: WORM のホールドの解除を、cdk-apps の PR から行えるか。要件 12（判断の記録＋2 人目の確認）を満たせるか。
+
+### 7.1 結論
+
+- **できる。ただし CDK（CloudFormation）ではなく、GitHub Actions の専用の workflow から行う。** CloudFormation には Batch Operations のジョブの型が無い。カスタムリソースでも作れるが、deploy の経路（cfn-exec-role、どのアプリの PR からでも使える）に解除の力を足すことになり、W2 を広げるので採らない。
+- 形の案:
+  1. 解除の依頼（対象の一覧・理由・判断した人）を、PR で cdk-apps に足す。PR の本文と依頼のファイルが判断の記録になる。
+  2. マージされると、専用の workflow が動く。workflow のジョブは専用の environment（例 `original-bucket-release`。`main` からだけ使える）を参照する。
+  3. ジョブは GitHub の OIDC で専用のロールに入る。ロールの信頼は `sub` を `repo:turingmotors/cdk-apps:environment:original-bucket-release` に固定する。権限は、Batch Operations のジョブを作ること（`s3:CreateJob`）と、解除用のロールを渡すこと（`iam:PassRole`）だけ。
+  4. Batch Operations のジョブが、解除用のロールで各版のホールドを外す（`S3PutObjectRetention`、`EventHold: OFF`）。解除の時刻から 30 日後に消せるようになる。
+  5. 解除は即時に通知される（EventBridge の `Object Retention Updated`）。
+- **2 人目の確認は、PR の承認に頼ることになる。** GitHub の environment の承認者（required reviewers）は、Team プランの非公開リポジトリでは使えない。cdk-apps は非公開で、組織のプランは Team。
+- **今の PR の承認は、2 人目の確認として弱い。** 承認のあとに作者が変更を足しても、承認し直しが要らない設定になっている（7.3）。
+- 解除の経路が乗っ取られても、30 日は消せず、解除は即時に通知される。この経路の強さは、要件 7（乗っ取り）よりも、要件 12（2 人目）のために要る。
+
+### 7.2 守るために要る設定
+
+| 設定 | 中身 | 理由 |
+|---|---|---|
+| バケットポリシー | **`s3:PutObjectRetention` を、解除用のロール以外すべてに Deny する**（`EventHold: OFF` に限らない） | 固定の保持期限を指定するリクエストでも、ホールドは外れる。条件キー `s3:object-lock-event-hold` がそのリクエストに付くかは書かれていない |
+| バケットポリシー | `s3:PutBucketObjectLockConfiguration` を、deploy の経路以外に Deny する（今の `DenyIrreversibleDelete` は例外が人になっている） | 既定の保持の変更。条件キーはバケットの既定には効かない |
+| SCP | 解除用のロールを渡すこと（`iam:PassRole`）を、専用の OIDC ロール以外に Deny する。2 つのロールの作成・削除・信頼とポリシーの変更も止める | FullAccess など `iam:PassRole` を持つ主体は、解除用のロールでジョブを作れてしまう。アカウントの中のポリシーでは塞げない（TODO 24 と同じ作業） |
+| GitHub | ルールセットで「最後の push の承認」（`require_last_push_approval`）を有効にする。解除の依頼のファイルの CODEOWNERS を決まった人にする | 承認のあとの変更が承認なしでマージされるのを防ぐ |
+| 通知 | EventBridge の `Object Retention Updated`。CloudTrail ではデータイベントの `PutObjectLockRetention`（API の名前と違う）と、管理イベントの `CreateJob`・`JobCreated` | 要件 9・10 |
+
+2 人目を AWS の側で求める対案: ジョブを確認待ち（`ConfirmationRequired`）で作り、別の人が `UpdateJobStatus` で開始する。ただし、作った主体と確認する主体を分ける仕組みは AWS に無い。分けるには、OIDC ロールに `s3:UpdateJobStatus` を持たせず、確認する人の権限を SCP で絞る必要がある。手間が増えるので、まずは PR の承認を強くする方を推す。
+
+### 7.3 調べた場所
+
+| 調べた場所 | 分かったこと |
+|---|---|
+| CloudFormation の型の一覧（`aws cloudformation list-types`、`AWS::S3*`）と、[AWS::S3 のリファレンス](https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/AWS_S3.html) | Batch Operations のジョブの型は無い |
+| AWS CLI 2.38.5 に入っている S3 Control の API の定義（`botocore/data/s3control/2018-08-20/service-2.json`） | ジョブの `S3PutObjectRetention` は `EventHold: ON/OFF` と日数（1〜36,500 日）を受け付ける。`ConfirmationRequired` がある |
+| [Batch Operations の権限](https://docs.aws.amazon.com/AmazonS3/latest/userguide/batch-ops-iam-role-policies.html)・[CreateJob](https://docs.aws.amazon.com/AmazonS3/latest/API/API_control_CreateJob.html) | ジョブを作るには `s3:CreateJob` と、ジョブのロールへの `iam:PassRole` が要る。各オブジェクトの操作はジョブのロールで行う |
+| [Batch Operations と保持](https://docs.aws.amazon.com/AmazonS3/latest/userguide/batch-ops-retention-date.html) | ジョブでホールドの解除ができる。**固定の保持期限を指定すると、ホールドは外れる** |
+| [ジョブの状態](https://docs.aws.amazon.com/AmazonS3/latest/userguide/batch-ops-job-status.html)・[UpdateJobStatus](https://docs.aws.amazon.com/AmazonS3/latest/API/API_control_UpdateJobStatus.html)・[ジョブのタグ](https://docs.aws.amazon.com/AmazonS3/latest/userguide/batch-ops-job-tags-examples.html) | 確認待ちのジョブは `UpdateJobStatus`（`s3:UpdateJobStatus`）で開始する。作る人と確認する人を分ける仕組みは無い（IAM とジョブのタグで絞るだけ）。確認が要る条件はページによって書き方が食い違う |
+| [Object Lock の注意点](https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lock-managing.html)・[設定](https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lock-configure.html)・[概要](https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lock.html) | 条件キー `s3:object-lock-event-hold`・`-duration-days` がある（バケットの既定には効かない）。**コンプライアンスでも解除できる**（解除の時刻＋日数が最終の期限になり、短縮にはならない）。試しの Q4 の答えはドキュメント上は「できる」 |
+| [CloudTrail の S3 の記録](https://docs.aws.amazon.com/AmazonS3/latest/userguide/cloudtrail-logging-s3-info.html)・[Batch Operations と EventBridge・CloudTrail](https://docs.aws.amazon.com/AmazonS3/latest/userguide/batch-ops-examples-event-bridge-cloud-trail.html)・[トラブルシューティング](https://docs.aws.amazon.com/AmazonS3/latest/userguide/troubleshooting-batch-operations.html) | `PutObjectRetention` は `eventName` が `PutObjectLockRetention` のデータイベントになる（保持の中身が `additionalEventData` に入る）。`CreateJob` は `eventSource` が `s3.amazonaws.com` の管理イベント。`JobCreated`・`JobStatusChanged` のサービスイベントもある |
+| [S3 のイベント通知の種類](https://docs.aws.amazon.com/AmazonS3/latest/userguide/notification-how-to-event-types-and-destinations.html)・[S3 と EventBridge](https://docs.aws.amazon.com/AmazonS3/latest/userguide/EventBridge.html) | 解除は `s3:ObjectRetention:Put`、EventBridge では `Object Retention Updated` になる。即時に通知できる |
+| [GitHub の OIDC](https://docs.github.com/en/actions/reference/security/oidc) | ジョブが environment を参照すると、`sub` は `repo:ORG/REPO:environment:NAME` になる |
+| [GitHub の environment](https://docs.github.com/en/actions/reference/workflows-and-actions/deployments-and-environments) | Team プランでは、承認者は公開リポジトリだけ。ブランチの制限は非公開でも使える |
+| [IAM の OIDC の条件キー](https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_iam-condition-keys.html) | GitHub の `environment`・`workflow`・`job_workflow_ref`・`repository_id` なども条件に使える |
+| GitHub の API（`repos/turingmotors/cdk-apps`、`orgs/turingmotors`、`environments`、`rulesets`、`rules/branches/main`） | 非公開、プランは Team。environment は `auto-merge`（ブランチの制限だけ）と `copilot`。`main` のルールは PR 必須・承認 1 名・CODEOWNERS 必須で、**承認のあとの push の承認し直しも、古い承認の取り消しも無効** |
+| cdk-apps の main（`git grep`）と `update-cdk-context-image-digest.yml` | Batch Operations の先例は無い。OIDC のロールはどれも `sub` で絞る形。W3 の App は `cdk-apps-auto-merge` で、権限はマージだけ、認証情報は `main` からしか使えない environment に置かれ、送り手も固定されている（W3 のおそれは小さい。鍵が漏れたら、開いている PR を承認なしでマージできる点は残る） |
+
+### 7.4 確かめていないこと（試しに足す）
+
+- Batch Operations の操作の CloudTrail の記録で、主体がジョブのロールになり、`invokedBy` に何が入るか。
+- 固定の保持期限を指定するリクエストに、条件キー `s3:object-lock-event-hold` が付くか（付かなくても、7.2 のとおり `PutObjectRetention` 全体を Deny すれば足りる）。
+- API から作ったジョブで、`ConfirmationRequired: true` が効くか（ドキュメントが食い違う）。
+- コンプライアンスでの解除（Q4）。ドキュメントでは「できる」と読めるので、試しは確認の意味になった。
