@@ -1,0 +1,38 @@
+{
+ "RoleName": "AmazonEMRStudio_RuntimeRole",
+ "Path": "/service-role/",
+ "Arn": "arn:aws:iam::767397804933:role/service-role/AmazonEMRStudio_RuntimeRole",
+ "AssumeRolePolicyDocument": {
+  "Version": "2012-10-17",
+  "Statement": [
+   {
+    "Sid": "ServerlessTrustPolicy",
+    "Effect": "Allow",
+    "Principal": {
+     "Service": "emr-serverless.amazonaws.com"
+    },
+    "Action": "sts:AssumeRole",
+    "Condition": {
+     "StringLike": {
+      "aws:SourceAccount": "767397804933",
+      "aws:SourceArn": "arn:aws:emr-serverless:*:767397804933:/applications/*"
+     }
+    }
+   }
+  ]
+ },
+ "AttachedManagedPolicies": [
+  {
+   "PolicyName": "AmazonS3FullAccess",
+   "PolicyArn": "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+  }
+ ],
+ "RolePolicyList": [],
+ "InstanceProfileList": [],
+ "Tags": [],
+ "RoleLastUsed": {
+  "LastUsedDate": "2024-08-28T06:38:03+00:00",
+  "Region": "us-west-2"
+ },
+ "CustomerManagedPolicies": []
+}

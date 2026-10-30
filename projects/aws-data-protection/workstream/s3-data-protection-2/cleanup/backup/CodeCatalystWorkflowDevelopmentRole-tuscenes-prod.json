@@ -1,0 +1,43 @@
+{
+ "RoleName": "CodeCatalystWorkflowDevelopmentRole-tuscenes-prod",
+ "Path": "/service-role/",
+ "Arn": "arn:aws:iam::767397804933:role/service-role/CodeCatalystWorkflowDevelopmentRole-tuscenes-prod",
+ "AssumeRolePolicyDocument": {
+  "Version": "2012-10-17",
+  "Statement": [
+   {
+    "Sid": "AllowAccessToCodeCatalyst",
+    "Effect": "Allow",
+    "Principal": {
+     "Service": [
+      "codecatalyst-runner.amazonaws.com",
+      "codecatalyst.amazonaws.com"
+     ]
+    },
+    "Action": "sts:AssumeRole",
+    "Condition": {
+     "ArnLike": {
+      "aws:SourceArn": [
+       "arn:aws:codecatalyst:::space/9fd61caa-c499-4a9a-8c0a-498a66909c09",
+       "arn:aws:codecatalyst:::space/9fd61caa-c499-4a9a-8c0a-498a66909c09/project/*"
+      ]
+     }
+    }
+   }
+  ]
+ },
+ "AttachedManagedPolicies": [
+  {
+   "PolicyName": "AdministratorAccess",
+   "PolicyArn": "arn:aws:iam::aws:policy/AdministratorAccess"
+  }
+ ],
+ "RolePolicyList": [],
+ "InstanceProfileList": [],
+ "Tags": [],
+ "RoleLastUsed": {
+  "LastUsedDate": "2024-03-14T02:31:28+00:00",
+  "Region": "us-west-2"
+ },
+ "CustomerManagedPolicies": []
+}

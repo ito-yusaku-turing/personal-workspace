@@ -1,0 +1,413 @@
+{
+ "RoleName": "SageMaker-ExecutionRole-20240206T192166",
+ "Path": "/service-role/",
+ "Arn": "arn:aws:iam::767397804933:role/service-role/SageMaker-ExecutionRole-20240206T192166",
+ "AssumeRolePolicyDocument": {
+  "Version": "2012-10-17",
+  "Statement": [
+   {
+    "Sid": "AssumeRole",
+    "Effect": "Allow",
+    "Principal": {
+     "Service": "sagemaker.amazonaws.com"
+    },
+    "Action": "sts:AssumeRole",
+    "Condition": {
+     "ArnLike": {
+      "aws:SourceArn": "arn:aws:sagemaker:us-west-2:767397804933:*"
+     }
+    }
+   }
+  ]
+ },
+ "AttachedManagedPolicies": [
+  {
+   "PolicyName": "CodeWhispererUserPolicy",
+   "PolicyArn": "arn:aws:iam::767397804933:policy/CodeWhispererUserPolicy"
+  },
+  {
+   "PolicyName": "SageMakerS3BucketPolicyTemplate_1707214908673",
+   "PolicyArn": "arn:aws:iam::767397804933:policy/service-role/SageMakerS3BucketPolicyTemplate_1707214908673"
+  },
+  {
+   "PolicyName": "SM_ModelManagement_1707214908673",
+   "PolicyArn": "arn:aws:iam::767397804933:policy/service-role/SM_ModelManagement_1707214908673"
+  },
+  {
+   "PolicyName": "SM_StudioAppPermissions_1707214908673",
+   "PolicyArn": "arn:aws:iam::767397804933:policy/service-role/SM_StudioAppPermissions_1707214908673"
+  },
+  {
+   "PolicyName": "SM_CommonJobManagement_1707214908673",
+   "PolicyArn": "arn:aws:iam::767397804933:policy/service-role/SM_CommonJobManagement_1707214908673"
+  },
+  {
+   "PolicyName": "AmazonSageMakerFullAccess",
+   "PolicyArn": "arn:aws:iam::aws:policy/AmazonSageMakerFullAccess"
+  },
+  {
+   "PolicyName": "AmazonSageMakerCanvasAIServicesAccess",
+   "PolicyArn": "arn:aws:iam::aws:policy/AmazonSageMakerCanvasAIServicesAccess"
+  },
+  {
+   "PolicyName": "AmazonSageMakerCanvasFullAccess",
+   "PolicyArn": "arn:aws:iam::aws:policy/AmazonSageMakerCanvasFullAccess"
+  },
+  {
+   "PolicyName": "AmazonSageMakerCanvasDirectDeployAccess",
+   "PolicyArn": "arn:aws:iam::aws:policy/service-role/AmazonSageMakerCanvasDirectDeployAccess"
+  }
+ ],
+ "RolePolicyList": [
+  {
+   "PolicyName": "s3_alphaspp",
+   "PolicyDocument": {
+    "Version": "2012-10-17",
+    "Statement": [
+     {
+      "Action": [
+       "s3:ListBucket"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+       "arn:aws:s3:::alphaspp-*",
+       "arn:aws:s3:::tuscenes-*"
+      ]
+     },
+     {
+      "Action": [
+       "s3:GetObject",
+       "s3:PutObject",
+       "s3:DeleteObject"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+       "arn:aws:s3:::alphaspp-*/*",
+       "arn:aws:s3:::tuscenes-*/*"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "PolicyName": "sagemaker_processing",
+   "PolicyDocument": {
+    "Version": "2012-10-17",
+    "Statement": [
+     {
+      "Action": [
+       "logs:DescribeLogStreams"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+       "arn:aws:logs:us-west-2:767397804933:log-group:/aws/sagemaker/ProcessingJobs:log-stream:"
+      ]
+     },
+     {
+      "Action": [
+       "logs:GetLogEvents"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+       "arn:aws:logs:us-west-2:767397804933:log-group:/aws/sagemaker/ProcessingJobs:log-stream:*"
+      ]
+     }
+    ]
+   }
+  }
+ ],
+ "InstanceProfileList": [],
+ "Tags": [],
+ "RoleLastUsed": {
+  "LastUsedDate": "2024-05-07T10:19:04+00:00",
+  "Region": "us-west-2"
+ },
+ "CustomerManagedPolicies": [
+  {
+   "arn": "arn:aws:iam::767397804933:policy/CodeWhispererUserPolicy",
+   "attachments": 1,
+   "document": {
+    "Version": "2012-10-17",
+    "Statement": [
+     {
+      "Sid": "Statement1",
+      "Effect": "Allow",
+      "Action": [
+       "codewhisperer:GenerateRecommendations"
+      ],
+      "Resource": [
+       "*"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:policy/service-role/SageMakerS3BucketPolicyTemplate_1707214908673",
+   "attachments": 1,
+   "document": {
+    "Version": "2012-10-17",
+    "Statement": [
+     {
+      "Action": [
+       "s3:ListBucket"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+       "arn:aws:s3:::sagemaker-us-west-2-767397804933",
+       "arn:aws:s3:::alphaspp-ingest-767397804933",
+       "arn:aws:s3:::sagemaker-studio-j6521u4939j/sharing"
+      ]
+     },
+     {
+      "Action": [
+       "s3:GetObject",
+       "s3:PutObject",
+       "s3:DeleteObject"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+       "arn:aws:s3:::sagemaker-us-west-2-767397804933/*",
+       "arn:aws:s3:::alphaspp-ingest-767397804933/*",
+       "arn:aws:s3:::sagemaker-studio-j6521u4939j/sharing/*"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:policy/service-role/SM_ModelManagement_1707214908673",
+   "attachments": 1,
+   "document": {
+    "Version": "2012-10-17",
+    "Statement": [
+     {
+      "Effect": "Allow",
+      "Action": [
+       "sagemaker:CreateModel",
+       "sagemaker:CreateModelPackage",
+       "sagemaker:CreateModelPackageGroup",
+       "sagemaker:DescribeModel",
+       "sagemaker:DescribeModelPackage",
+       "sagemaker:DescribeModelPackageGroup",
+       "sagemaker:BatchDescribeModelPackage",
+       "sagemaker:UpdateModelPackage",
+       "sagemaker:DeleteModel",
+       "sagemaker:DeleteModelPackage",
+       "sagemaker:DeleteModelPackageGroup"
+      ],
+      "Resource": "arn:aws:sagemaker:*:*:*/*"
+     },
+     {
+      "Effect": "Allow",
+      "Action": [
+       "sagemaker:ListModels",
+       "sagemaker:ListModelPackages",
+       "sagemaker:ListModelPackageGroups"
+      ],
+      "Resource": "*"
+     },
+     {
+      "Effect": "Allow",
+      "Action": "iam:PassRole",
+      "Resource": [
+       "arn:aws:iam::767397804933:role/service-role/SageMaker-ExecutionRole-20240206T192166"
+      ],
+      "Condition": {
+       "StringEquals": {
+        "iam:PassedToService": "sagemaker.amazonaws.com"
+       }
+      }
+     }
+    ]
+   }
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:policy/service-role/SM_StudioAppPermissions_1707214908673",
+   "attachments": 1,
+   "document": {
+    "Version": "2012-10-17",
+    "Statement": [
+     {
+      "Sid": "SMStudioUserProfileAppPermissionsCreateAndDelete",
+      "Effect": "Allow",
+      "Action": [
+       "sagemaker:CreateApp",
+       "sagemaker:DeleteApp"
+      ],
+      "Resource": "arn:aws:sagemaker:us-west-2:767397804933:app/*",
+      "Condition": {
+       "Null": {
+        "sagemaker:OwnerUserProfileArn": "true"
+       }
+      }
+     },
+     {
+      "Sid": "SMStudioCreatePresignedDomainUrlForUserProfile",
+      "Effect": "Allow",
+      "Action": [
+       "sagemaker:CreatePresignedDomainUrl"
+      ],
+      "Resource": "arn:aws:sagemaker:us-west-2:767397804933:user-profile/${sagemaker:DomainId}/${sagemaker:UserProfileName}"
+     },
+     {
+      "Sid": "SMStudioAppPermissionsListAndDescribe",
+      "Effect": "Allow",
+      "Action": [
+       "sagemaker:ListApps",
+       "sagemaker:ListDomains",
+       "sagemaker:ListUserProfiles",
+       "sagemaker:ListSpaces",
+       "sagemaker:DescribeApp",
+       "sagemaker:DescribeDomain",
+       "sagemaker:DescribeUserProfile",
+       "sagemaker:DescribeSpace"
+      ],
+      "Resource": "*"
+     },
+     {
+      "Sid": "SMStudioAppPermissionsTagOnCreate",
+      "Effect": "Allow",
+      "Action": [
+       "sagemaker:AddTags"
+      ],
+      "Resource": "arn:aws:sagemaker:us-west-2:767397804933:*/*",
+      "Condition": {
+       "Null": {
+        "sagemaker:TaggingAction": "false"
+       }
+      }
+     },
+     {
+      "Sid": "SMStudioRestrictSharedSpacesWithoutOwners",
+      "Effect": "Allow",
+      "Action": [
+       "sagemaker:CreateSpace",
+       "sagemaker:UpdateSpace",
+       "sagemaker:DeleteSpace"
+      ],
+      "Resource": "arn:aws:sagemaker:us-west-2:767397804933:space/${sagemaker:DomainId}/*",
+      "Condition": {
+       "Null": {
+        "sagemaker:OwnerUserProfileArn": "true"
+       }
+      }
+     },
+     {
+      "Sid": "SMStudioRestrictSpacesToOwnerUserProfile",
+      "Effect": "Allow",
+      "Action": [
+       "sagemaker:CreateSpace",
+       "sagemaker:UpdateSpace",
+       "sagemaker:DeleteSpace"
+      ],
+      "Resource": "arn:aws:sagemaker:us-west-2:767397804933:space/${sagemaker:DomainId}/*",
+      "Condition": {
+       "ArnLike": {
+        "sagemaker:OwnerUserProfileArn": "arn:aws:sagemaker:us-west-2:767397804933:user-profile/${sagemaker:DomainId}/${sagemaker:UserProfileName}"
+       },
+       "StringEquals": {
+        "sagemaker:SpaceSharingType": [
+         "Private",
+         "Shared"
+        ]
+       }
+      }
+     },
+     {
+      "Sid": "SMStudioRestrictCreatePrivateSpaceAppsToOwnerUserProfile",
+      "Effect": "Allow",
+      "Action": [
+       "sagemaker:CreateApp",
+       "sagemaker:DeleteApp"
+      ],
+      "Resource": "arn:aws:sagemaker:us-west-2:767397804933:app/${sagemaker:DomainId}/*",
+      "Condition": {
+       "ArnLike": {
+        "sagemaker:OwnerUserProfileArn": "arn:aws:sagemaker:us-west-2:767397804933:user-profile/${sagemaker:DomainId}/${sagemaker:UserProfileName}"
+       },
+       "StringEquals": {
+        "sagemaker:SpaceSharingType": [
+         "Private"
+        ]
+       }
+      }
+     },
+     {
+      "Sid": "AllowAppActionsForSharedSpaces",
+      "Effect": "Allow",
+      "Action": [
+       "sagemaker:CreateApp",
+       "sagemaker:DeleteApp"
+      ],
+      "Resource": "arn:aws:sagemaker:*:*:app/${sagemaker:DomainId}/*/*/*",
+      "Condition": {
+       "StringEquals": {
+        "sagemaker:SpaceSharingType": [
+         "Shared"
+        ]
+       }
+      }
+     }
+    ]
+   }
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:policy/service-role/SM_CommonJobManagement_1707214908673",
+   "attachments": 1,
+   "document": {
+    "Version": "2012-10-17",
+    "Statement": [
+     {
+      "Effect": "Allow",
+      "Action": [
+       "sagemaker:CreateTrainingJob",
+       "sagemaker:CreateTransformJob",
+       "sagemaker:CreateProcessingJob",
+       "sagemaker:CreateAutoMLJob",
+       "sagemaker:CreateHyperParameterTuningJob",
+       "sagemaker:StopTrainingJob",
+       "sagemaker:StopProcessingJob",
+       "sagemaker:StopAutoMLJob",
+       "sagemaker:StopHyperParameterTuningJob",
+       "sagemaker:DescribeTrainingJob",
+       "sagemaker:DescribeTransformJob",
+       "sagemaker:DescribeProcessingJob",
+       "sagemaker:DescribeAutoMLJob",
+       "sagemaker:DescribeHyperParameterTuningJob",
+       "sagemaker:UpdateTrainingJob",
+       "sagemaker:BatchGetMetrics"
+      ],
+      "Resource": "arn:aws:sagemaker:*:*:*/*"
+     },
+     {
+      "Effect": "Allow",
+      "Action": [
+       "sagemaker:Search",
+       "sagemaker:ListTrainingJobs",
+       "sagemaker:ListTransformJobs",
+       "sagemaker:ListProcessingJobs",
+       "sagemaker:ListAutoMLJobs",
+       "sagemaker:ListCandidatesForAutoMLJob",
+       "sagemaker:ListHyperParameterTuningJobs",
+       "sagemaker:ListTrainingJobsForHyperParameterTuningJob"
+      ],
+      "Resource": "*"
+     },
+     {
+      "Effect": "Allow",
+      "Action": "iam:PassRole",
+      "Resource": [
+       "arn:aws:iam::767397804933:role/service-role/SageMaker-ExecutionRole-20240206T192166"
+      ],
+      "Condition": {
+       "StringEquals": {
+        "iam:PassedToService": "sagemaker.amazonaws.com"
+       }
+      }
+     }
+    ]
+   }
+  }
+ ]
+}

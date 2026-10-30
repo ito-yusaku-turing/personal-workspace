@@ -1,0 +1,59 @@
+{
+ "RoleName": "AmplifySSRLoggingRole-af9625da-c650-4479-988b-e2cf49bfcfac",
+ "Path": "/service-role/",
+ "Arn": "arn:aws:iam::767397804933:role/service-role/AmplifySSRLoggingRole-af9625da-c650-4479-988b-e2cf49bfcfac",
+ "AssumeRolePolicyDocument": {
+  "Version": "2012-10-17",
+  "Statement": [
+   {
+    "Effect": "Allow",
+    "Principal": {
+     "Service": "amplify.amazonaws.com"
+    },
+    "Action": "sts:AssumeRole"
+   }
+  ]
+ },
+ "AttachedManagedPolicies": [
+  {
+   "PolicyName": "AmplifySSRLoggingPolicy-af9625da-c650-4479-988b-e2cf49bfcfac",
+   "PolicyArn": "arn:aws:iam::767397804933:policy/service-role/AmplifySSRLoggingPolicy-af9625da-c650-4479-988b-e2cf49bfcfac"
+  }
+ ],
+ "RolePolicyList": [],
+ "InstanceProfileList": [],
+ "Tags": [],
+ "RoleLastUsed": {},
+ "CustomerManagedPolicies": [
+  {
+   "arn": "arn:aws:iam::767397804933:policy/service-role/AmplifySSRLoggingPolicy-af9625da-c650-4479-988b-e2cf49bfcfac",
+   "attachments": 1,
+   "document": {
+    "Version": "2012-10-17",
+    "Statement": [
+     {
+      "Sid": "PushLogs",
+      "Effect": "Allow",
+      "Action": [
+       "logs:CreateLogStream",
+       "logs:PutLogEvents"
+      ],
+      "Resource": "arn:aws:logs:us-west-2:767397804933:log-group:/aws/amplify/*:log-stream:*"
+     },
+     {
+      "Sid": "CreateLogGroup",
+      "Effect": "Allow",
+      "Action": "logs:CreateLogGroup",
+      "Resource": "arn:aws:logs:us-west-2:767397804933:log-group:/aws/amplify/*"
+     },
+     {
+      "Sid": "DescribeLogGroups",
+      "Effect": "Allow",
+      "Action": "logs:DescribeLogGroups",
+      "Resource": "arn:aws:logs:us-west-2:767397804933:log-group:*"
+     }
+    ]
+   }
+  }
+ ]
+}

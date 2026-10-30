@@ -5,6 +5,7 @@ AWS アカウント tuscenes-prod（767397804933）の棚卸しの結果。伊�
 - 一次情報: `~/aws/tuscenes-prod/2026-10-28/`（機微な値は伏せ字）。集計の表は同じ場所の `derived/`。
 - 集計のスクリプト: [analyze/](analyze/README.md)。取得の道具: [collect/](collect/README.md)。
 - 基準: 「使われていない」は 90 日、IAM は 180 日。日付は UTC。
+- **2026-10-30: S3・S5・S6（`sasaki` を除く）・S7・C3-6（`sfn-auto-labeling`）は、[原本バケットに届く主体の掃除（手順書）](../../../aws-data-protection/workstream/s3-data-protection-2/cleanup-runbook.md) で片付ける**（番号を併記してある。実施の状態はそちらが正本）。
 - 持ち主: CloudFormation のスタックのリソースと突き合わせた。「コードあり」は、マウント済みのリポジトリ（HEAD）にスタック名が引用符つきで現れること。手がかりであって確証ではない。
 
 ## 0. cdk-apps での管理の有無（2026-10-28 に HEAD `c081e538` と履歴で確認）

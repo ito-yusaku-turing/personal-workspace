@@ -1,0 +1,33 @@
+{
+ "RoleName": "tuscenes-processing",
+ "Path": "/",
+ "Arn": "arn:aws:iam::767397804933:role/tuscenes-processing",
+ "AssumeRolePolicyDocument": {
+  "Version": "2012-10-17",
+  "Statement": [
+   {
+    "Effect": "Allow",
+    "Principal": {
+     "Service": "ec2.amazonaws.com"
+    },
+    "Action": "sts:AssumeRole"
+   }
+  ]
+ },
+ "AttachedManagedPolicies": [
+  {
+   "PolicyName": "AmazonS3FullAccess",
+   "PolicyArn": "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+  }
+ ],
+ "RolePolicyList": [],
+ "InstanceProfileList": [
+  "tuscenes-processing"
+ ],
+ "Tags": [],
+ "RoleLastUsed": {
+  "LastUsedDate": "2024-07-16T09:40:51+00:00",
+  "Region": "us-west-2"
+ },
+ "CustomerManagedPolicies": []
+}

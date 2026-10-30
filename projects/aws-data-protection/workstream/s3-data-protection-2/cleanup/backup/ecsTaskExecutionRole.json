@@ -1,0 +1,40 @@
+{
+ "RoleName": "ecsTaskExecutionRole",
+ "Path": "/",
+ "Arn": "arn:aws:iam::767397804933:role/ecsTaskExecutionRole",
+ "AssumeRolePolicyDocument": {
+  "Version": "2008-10-17",
+  "Statement": [
+   {
+    "Sid": "",
+    "Effect": "Allow",
+    "Principal": {
+     "Service": "ecs-tasks.amazonaws.com"
+    },
+    "Action": "sts:AssumeRole"
+   }
+  ]
+ },
+ "AttachedManagedPolicies": [
+  {
+   "PolicyName": "AmazonECSTaskExecutionRolePolicy",
+   "PolicyArn": "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+  },
+  {
+   "PolicyName": "SecretsManagerReadWrite",
+   "PolicyArn": "arn:aws:iam::aws:policy/SecretsManagerReadWrite"
+  },
+  {
+   "PolicyName": "AmazonS3FullAccess",
+   "PolicyArn": "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+  }
+ ],
+ "RolePolicyList": [],
+ "InstanceProfileList": [],
+ "Tags": [],
+ "RoleLastUsed": {
+  "LastUsedDate": "2025-03-25T20:26:15+00:00",
+  "Region": "us-west-2"
+ },
+ "CustomerManagedPolicies": []
+}

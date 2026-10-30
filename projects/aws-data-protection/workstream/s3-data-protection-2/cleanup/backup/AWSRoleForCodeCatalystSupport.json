@@ -1,0 +1,31 @@
+{
+ "RoleName": "AWSRoleForCodeCatalystSupport",
+ "Path": "/service-role/",
+ "Arn": "arn:aws:iam::767397804933:role/service-role/AWSRoleForCodeCatalystSupport",
+ "AssumeRolePolicyDocument": {
+  "Version": "2012-10-17",
+  "Statement": [
+   {
+    "Effect": "Allow",
+    "Principal": {
+     "Service": "support.codecatalyst.amazonaws.com"
+    },
+    "Action": "sts:AssumeRole"
+   }
+  ]
+ },
+ "AttachedManagedPolicies": [
+  {
+   "PolicyName": "AmazonCodeCatalystSupportAccess",
+   "PolicyArn": "arn:aws:iam::aws:policy/service-role/AmazonCodeCatalystSupportAccess"
+  }
+ ],
+ "RolePolicyList": [],
+ "InstanceProfileList": [],
+ "Tags": [],
+ "RoleLastUsed": {
+  "LastUsedDate": "2024-03-13T12:17:53+00:00",
+  "Region": "us-west-2"
+ },
+ "CustomerManagedPolicies": []
+}

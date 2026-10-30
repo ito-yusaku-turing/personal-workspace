@@ -1,0 +1,57 @@
+{
+ "RoleName": "GlueRole",
+ "Path": "/",
+ "Arn": "arn:aws:iam::767397804933:role/GlueRole",
+ "AssumeRolePolicyDocument": {
+  "Version": "2012-10-17",
+  "Statement": [
+   {
+    "Effect": "Allow",
+    "Principal": {
+     "Service": "glue.amazonaws.com"
+    },
+    "Action": "sts:AssumeRole"
+   }
+  ]
+ },
+ "AttachedManagedPolicies": [
+  {
+   "PolicyName": "AWSGlueServiceRole",
+   "PolicyArn": "arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole"
+  },
+  {
+   "PolicyName": "AmazonS3ReadOnlyAccess",
+   "PolicyArn": "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+  },
+  {
+   "PolicyName": "AWSGlueServiceNotebookRole",
+   "PolicyArn": "arn:aws:iam::aws:policy/service-role/AWSGlueServiceNotebookRole"
+  }
+ ],
+ "RolePolicyList": [
+  {
+   "PolicyName": "PassRole",
+   "PolicyDocument": {
+    "Version": "2012-10-17",
+    "Statement": [
+     {
+      "Effect": "Allow",
+      "Action": [
+       "iam:PassRole"
+      ],
+      "Resource": [
+       "arn:aws:iam::767397804933:role/GlueRole"
+      ]
+     }
+    ]
+   }
+  }
+ ],
+ "InstanceProfileList": [],
+ "Tags": [],
+ "RoleLastUsed": {
+  "LastUsedDate": "2024-08-28T07:56:49+00:00",
+  "Region": "us-west-2"
+ },
+ "CustomerManagedPolicies": []
+}

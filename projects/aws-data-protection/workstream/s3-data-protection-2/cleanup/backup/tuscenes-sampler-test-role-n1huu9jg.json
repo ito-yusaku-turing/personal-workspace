@@ -1,0 +1,92 @@
+{
+ "RoleName": "tuscenes-sampler-test-role-n1huu9jg",
+ "Path": "/service-role/",
+ "Arn": "arn:aws:iam::767397804933:role/service-role/tuscenes-sampler-test-role-n1huu9jg",
+ "AssumeRolePolicyDocument": {
+  "Version": "2012-10-17",
+  "Statement": [
+   {
+    "Effect": "Allow",
+    "Principal": {
+     "Service": "lambda.amazonaws.com"
+    },
+    "Action": "sts:AssumeRole"
+   }
+  ]
+ },
+ "AttachedManagedPolicies": [
+  {
+   "PolicyName": "AWSLambdaBasicExecutionRole-e45aa1fe-1b4e-43e7-94e9-50027ebfa76f",
+   "PolicyArn": "arn:aws:iam::767397804933:policy/service-role/AWSLambdaBasicExecutionRole-e45aa1fe-1b4e-43e7-94e9-50027ebfa76f"
+  },
+  {
+   "PolicyName": "AWSLambdaBasicExecutionRole-09ad65ef-c9f2-4025-b2cd-30d95103d1d3",
+   "PolicyArn": "arn:aws:iam::767397804933:policy/service-role/AWSLambdaBasicExecutionRole-09ad65ef-c9f2-4025-b2cd-30d95103d1d3"
+  },
+  {
+   "PolicyName": "SecretsManagerReadWrite",
+   "PolicyArn": "arn:aws:iam::aws:policy/SecretsManagerReadWrite"
+  },
+  {
+   "PolicyName": "AmazonS3FullAccess",
+   "PolicyArn": "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+  }
+ ],
+ "RolePolicyList": [],
+ "InstanceProfileList": [],
+ "Tags": [],
+ "RoleLastUsed": {
+  "LastUsedDate": "2024-07-10T03:18:47+00:00",
+  "Region": "us-west-2"
+ },
+ "CustomerManagedPolicies": [
+  {
+   "arn": "arn:aws:iam::767397804933:policy/service-role/AWSLambdaBasicExecutionRole-e45aa1fe-1b4e-43e7-94e9-50027ebfa76f",
+   "attachments": 1,
+   "document": {
+    "Version": "2012-10-17",
+    "Statement": [
+     {
+      "Effect": "Allow",
+      "Action": "logs:CreateLogGroup",
+      "Resource": "arn:aws:logs:us-west-2:767397804933:*"
+     },
+     {
+      "Effect": "Allow",
+      "Action": [
+       "logs:CreateLogStream",
+       "logs:PutLogEvents"
+      ],
+      "Resource": [
+       "arn:aws:logs:us-west-2:767397804933:log-group:/aws/lambda/tuscenes-sampler-test:*"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:policy/service-role/AWSLambdaBasicExecutionRole-09ad65ef-c9f2-4025-b2cd-30d95103d1d3",
+   "attachments": 1,
+   "document": {
+    "Version": "2012-10-17",
+    "Statement": [
+     {
+      "Effect": "Allow",
+      "Action": "logs:CreateLogGroup",
+      "Resource": "arn:aws:logs:us-west-2:767397804933:*"
+     },
+     {
+      "Effect": "Allow",
+      "Action": [
+       "logs:CreateLogStream",
+       "logs:PutLogEvents"
+      ],
+      "Resource": [
+       "arn:aws:logs:us-west-2:767397804933:log-group:/aws/lambda/tuscenes-merger-test:*"
+      ]
+     }
+    ]
+   }
+  }
+ ]
+}

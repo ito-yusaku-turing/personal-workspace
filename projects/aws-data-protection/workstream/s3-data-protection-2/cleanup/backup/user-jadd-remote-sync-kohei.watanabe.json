@@ -1,0 +1,32 @@
+{
+ "UserName": "jadd-remote-sync-kohei.watanabe",
+ "Arn": "arn:aws:iam::767397804933:user/jadd-remote-sync-kohei.watanabe",
+ "AttachedManagedPolicies": [
+  {
+   "PolicyName": "AmazonS3ExpressFullAccess",
+   "PolicyArn": "arn:aws:iam::767397804933:policy/AmazonS3ExpressFullAccess"
+  },
+  {
+   "PolicyName": "AmazonS3FullAccess",
+   "PolicyArn": "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+  }
+ ],
+ "UserPolicyList": [],
+ "Tags": [],
+ "CustomerManagedPolicies": [
+  {
+   "arn": "arn:aws:iam::767397804933:policy/AmazonS3ExpressFullAccess",
+   "attachments": 2,
+   "document": {
+    "Version": "2012-10-17",
+    "Statement": [
+     {
+      "Action": "s3express:*",
+      "Resource": "*",
+      "Effect": "Allow"
+     }
+    ]
+   }
+  }
+ ]
+}

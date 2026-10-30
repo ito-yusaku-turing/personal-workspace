@@ -511,3 +511,8 @@
   - **SCP は、S3 と deploy のロールに何も効かない**（tuscenes-prod に付くのは `iam-guardrails` の 1 本だけ）。3.2 の経路は、どれも SCP では止まらない。
   - 残った調べ残し: 管理画面で直接した SSO の割り当てと、Control Tower のガードレールの中身・SCP が実際に付いているか。どちらも管理アカウントの権限が要る。
   - pw-1030-pr からも、#2387 の deploy の後の確認 2 が済んだと連絡があった（td1-raw の記録が 07:20:52 UTC から。見張りを止めた時点で `PutObject` 1,752 件など）。
+- 2026-10-30: **掃除の手順書を作った**（伊藤の依頼。[cleanup-runbook.md](s3-data-protection-2/cleanup-runbook.md)）。伊藤が番号ごとに実施し、エージェントが ReadOnly で前後を確かめる。
+  - 1〜11 はすぐ消せるもの: Amplify の SSR のログ用のロール 12 本（判定で当たった 6 本を含む）、CodeCatalyst の 2 本、使われていないロール 6 本（sampler-test・tuscenes-processing・EMRStudio・ecsTaskExecutionRole・GlueRole・SageMaker の 1 本）、キーが無効な IAM ユーザー 3 人。12（sfn-auto-labeling のスタック）と 13（SageMaker のドメイン `e2e`）は扱いを決めてから。
+  - 棚卸しの案件（information-resource-inventory）の掃除の候補と重なるもの（S3・S5〜S7・C3-6）は、この手順書で片付ける。棚卸しのリストの冒頭にその旨を書いた。
+  - 消す前の定義を `cleanup/backup/` に控えた。削除のスクリプト（`cleanup/`）は既定で空実行。ReadOnly で空実行して確かめた。
+  - 削除しないもの: Databricks の Unity Catalog のロール（使用中。Databricks の担当と直し方を相談）、S3BatchDeleteLidar（mono-e2e の lidar-cleaner が参照）、us-east-1・us-east-2 の bootstrap（Coder の旧版のスタックが載っている）など。
