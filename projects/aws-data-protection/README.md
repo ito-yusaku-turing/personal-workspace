@@ -7,7 +7,7 @@ tuscenes-prod（767397804933）の S3 原本バケットを、消失や破壊か
 ## workstream/ — 進行中の作業記録
 
 - [workstream/s3-data-protection-2.md](./workstream/s3-data-protection-2.md): **S3 バケットのデータ保護 第二弾（権限設計のアップグレード）**。古い版ごと消す・守りを外す操作ができる 37 主体を権限設計から直す。ステージ 1〜4 と通し番号の TODO で進める
-  - [workstream/s3-data-protection-2/requirements.md](./workstream/s3-data-protection-2/requirements.md): **全体の状態と要件**（2026-10-30）。議論を要件の明確化まで戻したときの出発点。入っている守り・止まっている作業・選択肢・誰も扱っていないもの、要件の下書き、未回答の問い a〜h、設計の骨格の案
+  - [workstream/s3-data-protection-2/requirements.md](./workstream/s3-data-protection-2/requirements.md): **全体の状態と要件**（2026-10-30）。議論を要件の明確化まで戻したときの出発点。入っている守り・止まっている作業・選択肢・誰も扱っていないもの、要件（1〜14）、問い a〜h とその回答と設計への影響（2026-10-30）、設計の骨格の案
   - [workstream/s3-data-protection-2/current-state.md](./workstream/s3-data-protection-2/current-state.md): **原本バケットの現状**（2026-10-30）。できていること（止める・遅らせる・気づく・戻す・判断の経路ごと）と、だれが何をできるか（強い順に 5 段。例外を名乗れる経路を含む）、ReadOnly で確かめたことと見えていないこと、今の構成の弱点（W1〜W16 と、脅威の範囲との関係）
   - [workstream/s3-data-protection-2/permission-upgrade-plan.md](./workstream/s3-data-protection-2/permission-upgrade-plan.md): チーム共有用のアップグレードプラン（4 原則と進め方。Notion に上げる）
   - [workstream/s3-data-protection-2/breakglass-proposal.md](./workstream/s3-data-protection-2/breakglass-proposal.md): **BreakGlass 権限の導入の提案**。MLOps チームと CorpIT チーム向け。BreakGlass 権限の考え方・今の FullAccess・ギャップ・移行の手順・残るリスク・お願いしたいこと（2026-10-29、第一版。2026-10-30 にチームの議論で選択肢の 1 つに戻した。Notion: https://app.notion.com/p/408a93b3e6f281b38292d14cbbed304c ）
