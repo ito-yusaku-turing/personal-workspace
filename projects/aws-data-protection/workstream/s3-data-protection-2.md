@@ -504,4 +504,4 @@
 - 2026-10-30: **12 本の書き込みの記録が始まった。** [cdk-apps#2387](https://github.com/turingmotors/cdk-apps/pull/2387) は pw-1030-pr のセッションがレビュー対応・マージ（07:16 UTC）・deploy（07:18 UTC）まで行った。このセッションで ReadOnly で確かめた: トレイルの対象は 13 本（カナリア＋12 本）。07:19〜07:22 UTC のログファイルに、td1-raw の `PutObject` 25 件・`UploadPart` 14 件・マルチパートの開始と完了 各 3 件が出ていた（ほかの 11 本は、この時間に書き込みが無かった）。
   - マルチパートの `UploadPart` も 1 件ずつ記録される。費用の見積もり（月 400 万件）は PUT のリクエストの数から出したもので、`UploadPart` を含むとみているが、1 か月後に実際の件数で確かめる。
   - pw-1030-pr の指摘で、worm-design.md の消し方（「BreakGlass が Batch Operations で版を指定して消す」）を直した。Batch Operations には削除の操作が無いので、ライフサイクル（本命）か `LambdaInvoke` にした。
-  - cdk-apps の作業用の worktree（scratchpad の `cdk-trail`）を片付けた。
+  - cdk-apps の作業用の worktree（scratchpad の `cdk-trail`）は、登録がすでに外れていた（中身のディレクトリは scratchpad に残っている）。cdk-apps のローカルのブランチ `original-bucket-audit-trail-12` は残してある（マージ済み）。
