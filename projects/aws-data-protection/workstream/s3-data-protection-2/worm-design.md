@@ -81,20 +81,50 @@ Object Lock に「無期限の保持期間」という設定は無い。候補�
 ### 2.4 今の版だけに鍵をかける（決定 5）ことの意味
 
 - 古い版は、これまでどおり例外の主体なら消せる。今の古い版は、ほとんどが LiDAR の間引きの名残（tuscenes-raw・td1-raw）と見込む。守る価値は低いので、決定と整合する。
-- 対象の一覧は S3 Inventory（今の版だけ）から作る。Batch Operations の費用は、今の版の件数で見積もり直す（整理の 6 章の約 6.5 億件は、古い版を含むかが分かっていない）。
+- 対象の一覧は S3 Inventory（今の版だけ）から作る。件数と費用は 2.5（約 6.5 億件、約 $3,900）。
 - 鍵をかける前（有効化から Batch Operations が終わるまで）に、今の版が守られない期間ができる。順番は「有効化と既定の保持期間 → 新しい書き込みに鍵がかかる → 既存の今の版に Batch Operations」。
 
-### 2.5 対象のバケットごとに確かめること
+### 2.5 対象のバケットごとの今の設定（2026-10-30、ReadOnly で確認）
 
-AWS の認証情報が無く、2026-10-30 には確かめられなかった。ReadOnly で次を見る。
+`readonly` プロファイル（tuscenes-prod の SSO の ReadOnly）で 12 本を見た。12 本とも us-west-2。
 
-- [ ] Object Lock がすでに有効になっていないか（`get-object-lock-configuration`）
-- [ ] ライフサイクルの規則（Expiration・Transition・`NoncurrentVersionExpiration`）
-- [ ] サーバーアクセスログの書き込み先になっていないか（Object Lock を有効にしたバケットは書き込み先にできない）
-- [ ] レプリケーション（複製先にも Object Lock が要る）
-- [ ] 暗号化（SSE-KMS なら、KMS キーの削除への備えが別に要る）
-- [ ] 今の版の件数とストレージクラスの内訳（費用の見積もり）
-- [ ] 書き込みの経路が、`Content-MD5` かチェックサムのヘッダーを付けるか（Databricks、DataSync、Azure からの転送〈denso-nx-raw〉、手元のマシンからのアクセスキーでの書き込み〈gaming-data-collection〉、学習のジョブ〈tuscenes-model〉、アノテーションの取り込み〈tuscenes-annotation〉）
+| 確かめたこと | 結果 | Object Lock への影響 |
+|---|---|---|
+| Object Lock | 12 本とも未設定 | なし。後から有効にできる |
+| バージョニング | 12 本とも有効 | 前提を満たす |
+| ライフサイクル | Intelligent-Tiering への移動だけ（denso-raw は `tmp/` だけ。tuscenes-calibration（新）は規則なし）。Expiration・`NoncurrentVersionExpiration` は無い | **ぶつからない。** 移動は鍵のかかった版にも効く |
+| Intelligent-Tiering のアーカイブ層 | 12 本とも設定なし | アーカイブ層のオブジェクトに鍵をかける手間は無い |
+| サーバーアクセスログ | アカウントのどのバケットも、ログを出していない | 書き込み先の制約に当たらない |
+| レプリケーション | 12 本とも無し | 複製先の手当ては要らない |
+| 暗号化 | 11 本は SSE-S3。tuscenes-calibration（新）は SSE-KMS で、鍵は AWS 管理キー（`aws/s3`） | AWS 管理キーは利用者が消せないので、鍵の削除の心配は無い |
+| S3 Inventory（今の版） | td1-raw（毎日）・tuscenes-raw（毎週）・denso-taxi-video（毎日）にある。出力先は `s3-inventory-results-767397804933` | Batch Operations の対象の一覧に使える。残りの 9 本は、Inventory を足すか、Batch Operations の一覧の生成を使う |
+| イベント通知 | Databricks の自動取り込み（td1-raw・tuscenes-raw・tuscenes-annotation）、`csms-topic-by-path-…`（gaming-data-collection・denso-nx-raw・denso-taxi-processed）、EventBridge（tuscenes-model） | 影響なし。書き込みの経路を確かめるときの手がかりになる |
+
+件数（CloudWatch の `NumberOfObjects`、2026-10-30 の直近の値）:
+
+| バケット | 件数 |
+|---|---|
+| td1-raw | 385,947,691 |
+| tuscenes-raw | 205,524,662 |
+| denso-taxi-video | 19,694,561 |
+| tuscenes-annotation | 13,268,616 |
+| denso-taxi-processed | 11,264,019 |
+| denso-raw | 9,217,039 |
+| td1-rlog | 4,557,929 |
+| tuscenes-model | 543,008 |
+| tuscenes-calibration（旧） | 271,914 |
+| denso-nx-raw | 188,139 |
+| gaming-data-collection | 77,667 |
+| tuscenes-calibration（新） | 354 |
+| **計** | **650,555,599** |
+
+- この件数は古い版も含むとみられる。ただし、バージョニングを入れたのは 2026-10-20 で、LiDAR の間引き（2026-08〜09）はその前なので、古い版はほとんど無い。**今の版だけにしても、件数（と費用）はほぼ減らない。**
+- 費用の見込み: Batch Operations の 1 件あたりの料金で約 $650、`PutObjectRetention` のリクエスト（PUT の料金、1,000 件あたり $0.005）で約 $3,250。**計 約 $3,900。** td1-raw と tuscenes-raw で 9 割を占める。
+
+まだ確かめていないこと:
+
+- [ ] 書き込みの経路が、`Content-MD5` かチェックサムのヘッダーを付けるか（Databricks、DataSync、Azure からの転送〈denso-nx-raw〉、手元のマシンからのアクセスキーでの書き込み〈gaming-data-collection〉、学習のジョブ〈tuscenes-model〉、アノテーションの取り込み〈tuscenes-annotation〉）。バケットの既定の保持期間で鍵がかかる場合も要るのかを、使い捨てのバケットで確かめる
+- [ ] `PutObjectRetention` の料金が、Intelligent-Tiering の低頻度層のオブジェクトでも PUT の料金で済むか
 
 ## 3. モードの議論のための材料（決定 2）
 
@@ -131,7 +161,7 @@ AWS の認証情報が無く、2026-10-30 には確かめられなかった。Re
 - [ ] 決定 5 の読み方の確認（今の版には鍵をかける、でよいか）
 - [ ] モードの議論（3 章）
 - [ ] 2.1 の ① と ② を、使い捨てのバケットで試す（整理の 9 章。カナリアとは別のバケット）
-- [ ] 2.5 のバケットごとの確認（ReadOnly）
+- [x] 2.5 のバケットごとの確認（ReadOnly。2026-10-30。書き込みの経路のヘッダーは残り）
 - [ ] 監査ログのバケット（`original-bucket-audit-logs-767397804933`）の扱い（整理の 9 章では、コンプライアンスの最初の対象にする案）
 - [ ] 原則 2（ライフサイクルで消す）と、BreakGlass の提案の直し（2.3）
 - [ ] バケットポリシーへの Deny の追加（2.2）を、ステージ 1 と BreakGlass の差し替えの手順のどこに入れるか
