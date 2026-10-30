@@ -2,7 +2,7 @@
 
 - 作成: 2026-10-30
 - 親: [原本バケットの WORM 化の設計](worm-design.md) の 2.1「試して確かめること」
-- 状態: **保留（2026-10-30）。** WORM は「外せない層」の本命の候補（仮決定）。Q4（コンプライアンスで解除できるか）はドキュメントで「できる」と確かめた（[option-reassessment.md](option-reassessment.md) の 7.3）。WORM を採ると決めたときに再開する。Batch Operations の確かめは、別のセッション（pw-1030-pr）が進めている
+- 状態: **保留（2026-10-30）。** WORM は「外せない層」の本命の候補（仮決定）。Q4（コンプライアンスで解除できるか）はドキュメントで「できる」と確かめた（[option-reassessment.md](option-reassessment.md) の 7.3）。WORM を採ると決めたときに再開する。Batch Operations の CloudTrail の記録は、別のセッション（pw-1030-pr）がカナリアで確かめ済み（option-reassessment.md の 7.4）
 - 実行する人: 伊藤（`full` プロファイル＝tuscenes-prod の SSO の FullAccess）。エージェントは ReadOnly で結果を確かめる
 
 原本バケットに入れる前に、ドキュメントに書かれていない挙動を、使い捨てのバケット 1 本で確かめる。

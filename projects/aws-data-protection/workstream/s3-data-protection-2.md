@@ -531,9 +531,9 @@
     3. 即時の通知の仕組み（今は誰にも通知されない。W8〜W10）。毎時の報告の設計（stage2-hourly-report.md）は、要件 10 に合わせて見直す。
     4. Databricks の Unity Catalog のロール（deploy のロールを引き受けられる）の直し方を、Databricks の担当と相談する。
     5. 最後に Notion を直す（BreakGlass の提案・プランの原則 4）。
+  - **済んだこと（念のため）:** Batch Operations の CloudTrail の記録の確かめは、別のセッション（pw-1030-pr）が済ませた。結果は option-reassessment.md の 7.4。一時ロールも片付け済み。
   - **待っていること・人に頼むこと:**
     - 管理アカウントの権限が要る調べ: 管理画面で直接した SSO の割り当て、Control Tower のガードレールの中身、SCP が実際に付いているか（CorpIT か、管理アカウントに入れる人）。
-    - Batch Operations の確かめは、別のセッション（pw-1030-pr）が進めている。このセッションでは触らない。
   - **注意:**
     - 掃除の控え（`cleanup/backup/`）は 2026-10-30 の `get-account-authorization-details` から作った。実施が遅れたら、直前の状態と食い違っていないか確かめる。
     - 控えの IAM ユーザーの JSON に、アクセスキーの ID が入ったまま一度 push した（cf4b5d2）。f0433d3 で伏せ字にした。キーは無効で、ユーザーごと消す予定。
