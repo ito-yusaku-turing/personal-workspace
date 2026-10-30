@@ -500,3 +500,4 @@
   - 固定の保持期限を指定するリクエストでもホールドは外れるので、バケットポリシーは `s3:PutObjectRetention` 全体を Deny する。解除用のロールを渡すことは SCP で絞る（TODO 24）。
   - CloudTrail のイベント名は `PutObjectLockRetention`。EventBridge の `Object Retention Updated` で即時に通知できる。コンプライアンスでも解除できることは、ドキュメントで確かめられた（試しの Q4 は確認の意味になった）。
   - W3 の App は `cdk-apps-auto-merge`。権限はマージだけで、認証情報は `main` からしか使えない environment にある。おそれは小さい。
+- 2026-10-30: **pw-1030-pr のセッションから、Batch Operations の CloudTrail の記録の実測が届いた**（[cdk-apps#2387](https://github.com/turingmotors/cdk-apps/pull/2387) のレビュー対応、カナリアで）。option-reassessment.md の 7.4 に書いた。主体はジョブのロール（セッション名にジョブ ID）、人までは `JobCreated` と `CreateJob` を時刻で突き合わせる。キーごとにデータイベントになり、WORM のホールドをかけるときにトレイルの分が約 $650 増える（worm-design.md の費用に足した）。Batch Operations の件は、このセッションでは進めない（伊藤の指示）。

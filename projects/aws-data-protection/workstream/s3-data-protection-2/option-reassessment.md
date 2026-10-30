@@ -208,9 +208,18 @@ FullAccess（13 名）はふだんの権限のまま残し、原本バケット�
 | GitHub の API（`repos/turingmotors/cdk-apps`、`orgs/turingmotors`、`environments`、`rulesets`、`rules/branches/main`） | 非公開、プランは Team。environment は `auto-merge`（ブランチの制限だけ）と `copilot`。`main` のルールは PR 必須・承認 1 名・CODEOWNERS 必須で、**承認のあとの push の承認し直しも、古い承認の取り消しも無効** |
 | cdk-apps の main（`git grep`）と `update-cdk-context-image-digest.yml` | Batch Operations の先例は無い。OIDC のロールはどれも `sub` で絞る形。W3 の App は `cdk-apps-auto-merge` で、権限はマージだけ、認証情報は `main` からしか使えない environment に置かれ、送り手も固定されている（W3 のおそれは小さい。鍵が漏れたら、開いている PR を承認なしでマージできる点は残る） |
 
-### 7.4 確かめていないこと（試しに足す）
+### 7.4 カナリアでの実測（2026-10-30、pw-1030-pr のセッション）
 
-- Batch Operations の操作の CloudTrail の記録で、主体がジョブのロールになり、`invokedBy` に何が入るか。
+[cdk-apps#2387](https://github.com/turingmotors/cdk-apps/pull/2387) のレビュー対応で、別のセッション（pw-1030-pr）がカナリアで確かめた。2026-10-30 06:33 UTC に、`batch-probe/` の 2 件へ Batch Operations のジョブ（`S3PutObjectTagging`、一時ロール `original-bucket-canary-batch-probe`）を流し、トレイル `original-bucket-audit` のログを ReadOnly で読んだ。
+
+- **キーごとに 1 件ずつ、データイベントとして記録される。** 費用は 1 億件あたり $100 で、Batch Operations の料金（100 万件あたり $1）と同じ額が上乗せされる。WORM で 6.5 億件にホールドをかけると、トレイルの分が約 $650 増える（12 本の記録を始めた後なら）。
+- **主体は、ジョブを作った人ではなく、ジョブに渡したロール。** `userIdentity.arn` は `assumed-role/<ジョブのロール>/s3-batch-operations_<ジョブ ID>`。`invokedBy`・`sourceIPAddress`・`userAgent` は `batchoperations.s3.amazonaws.com`。→ 7.2 の「バケットポリシーで、解除用のロールだけに `PutObjectRetention` を許す」は、この形で効く。
+- **人までは、管理イベントを時刻で突き合わせて辿る。** `CreateJob` の主体は作った人で、`RoleArn`・`Operation`・`Manifest` は載るが、ジョブ ID は載らない。`JobCreated` にはジョブ ID が載るが、主体は `s3.amazonaws.com`。「データイベントのセッション名のジョブ ID → `JobCreated` の時刻 → 同じ時刻・同じ `RoleArn` の `CreateJob` → 人」の順に辿る。7.1 の形なら `CreateJob` の主体は OIDC のロールになるので、workflow の実行の記録にジョブ ID を残し、PR（人）につなぐ。
+- **Batch Operations には削除の操作が無い。** 削除は `LambdaInvoke` 経由だけで、そのときは Lambda のロールの `DeleteObject` がキーごとに記録される。
+- `S3BatchDeleteLidar` のロールは一度も使われていない。2026-08〜09 の LiDAR の削除は、LidarDeleter による直接の削除だった。
+
+### 7.5 確かめていないこと（試しに足す）
+
 - 固定の保持期限を指定するリクエストに、条件キー `s3:object-lock-event-hold` が付くか（付かなくても、7.2 のとおり `PutObjectRetention` 全体を Deny すれば足りる）。
 - API から作ったジョブで、`ConfirmationRequired: true` が効くか（ドキュメントが食い違う）。
 - コンプライアンスでの解除（Q4）。ドキュメントでは「できる」と読めるので、試しは確認の意味になった。
