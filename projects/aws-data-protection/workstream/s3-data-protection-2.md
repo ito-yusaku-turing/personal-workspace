@@ -481,3 +481,7 @@
   - 次: チームのレビュー → マージ（伊藤）→ deploy の後、`get-event-selectors` で 13 本と、`trail/` に原本バケットの `PutObject` が出ることを ReadOnly で確かめる。
   - 記録されないもの: ライフサイクルの失効（S3 のイベントを足すまで）、バケットの設定の変更（Control Tower の証跡に残る）。ログのバケットの守り（古い版を 1 日で消す、例外の主体なら消せる）は、監査ログの問題として分けて扱う。
   - 作業場所: cdk-apps の worktree は scratchpad の `cdk-trail`（ブランチ `original-bucket-audit-trail-12`、push 済み）。
+- 2026-10-30: **今の構成の弱点を整理した**（[current-state.md](s3-data-protection-2/current-state.md) の 6 章、W1〜W16）。
+  - 一番大きい穴: cdk-apps の PR 1 本（承認 1 名）で、ライフサイクルから 12 本の古い版を大量に消せる。ライフサイクルの失効はどこにも記録されず、だれも気づかない（W2・W10・W8）。
+  - 新しく分かったこと: cdk-apps の `main` は、ルールセットで PR と承認 1 名（CODEOWNERS）が必須。ただしルールセット `main-image-digest-auto-merge` が、ある GitHub App（Integration ID 4444115）に承認なしのマージを許している（W3。正体は未確認）。
+  - 脅威の範囲（問い b）ごとに効く弱点を対応づけた（6.6）。誤操作だけならアカウントの中で手当てできる。乗っ取り・悪意まで含めると、組織の層・WORM・別の場所への写しのどれかが要る。
