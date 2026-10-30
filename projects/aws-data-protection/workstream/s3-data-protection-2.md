@@ -1,7 +1,7 @@
 # S3 バケットのデータ保護 第二弾（権限設計のアップグレード）
 
 - 開始: 2026-10-20
-- 状態: **BreakGlass は撤回の方向、WORM は本命の候補（仮決定、2026-10-30）**。ホールドの解除の経路を調べた（[option-reassessment.md](s3-data-protection-2/option-reassessment.md) の 7 章）。12 本の書き込みの記録は 2026-10-30 に始まった（[cdk-apps#2387](https://github.com/turingmotors/cdk-apps/pull/2387)）。次は 7.2 の設定と 2 人目の確認の強め方を決め、5 章の骨格に選択肢を当てはめる
+- 状態: **要件を固め、BreakGlass は撤回の方向・WORM は本命の候補（仮決定）とした。掃除の手順書を作り、伊藤が実施する段**（2026-10-30）。次は掃除（[cleanup-runbook.md](s3-data-protection-2/cleanup-runbook.md) の 1〜11）の実施の確認と、全体設計（解除の経路の設定・2 人目の確認の強め方・骨格への当てはめ）
 - 所属: project:aws-data-protection（2026-10-26 に `~/docs/workstream/` から移した）
 - 前段（第一弾、完了）:
   - [走行データ消失リスクへの対応](done/raw-data-security.md)（バケットの種別と処遇、裁定の正本）
