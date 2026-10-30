@@ -11,7 +11,7 @@
 
 注力している順に並べる。1件は `- [<project-id>/workstream/<名前>.md](./<同じパス>): 一言メモ` の1行にする。状態そのものは各 workstream の `- 状態:` 行に書き、ここには写さない。
 
-- [aws-data-protection/workstream/s3-data-protection-2.md](./aws-data-protection/workstream/s3-data-protection-2.md): 要件の明確化まで議論を戻した（BreakGlass・WORM は選択肢）。requirements.md の問いに答えるところから
+- [aws-data-protection/workstream/s3-data-protection-2.md](./aws-data-protection/workstream/s3-data-protection-2.md): 全体設計に視点を戻し、現状を current-state.md に整理した。requirements.md の問いに答えるところから
 - [tern-ios-auth/workstream/tern-backend-api.md](./tern-ios-auth/workstream/tern-backend-api.md):
 - [m2m-auth/workstream/m2m-auth.md](./m2m-auth/workstream/m2m-auth.md):
 - [information-resource-inventory/workstream/aws-resource-inventory.md](./information-resource-inventory/workstream/aws-resource-inventory.md): tuscenes-prod の総ざらい

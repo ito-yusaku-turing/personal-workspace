@@ -1,7 +1,7 @@
 # S3 バケットのデータ保護 第二弾（権限設計のアップグレード）
 
 - 開始: 2026-10-20
-- 状態: **議論を要件の明確化まで戻した**（2026-10-30）。BreakGlass と WORM は選択肢の 1 つに戻した。次は [requirements.md](s3-data-protection-2/requirements.md) の「要件を明確にするための問い」（a〜h。とくに b＝脅威の範囲）に答える
+- 状態: **全体設計に視点を戻し、現状を整理した**（2026-10-30）。できていることと、だれが何をできるかを [current-state.md](s3-data-protection-2/current-state.md) にまとめた。次は [requirements.md](s3-data-protection-2/requirements.md) の問い a〜h（とくに b＝脅威の範囲）に答える
 - 所属: project:aws-data-protection（2026-10-26 に `~/docs/workstream/` から移した）
 - 前段（第一弾、完了）:
   - [走行データ消失リスクへの対応](done/raw-data-security.md)（バケットの種別と処遇、裁定の正本）
@@ -466,3 +466,11 @@
     - WORM の試しの手順書（worm-probe-runbook.md）は保留。実行していない。
     - 監査ログのバケットの守りは、分けて扱う。置き場所は未定。
     - AWS は `readonly` プロファイル（tuscenes-prod の ReadOnly）で見られる。`default` は認証が通らない。
+- 2026-10-30: **全体設計に視点を戻し、現状を整理した**（伊藤の依頼）。[current-state.md](s3-data-protection-2/current-state.md) にまとめた。
+  - ReadOnly で確かめた: 12 本ともバージョニング有効・2 文の Deny が雛形どおり・Object Lock なし。IAM ユーザーは 37。deploy のロールの信頼は `767397804933:root`。CdkDeployRole は cdk-apps の `main` だけ。
+  - 分かったこと:
+    - 古い版を直接消せるのは FullAccess（13 名）・AWSAdministratorAccess（1 名）と、守りを外す cfn-exec-role だけ（10-20 は 37 主体）。26 主体はふつうの削除・上書きまでに下がった。
+    - 例外を名乗れる経路: cdk-apps の `main` へのマージ、Control Tower の 2 本・StackSets・CodeCatalyst のロール（deploy のロールの引き受けやロールの作成ができる。シミュレーターで確認）、root、管理アカウントの管理者。
+    - 監査のアプリ（[cdk-apps#2267](https://github.com/turingmotors/cdk-apps/pull/2267)）は 10-26 に deploy 済みで、カナリアのデータイベントを記録している。requirements.md の「PR あり・保留」を直した。
+    - 管理イベントは Control Tower の証跡に残る（通知は無い）。
+  - 見えていないこと: 残りのロール約 620 本のシミュレーション（指示を受けてから）、SCP の効き方、管理画面で直接した SSO の割り当て、cdk-apps の `main` にマージできる人。

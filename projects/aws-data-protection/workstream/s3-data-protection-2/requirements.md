@@ -15,6 +15,8 @@
 
 ## 2. 全体の状態（2026-10-30）
 
+今の守りと、だれが何をできるかの詳しい整理は [current-state.md](current-state.md)。
+
 ### 2.1 入っている守り
 
 | 守り | 状態 | 効いていること | 残っている穴 |
@@ -27,7 +29,7 @@
 
 | 項目 | 状態 | 資料 |
 |---|---|---|
-| 削除の検知（ステージ 2） | 設計と PR（[cdk-apps#2267](https://github.com/turingmotors/cdk-apps/pull/2267)）あり。保留 | [stage2-hourly-report.md](stage2-hourly-report.md) |
+| 削除の検知（ステージ 2） | 記録の仕組みは deploy 済み（[cdk-apps#2267](https://github.com/turingmotors/cdk-apps/pull/2267)、2026-10-26）。対象はカナリアだけ。毎時の報告（PR-A）と 12 本への拡大（PR-B）は保留 | [stage2-hourly-report.md](stage2-hourly-report.md) |
 | tuscenes-prod の root の認証情報（パスワード有効・MFA なし） | CorpIT の対応待ち | [aws-root-credentials.md](../aws-root-credentials.md) |
 | LidarDeleter・S3BatchDeleteLidar（消すための常設のロール） | 扱いが決まっていない | 第二弾の TODO 16 |
 | `grantReadWrite` が広すぎるアプリ 4 本、長期キーの IAM ユーザー、使われていない強いロール | 手つかず | 第二弾のステージ 4（TODO 12〜15） |
@@ -97,7 +99,7 @@ a・b・e で、どの選択肢が要るかがほぼ決まる。とくに **b �
 | 作業 | 今の状態 | 決めること |
 |---|---|---|
 | ステージ 1（バケットポリシーの Deny） | 12 本に導入済み | 選択肢ではなく「今ある層」として扱ってよいか |
-| ステージ 2（削除の検知） | PR を出したまま保留 | 「気づく」は要件なので、手段の検討を再開するか |
+| ステージ 2（削除の検知） | カナリアだけ記録中。PR-A・PR-B は保留 | 「気づく」は要件なので、手段の検討を再開するか |
 | 共有済みのプラン（4 原則、Notion） | 2026-10-21 に掲載 | 原則 2（ライフサイクルで消す）などが、ここでの整理と食い違いうる。全体設計に置き換えるか |
 | BreakGlass の提案（Notion） | 選択肢に戻した | Notion 版の冒頭に状態を書くか |
 | WORM の試しの手順書 | 未実行 | 保留。WORM を採ると決めたときに再開する |
