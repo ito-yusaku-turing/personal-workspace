@@ -26,7 +26,7 @@
 | 止める | SCP `DenyReservedPathRoles`（[cdk-apps#2150](https://github.com/turingmotors/cdk-apps/pull/2150)） | SSO のロール（`/aws-reserved/`）を作ったり信頼を変えたりできないので、SSO の例外を名乗れない | `cdk-hnb659fds-*` のロールは対象外（TODO 24） |
 | 止める | 危ない主体の片付け | IAM ユーザー jadd_studio_amplify を削除（2026-10-26）。deploy のロールを名乗れた主体が 1 つ減った | 3.3 の主体は手つかず |
 | 遅らせる | なし | — | 消す操作に猶予が無い |
-| 気づく | 監査のアプリ `original-bucket-audit`（[cdk-apps#2267](https://github.com/turingmotors/cdk-apps/pull/2267)、2026-10-26 deploy） | カナリアのバケットの書き込み系のデータイベントを記録している | 12 本は対象外。**12 本の記録だけを先に始める PR を出した**（[cdk-apps#2387](https://github.com/turingmotors/cdk-apps/pull/2387)、2026-10-30、レビュー待ち）。毎時の報告（PR-A）と、12 本の S3 のイベント・Inventory（PR-B）は保留 |
+| 気づく | 監査のアプリ `original-bucket-audit`（[cdk-apps#2267](https://github.com/turingmotors/cdk-apps/pull/2267)、2026-10-26 deploy） | カナリアのバケットの書き込み系のデータイベントを記録している | 12 本は対象外。**12 本の書き込みの記録は 2026-10-30 に始まった**（[cdk-apps#2387](https://github.com/turingmotors/cdk-apps/pull/2387)、07:18 UTC に deploy）。毎時の報告（PR-A）と、12 本の S3 のイベント・Inventory（PR-B）は保留 |
 | 気づく | Control Tower の証跡（`aws-controltower-BaselineCloudTrail`） | 管理イベント（ポリシー・バージョニング・ライフサイクルの変更、ロールの引き受け）が、ログのアカウント（617808723336）に残る | 通知は無い。データイベント（古い版の削除）は残らない |
 | 戻す | バージョニング（12 本。2026-10-20） | ふつうの削除・上書きは戻せる。古い版の失効は設定していない | 古い版ごと消されると戻せない。別の場所への写しは無い |
 | 判断と特権の経路 | 例外の主体（FullAccess・AWSAdministratorAccess・deploy の経路） | — | 判断の手続き・記録・通知が無い。BreakGlass は選択肢に戻した |
@@ -132,7 +132,7 @@ FullAccess・AWSAdministratorAccess も deploy のロールを引き受けられ
 
 | # | 弱点 | 脅威 |
 |---|---|---|
-| W8 | **だれにも通知されない。** 12 本の書き込みの記録は PR 待ち（[cdk-apps#2387](https://github.com/turingmotors/cdk-apps/pull/2387)）。入っても、後から調べられるようになるだけ | すべて |
+| W8 | **だれにも通知されない。** 12 本の書き込みの記録は 2026-10-30 に始まった（[cdk-apps#2387](https://github.com/turingmotors/cdk-apps/pull/2387)）が、後から調べられるようになっただけ | すべて |
 | W9 | **守りの変更（ポリシー・ライフサイクル・バージョニング）を、だれも見ていない。** 管理イベントは Control Tower の証跡に残るが、置き場所はログのアカウント（617808723336）で、読めるかも確かめていない。tuscenes-prod の中で引けるのは 90 日分のイベント履歴だけ | すべて |
 | W10 | **ライフサイクルで消えたものは、どこにも記録されない。** CloudTrail に出ず、S3 のイベントはカナリアだけ。W2 の経路で消されると、後から調べても「何が消えたか」が分からない | 誤操作・悪意 |
 | W11 | **記録そのものを消せる。** ログのバケットは古い版を 1 日で消す設定で、例外の主体なら中身も消せる（監査ログの問題として分けて扱う） | 悪意 |

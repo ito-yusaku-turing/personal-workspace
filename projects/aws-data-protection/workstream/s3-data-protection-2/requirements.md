@@ -29,7 +29,7 @@
 
 | 項目 | 状態 | 資料 |
 |---|---|---|
-| 削除の検知（ステージ 2） | 記録の仕組みは deploy 済み（[cdk-apps#2267](https://github.com/turingmotors/cdk-apps/pull/2267)、2026-10-26）。対象はカナリアだけ。12 本の記録だけを先に始める PR（[cdk-apps#2387](https://github.com/turingmotors/cdk-apps/pull/2387)）はレビュー待ち。毎時の報告（PR-A）と 12 本の S3 のイベント・Inventory（PR-B）は保留 | [stage2-hourly-report.md](stage2-hourly-report.md) |
+| 削除の検知（ステージ 2） | 記録の仕組みは deploy 済み（[cdk-apps#2267](https://github.com/turingmotors/cdk-apps/pull/2267)、2026-10-26）。対象はカナリアだけ。12 本の書き込みの記録は 2026-10-30 に始まった（[cdk-apps#2387](https://github.com/turingmotors/cdk-apps/pull/2387)）。毎時の報告（PR-A）と 12 本の S3 のイベント・Inventory（PR-B）は保留 | [stage2-hourly-report.md](stage2-hourly-report.md) |
 | tuscenes-prod の root の認証情報（パスワード有効・MFA なし） | CorpIT の対応待ち | [aws-root-credentials.md](../aws-root-credentials.md) |
 | LidarDeleter・S3BatchDeleteLidar（消すための常設のロール） | 扱いが決まっていない | 第二弾の TODO 16 |
 | `grantReadWrite` が広すぎるアプリ 4 本、長期キーの IAM ユーザー、使われていない強いロール | 手つかず | 第二弾のステージ 4（TODO 12〜15） |

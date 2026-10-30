@@ -94,11 +94,15 @@ CloudFormation（CDK）・CLI・Batch Operations は、どれも可変の保持�
 
 直した後の流れ:
 
-1. BreakGlass が、Batch Operations で対象の版のホールドを解除する。解除は通知される。
+1. cdk-apps の PR から、専用の workflow が Batch Operations のジョブを作り、対象の版のホールドを解除する（[option-reassessment.md](option-reassessment.md) の 7.1）。解除は通知される。
 2. 30 日待つ。
-3. BreakGlass が、Batch Operations で版を指定して消す。
+3. 消す。**Batch Operations には削除の操作が無い**（2026-10-30 に確認。削除は `LambdaInvoke` 経由だけ）。消し方は次のどちらか。
+   - ライフサイクルで消す（本命）。1 で解除と同時にタグを付け、タグで絞った規則を PR で入れる。
+   - Batch Operations の `LambdaInvoke` で、Lambda に版を指定して消させる。Lambda のロールの `DeleteObject` がキーごとに記録される。
 
-- ライフサイクルで消すなら、1 で解除と同時にタグを付け、タグで絞った規則にする。プレフィックスだけで絞ると、同じプレフィックスのホールド中の版にも削除マーカーが付き、読み手から見えなくなる。
+> 2026-10-30 に直した。当初は「BreakGlass が解除し、BreakGlass が Batch Operations で版を指定して消す」と書いていた。BreakGlass は撤回の方向になり、Batch Operations に削除の操作が無いことも分かったため。
+
+- ライフサイクルで消すときは、タグで絞った規則にする。プレフィックスだけで絞ると、同じプレフィックスのホールド中の版にも削除マーカーが付き、読み手から見えなくなる。
 - 古い版（鍵なし）は、これまでどおりライフサイクルの `NoncurrentVersionExpiration` で消せる。ホールド中の今の版に削除マーカーを置いても、その版は古い版になるだけで、鍵は残る。
 - 原則 2 と、BreakGlass の提案の「BreakGlass 権限を使う場面」を、この流れに合わせて直す。
 

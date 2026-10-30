@@ -1,7 +1,7 @@
 # S3 バケットのデータ保護 第二弾（権限設計のアップグレード）
 
 - 開始: 2026-10-20
-- 状態: **BreakGlass は撤回の方向、WORM は本命の候補（仮決定、2026-10-30）**。ホールドの解除の経路を調べた（[option-reassessment.md](s3-data-protection-2/option-reassessment.md) の 7 章）。12 本の記録だけを先に始める PR（[cdk-apps#2387](https://github.com/turingmotors/cdk-apps/pull/2387)）はレビュー待ち。次は 7.2 の設定と 2 人目の確認の強め方を決め、5 章の骨格に選択肢を当てはめる
+- 状態: **BreakGlass は撤回の方向、WORM は本命の候補（仮決定、2026-10-30）**。ホールドの解除の経路を調べた（[option-reassessment.md](s3-data-protection-2/option-reassessment.md) の 7 章）。12 本の書き込みの記録は 2026-10-30 に始まった（[cdk-apps#2387](https://github.com/turingmotors/cdk-apps/pull/2387)）。次は 7.2 の設定と 2 人目の確認の強め方を決め、5 章の骨格に選択肢を当てはめる
 - 所属: project:aws-data-protection（2026-10-26 に `~/docs/workstream/` から移した）
 - 前段（第一弾、完了）:
   - [走行データ消失リスクへの対応](done/raw-data-security.md)（バケットの種別と処遇、裁定の正本）
@@ -501,3 +501,7 @@
   - CloudTrail のイベント名は `PutObjectLockRetention`。EventBridge の `Object Retention Updated` で即時に通知できる。コンプライアンスでも解除できることは、ドキュメントで確かめられた（試しの Q4 は確認の意味になった）。
   - W3 の App は `cdk-apps-auto-merge`。権限はマージだけで、認証情報は `main` からしか使えない environment にある。おそれは小さい。
 - 2026-10-30: **pw-1030-pr のセッションから、Batch Operations の CloudTrail の記録の実測が届いた**（[cdk-apps#2387](https://github.com/turingmotors/cdk-apps/pull/2387) のレビュー対応、カナリアで）。option-reassessment.md の 7.4 に書いた。主体はジョブのロール（セッション名にジョブ ID）、人までは `JobCreated` と `CreateJob` を時刻で突き合わせる。キーごとにデータイベントになり、WORM のホールドをかけるときにトレイルの分が約 $650 増える（worm-design.md の費用に足した）。Batch Operations の件は、このセッションでは進めない（伊藤の指示）。
+- 2026-10-30: **12 本の書き込みの記録が始まった。** [cdk-apps#2387](https://github.com/turingmotors/cdk-apps/pull/2387) は pw-1030-pr のセッションがレビュー対応・マージ（07:16 UTC）・deploy（07:18 UTC）まで行った。このセッションで ReadOnly で確かめた: トレイルの対象は 13 本（カナリア＋12 本）。07:19〜07:22 UTC のログファイルに、td1-raw の `PutObject` 25 件・`UploadPart` 14 件・マルチパートの開始と完了 各 3 件が出ていた（ほかの 11 本は、この時間に書き込みが無かった）。
+  - マルチパートの `UploadPart` も 1 件ずつ記録される。費用の見積もり（月 400 万件）は PUT のリクエストの数から出したもので、`UploadPart` を含むとみているが、1 か月後に実際の件数で確かめる。
+  - pw-1030-pr の指摘で、worm-design.md の消し方（「BreakGlass が Batch Operations で版を指定して消す」）を直した。Batch Operations には削除の操作が無いので、ライフサイクル（本命）か `LambdaInvoke` にした。
+  - cdk-apps の作業用の worktree（scratchpad の `cdk-trail`）を片付けた。
