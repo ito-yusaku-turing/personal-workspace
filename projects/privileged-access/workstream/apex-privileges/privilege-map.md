@@ -153,7 +153,7 @@ tuscenes-prod の deploy のロールはアプリに関係なく 1 組なので�
 | I12 | 管理画面で直接した SSO の割り当て（`organization-policy` の外のもの）があるか | 例外の権限セットに届く人の漏れ | CorpIT | 未 |
 | I13 | Okta の管理者と、AWS の権限セットにつながるグループを変えられる人 | Okta から FullAccess を付けられる経路 | CorpIT | 未 |
 | I14 | 管理アカウントの root の管理（誰が持ち、どう保管しているか） | 最上位の上位権限者 | CorpIT | 未 |
-| I15 | identity の environment `okta-prod`・`google-workspace-prod` のブランチの制限を、identity の admin が外せるか（P5 と同じ手口） | 頂点の群のつながり（9 章） | CorpIT | 未 |
+| I15 | identity の environment `okta-prod`・`google-workspace-prod` のブランチの制限を、identity の admin が外せるか（P5 と同じ手口） | 頂点の群のつながり（9 章） | CorpIT | 答えあり（2026-11-02、GitHub の API で自分で確認。3 つともブランチの制限だけ。鍵を止める条件は GCP 側にあり I27 で聞く） |
 | I16 | Google Workspace の特権管理者と、GCP の組織・`corp-it-485102` の管理者は誰か | 頂点の群の人 | CorpIT | 一部（2026-11-02。実質の最高権限者は 4 名。Workspace の super admin かどうかは I26） |
 | I17 | Okta の特権管理者は誰か。Okta の管理者のアカウントにかかる要件（MFA・専用のアカウントなど） | 頂点の群の人 | CorpIT | 未 |
 | I18 | GCP の権限を持つ人のログインは Okta の SAML 経由か。SAML を迂回できる管理者は誰か | Okta から GCP へのつながり（推定）の確認 | CorpIT | 一部（2026-11-02。Okta を飛ばしてログインできるのは GCP だけ。誰が迂回できるかは未） |
@@ -167,6 +167,8 @@ tuscenes-prod の deploy のロールはアプリに関係なく 1 組なので�
 | I26 | 実質の最高権限者の 4 名が持っているのは、GCP の組織管理者か、Workspace の super admin か、両方か。Workspace の super admin はこの 4 名だけか | 4 名の外に super admin がいれば、その人も頂点になる（10.1） | CorpIT | 未 |
 | I27 | 止められている循環（9.1 の C1〜C4）はどれか。どの仕組みで止めているか | 構造上の経路と、実際の経路を分ける | CorpIT | 未（2026-11-02 に「いくつかは止めてある」とだけ聞いた） |
 | I28 | GitHub の owner のうち、4 名に入らない 4 名（棚橋 耕太郎・安本 雅啓・渡邉 礁太郎・山下 卓也）の位置付け。C1 は止められているか | C1 が通るなら、この 4 名も実質の最高権限者に近い | CorpIT | 未 |
+| I29 | Workspace の apply のサービスアカウント（`tf-google-workspace-apply@`）の管理ロールの範囲。ドメイン全体か、OU に限っているか | ロールはユーザーとグループのすべての操作（パスワードの再設定を含む）。範囲がドメイン全体なら、IaC の外のアカウントやグループも書き換えられる（S3 の案件の requirements.md の 7.5.2 の 4） | CorpIT | 未 |
+| I30 | 組織のルールセットを、GitHub の Team プランで cdk-apps の `main` に使えるか。CorpIT（owner）に設定してもらえるか | リポジトリの admin が `main` の保護を外せないようにする（P3）。S3 の案件で、システム保全責任者が cdk-apps の admin を兼ねる条件（requirements.md の 7.5.2 の 3） | CorpIT（owner） | 未 |
 
 ## 8. 構造上の上位権限者の台帳
 
@@ -194,73 +196,73 @@ tuscenes-prod の deploy のロールはアプリに関係なく 1 組なので�
 
 ### 9.1 構造
 
-一直線の階層ではない。**互いに届き合う「頂点の群」**があり、その下に枝が付いている。推定を含む（I15〜I18）。
-
-図 1: 輪の中心（太い赤の辺が輪を閉じている。点線は推定）
+CorpIT によれば、**GCP が最上位**にある（2026-11-02 の聞き取り）。そこで、上から下へ流れる階層として描く。**下の層から上の層へ向かう矢印（赤）が、異常ポイント**になる。太い赤は経路が確認済みのもの、点線の赤は推定のもの。
 
 ```mermaid
 flowchart TB
-  GH["GitHub の組織<br/>owner 7 名・team-leaders 5 名"]
-  APPLY["identity の apply<br/>（GitHub Actions）"]
-  GCP["GCP corp-it-485102<br/>apply の鍵・state"]
-  OKTA["Okta"]
-  GWS["Google Workspace"]
+  subgraph L0["最上位（Okta を飛ばしてログインできる）"]
+    GCP["GCP（組織・corp-it-485102）<br/>実質の最高権限者 4 名"]
+    GWSSA["Workspace の super admin<br/>（4 名と同じか: I26）"]
+  end
+  subgraph L1["変更の経路"]
+    APPLY["identity の apply<br/>鍵は GCP の Secret Manager"]
+  end
+  subgraph L2["ID とアカウント"]
+    GWSU["Workspace の<br/>ユーザー・グループ"]
+    OKTA["Okta"]
+    GH["GitHub の組織<br/>owner 7 名"]
+  end
+  subgraph L3["リポジトリ"]
+    IDREPO["identity リポジトリ"]
+    CDK["cdk-apps"]
+  end
+  subgraph L4["AWS"]
+    AWSACC["AWS の各アカウント<br/>（原本バケットを含む）"]
+  end
+  AWSM["AWS 管理アカウント・root<br/>（別系統の最上位）"]
 
-  GH -->|"P5: identity の admin が<br/>environment の制限を外す"| APPLY
   GCP -->|"apply の鍵"| APPLY
-  APPLY -->|"members.tf で<br/>owner にする"| GH
-  APPLY -.->|"E1: gcp-organization-admins@<br/>のメンバーを書く（I19）"| GCP
+  GWSSA -->|"管理"| GWSU
+  APPLY -->|"ユーザー・グループ"| GWSU
   APPLY -->|"ユーザー・グループ"| OKTA
-  APPLY -->|"ユーザー・グループ"| GWS
-  GWS -->|"管理者は SAML を<br/>迂回してログイン"| GCP
-  OKTA -.->|"SAML でログイン（I18）"| GCP
+  APPLY -->|"メンバー・チーム・owner"| GH
+  GH --> IDREPO
+  GH --> CDK
+  CDK -->|"organization-policy・<br/>deploy のロール"| AWSACC
+  OKTA -->|"グループ → 権限セット"| AWSACC
+  AWSM --> AWSACC
+  GWSSA -.-|"同じ頂点か（I26）"| GCP
 
-  linkStyle 0,1,2,3 stroke:#c0392b,stroke-width:3px
+  IDREPO ==>|"C1: admin が environment の<br/>制限を外し、鍵を取る（I27）"| APPLY
+  GWSU -.->|"C2: gcp-organization-admins@<br/>→ GCP の組織管理者？（I19）"| GCP
+  OKTA -.->|"C4: SAML でログイン（I18）・<br/>Keeper の緊急用の資格情報（I24）"| GCP
+  GWSU -.->|"E4: aws@ が root の<br/>メールなら（I20）"| AWSM
+
+  linkStyle 11,12,13,14 stroke:#c0392b,stroke-width:3px
 ```
 
-致命的な循環（出発点に戻ってくる経路。上ほど確かで、届く人が多い）:
+異常ポイント（下から上へ戻る矢印）:
 
-- **C1: GitHub の owner・admin → identity → GitHub（確認済み。1 人で、通知なし）**
-  - 経路: identity の admin として environment `github-prod` のブランチの制限を外す（P5）→ 自分のブランチの workflow で apply の鍵を得る → `members.tf` で自分や誰かを owner にする、またはどのリポジトリの保護も外す。
-  - 届く人: owner 7 名と、`team-leaders` の残り 3 名（I6 で確かめる）。
-  - 画面での直接の変更は差分の検知も無いので、痕跡が次の apply まで残る。
-- **C2: identity の PR → 特権のグループ → GCP → すべての apply の鍵（I19 次第）**
-  - 経路: `gcp-organization-admins@` のメンバーに自分を足す PR をマージする → apply で Workspace のグループが変わる → GCP の組織管理者になる → Secret Manager の GitHub・Okta・Workspace の apply の鍵すべてに届く（E1）。
-  - 届く人: owner・admin だけではない。write を持つ人が、CorpIT の 1 名の承認と組めば届く（P6）。`enforce_admins` が無効なら、admin は承認なしで届く（P7・I5）。
-  - グループに組織管理者のロールが付いていなければ、この経路は無い。**I19 が最優先の確認**。
-- **C3: GCP の管理者 → apply の鍵 → GitHub の owner → C1（人は不明）**
-  - 経路: `corp-it-485102` の管理者が鍵を読むか `tf-github-apply@` を名乗る（P8）→ GitHub・Okta・Workspace に書き込み、自分を GitHub の owner にする。そうすると、GCP の権限を外されても、C1 と C2 で GCP に戻れる（輪の中で足場を作り直せる）。
-  - 届く人: 不明（I7・I16）。
-- **C4: Okta の管理者 → GCP → apply の鍵 → Okta（推定）**
-  - 経路: Okta から SAML で GCP にログインしている（I18）→ Okta の管理者が GCP の管理者になりすます → 鍵を得る。
-  - Okta の apply の App の管理ロールが広ければ（I21）、戻りの辺も太くなる。
+- **C1: identity リポジトリ（L3）→ apply（L1）**。経路は確認済み。
+  - identity の admin（owner 7 名と、おそらく `team-leaders`）が、environment のブランチの制限を外し、自分のブランチから apply の鍵を取る（P5）。そのまま自分を owner にでき、輪が閉じる。
+  - 3 つの environment（`github-prod`・`okta-prod`・`google-workspace-prod`）は、どれもブランチの制限だけだった（GitHub の API、2026-11-02。I15 の答え）。
+  - ただし、鍵を渡すかどうかは GCP の Workload Identity の条件（`attribute_condition`）で決まる。この条件は identity のコードの外にある。条件で `ref` まで確かめていれば止まる。CorpIT の言う「止めてある」は、ここの可能性がある（I27）。
+- **C2: Workspace のグループ（L2）→ GCP（L0）**。推定。
+  - identity の apply は `gcp-organization-admins@`・`gcp-security-admins@` のメンバーを書ける（確認済み）。メンバーは、`gcp-organization-admins@` が 山崎 明美・棚橋 耕太郎・山口 祐、`gcp-security-admins@` が 山崎 明美・山口 祐（8b8e953）。最上位の 4 名と食い違う。このグループに GCP の組織管理者のロールが付いていれば、PR 1 つで最上位に上れる（E1）。
+  - write を持つ人が CorpIT の 1 名の承認と組めば届く（P6）。`enforce_admins` が無効なら、admin は承認なしで届く（P7・I5）。
+  - ロールが付いていなければ、この矢印は無い（I19）。
+- **C4: Okta（L2）→ GCP（L0）**。推定。
+  - 最上位の 4 名が、普段は Okta を通って GCP にログインしていれば、Okta の管理者が 4 名になりすませる（I18）。
+  - 緊急用の資格情報を Keeper（Okta の App）に置いていても、同じ矢印になる（I24）。
+- **E4: Workspace のグループ（L2）→ AWS の管理アカウント（別系統の最上位）**。推定。
+  - `aws@` が root の登録のメールなら、apply でメンバーを足して回復のメールを受け取れる（I20）。
 
-**CorpIT によれば、C1〜C4 のいくつかは止められている**（2026-11-02）。どれが、どの仕組みで止まっているかは未確認（I27）。確かめるまで、この一覧は「構造の上で通りうる経路」として残す。
+**CorpIT によれば、これらのいくつかは止められている**（2026-11-02）。どれが、どの仕組みで止まっているかは未確認（I27）。確かめるまで、この一覧は「構造の上で通りうる経路」として残す。
 
-**循環に入っていないもの: Workspace の super admin。** apply は Workspace の管理者ロールと SSO の設定には書けないので、super admin へ戻る辺が無い（8b8e953 で確認）。Workspace の super admin は、すでに一方向の頂点にいる。10 章で頂点に据える根拠の 1 つ。
+異常ではなくなったもの:
 
-
-図 2: 輪から下に伸びる枝
-
-```mermaid
-flowchart LR
-  APEX["頂点の群<br/>（現状 1 の 5 つ）"]
-  CDK["cdk-apps<br/>admin 13 名"]
-  ORGPOL["organization-policy"]
-  IC["管理アカウントの<br/>Identity Center"]
-  ALL["全アカウントの<br/>FullAccess"]
-  PROD["tuscenes-prod<br/>原本バケット"]
-  MONO["mono-e2e の<br/>CI のロール"]
-  AWSM["AWS 管理アカウント・root<br/>（別系統）"]
-
-  APEX -->|"GitHub の owner・admin"| CDK
-  CDK --> ORGPOL --> IC --> ALL
-  CDK -->|"deploy のロール"| PROD
-  CDK --> MONO
-  APEX -->|"Okta のグループ<br/>→ 権限セット"| PROD
-  APEX -.->|"E4: aws@ のメンバー・<br/>社用メール（I20）"| AWSM
-  AWSM --> ALL
-```
+- **C3（GCP の管理者 → apply の鍵 → GitHub の owner）は、上から下への矢印**で、階層どおり。GCP の管理者が 4 名に絞られていれば想定内。
+- **Workspace の super admin** は、apply から戻る矢印が無い（apply は管理者ロールと SSO の設定に書けない。8b8e953 で確認）。GCP と同じ最上位の層に置いた。GCP と同じ 4 名かは I26 で確かめる。
 
 - GitHub へのログインは Okta を通らない（identity の README の Service List）。
 - mono-e2e は、AWS の側では cdk-apps の下（cdk-apps が定義したロールの範囲でしか届かない）。GitHub の側では cdk-apps と横並び。

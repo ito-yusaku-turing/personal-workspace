@@ -62,75 +62,80 @@ td.id { font-family: var(--font-mono); color: var(--accent); white-space: nowrap
   <header>
     <div class="eyebrow">project:privileged-access ／ 2026-11-02 時点</div>
     <h1>権限の頂点の輪</h1>
-    <p>GitHub・identity・GCP・Okta・Google Workspace の管理者が、互いに届き合っています。どこか 1 つの頂点が乗っ取られると、ほかの頂点の守りや通知も外せます。誰かのやり方の問題ではなく、ID 基盤が自分自身をコードで管理すると生まれやすい形です。</p>
+    <p>CorpIT への聞き取り（2026-11-02）で、GCP が最上位にあると分かりました。権限を上から下への階層として描き、下の層から上の層へ戻る矢印を異常ポイントとして赤で示します。ID 基盤が自分自身をコードで管理すると、こうした戻りの矢印が生まれやすくなります。</p>
     <div class="legend">
-      <span><i class="sw"></i>確認済み</span>
-      <span><i class="sw dash"></i>推定（ヒアリング項目で確かめる）</span>
-      <span><i class="sw red"></i>輪を閉じている辺</span>
+      <span><i class="sw"></i>上から下（階層どおり）</span>
+      <span><i class="sw red"></i>下から上（異常。太い線は経路を確認済み）</span>
+      <span><i class="sw red dash"></i>下から上（異常。推定）</span>
     </div>
   </header>
 
   <section>
-    <h2>現状 1: 輪の中心</h2>
+    <h2>現状: GCP を最上位にした階層と、異常ポイント</h2>
     <div class="figure">
 <pre class="mermaid">
 flowchart TB
-  GH["GitHub の組織<br/>owner 7 名・team-leaders 5 名"]
-  APPLY["identity の apply<br/>（GitHub Actions）"]
-  GCP["GCP corp-it-485102<br/>apply の鍵・state"]
-  OKTA["Okta"]
-  GWS["Google Workspace"]
+  subgraph L0["最上位（Okta を飛ばしてログインできる）"]
+    GCP["GCP（組織・corp-it-485102）<br/>実質の最高権限者 4 名"]
+    GWSSA["Workspace の super admin<br/>（4 名と同じか: I26）"]
+  end
+  subgraph L1["変更の経路"]
+    APPLY["identity の apply<br/>鍵は GCP の Secret Manager"]
+  end
+  subgraph L2["ID とアカウント"]
+    GWSU["Workspace の<br/>ユーザー・グループ"]
+    OKTA["Okta"]
+    GH["GitHub の組織<br/>owner 7 名"]
+  end
+  subgraph L3["リポジトリ"]
+    IDREPO["identity リポジトリ"]
+    CDK["cdk-apps"]
+  end
+  subgraph L4["AWS"]
+    AWSACC["AWS の各アカウント<br/>（原本バケットを含む）"]
+  end
+  AWSM["AWS 管理アカウント・root<br/>（別系統の最上位）"]
 
-  GH -->|"P5: identity の admin が<br/>environment の制限を外す"| APPLY
   GCP -->|"apply の鍵"| APPLY
-  APPLY -->|"members.tf で<br/>owner にする"| GH
-  APPLY -.->|"E1: gcp-organization-admins@<br/>のメンバーを書く（I19）"| GCP
+  GWSSA -->|"管理"| GWSU
+  APPLY -->|"ユーザー・グループ"| GWSU
   APPLY -->|"ユーザー・グループ"| OKTA
-  APPLY -->|"ユーザー・グループ"| GWS
-  GWS -->|"管理者は SAML を<br/>迂回してログイン"| GCP
-  OKTA -.->|"SAML でログイン（I18）"| GCP
+  APPLY -->|"メンバー・チーム・owner"| GH
+  GH --> IDREPO
+  GH --> CDK
+  CDK -->|"organization-policy・<br/>deploy のロール"| AWSACC
+  OKTA -->|"グループ → 権限セット"| AWSACC
+  AWSM --> AWSACC
+  GWSSA -.-|"同じ頂点か（I26）"| GCP
 
-  linkStyle 0,1,2,3 stroke:#c0392b,stroke-width:3px
+  IDREPO ==>|"C1: admin が environment の<br/>制限を外し、鍵を取る（I27）"| APPLY
+  GWSU -.->|"C2: gcp-organization-admins@<br/>→ GCP の組織管理者？（I19）"| GCP
+  OKTA -.->|"C4: SAML でログイン（I18）・<br/>Keeper の緊急用の資格情報（I24）"| GCP
+  GWSU -.->|"E4: aws@ が root の<br/>メールなら（I20）"| AWSM
+
+  linkStyle 11,12,13,14 stroke:#c0392b,stroke-width:3px
 </pre>
     </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>異常</th><th>下から上へ戻る経路</th><th>確かさ</th><th>確かめること</th></tr></thead>
+        <tbody>
+          <tr><td class="id">C1</td><td>identity の admin が environment のブランチの制限を外し、自分のブランチから apply の鍵を取る。そのまま自分を owner にできる</td><td>経路は確認済み。3 つの environment はどれもブランチの制限だけ</td><td>GCP の Workload Identity の条件で <code>ref</code> まで確かめていれば止まる（I27）</td></tr>
+          <tr><td class="id">C2</td><td>identity の PR で <code>gcp-organization-admins@</code> に自分を足し、GCP の組織管理者になる</td><td>グループのメンバーを IaC で書けるのは確認済み。ロールは未確認</td><td>そのグループに付いている GCP のロール（I19）</td></tr>
+          <tr><td class="id">C4</td><td>最上位の 4 名が Okta を通って GCP にログインしていれば、Okta の管理者がなりすませる。緊急用の資格情報を Keeper（Okta の App）に置いていても同じ</td><td>推定</td><td>4 名のログインの方法（I18）、緊急用の資格情報の置き場（I24）</td></tr>
+          <tr><td class="id">E4</td><td><code>aws@</code> が AWS の root の登録のメールなら、identity の PR でメンバーを足して回復のメールを受け取れる</td><td>推定</td><td><code>aws@</code> の用途（I20）</td></tr>
+        </tbody>
+      </table>
+    </div>
     <ul>
-      <li>GitHub の owner と <code>team-leaders</code> の 10 名超は、1 人で、誰にも通知されずに輪を一周できます（P5 → apply → owner）。</li>
-      <li>identity の apply は、Workspace のグループ <code>gcp-organization-admins@</code> のメンバーを書けます。このグループに GCP の組織管理者のロールが付いていれば、PR 1 つで apply の鍵すべてに届きます（E1）。</li>
-      <li>identity の README によれば、GCP の管理者は Okta を通らずにログインできます。Workspace は Okta より上にいます。</li>
+      <li>CorpIT によれば、このうちいくつかはすでに止めてあります。どれをどの仕組みで止めているかは、次の聞き取りで確かめます（I27）。</li>
+      <li>GCP の管理者が apply の鍵で GitHub を書き換えられるのは、上から下への矢印で、階層どおりです。管理者が 4 名に絞られていれば想定内です。</li>
+      <li>Workspace の super admin には、apply から戻る矢印がありません。GCP と同じ最上位の層に置きました。同じ 4 名かどうかは I26 で確かめます。</li>
     </ul>
   </section>
 
   <section>
-    <h2>現状 2: 輪から下に伸びる枝</h2>
-    <div class="figure">
-<pre class="mermaid">
-flowchart LR
-  APEX["頂点の群<br/>（現状 1 の 5 つ）"]
-  CDK["cdk-apps<br/>admin 13 名"]
-  ORGPOL["organization-policy"]
-  IC["管理アカウントの<br/>Identity Center"]
-  ALL["全アカウントの<br/>FullAccess"]
-  PROD["tuscenes-prod<br/>原本バケット"]
-  MONO["mono-e2e の<br/>CI のロール"]
-  AWSM["AWS 管理アカウント・root<br/>（別系統）"]
-
-  APEX -->|"GitHub の owner・admin"| CDK
-  CDK --> ORGPOL --> IC --> ALL
-  CDK -->|"deploy のロール"| PROD
-  CDK --> MONO
-  APEX -->|"Okta のグループ<br/>→ 権限セット"| PROD
-  APEX -.->|"E4: aws@ のメンバー・<br/>社用メール（I20）"| AWSM
-  AWSM --> ALL
-</pre>
-    </div>
-    <ul>
-      <li>AWS の管理アカウントは AWS の中ではすべてに届きますが、GitHub・Okta・GCP には届かないとみられます。</li>
-      <li>ただし <code>aws@</code> が root の登録のメールなら、identity の PR でメンバーを足すだけで、root の回復のメールを受け取れます（E4）。</li>
-    </ul>
-  </section>
-
-  <section>
-    <h2>あるべき姿の案: 頂点を 1 か所に据え、矢印を一方向にする</h2>
+    <h2>あるべき姿の案: 異常ポイントを消し、矢印を上から下だけにする</h2>
     <div class="figure">
 <pre class="mermaid">
 flowchart TB

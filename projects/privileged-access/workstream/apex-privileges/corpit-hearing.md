@@ -23,7 +23,9 @@ CorpIT から聞いたこと（伊藤のメモから）:
 | I27 | 止められている循環はどれか（9.1 の C1〜C4）、どの仕組みで止めているか。とくに C1（identity の admin が environment の制限を外す）と C2（`gcp-organization-admins@` のメンバーを IaC で書ける） | 循環の地図を、構造上の経路から実際の経路に直す | |
 | I26 | 4 名が持っているのは、GCP の組織管理者か、Workspace の super admin か、両方か。Workspace の super admin は、この 4 名だけか | GCP の組織は Workspace（Cloud Identity）のドメインに属し、Okta を飛ばすログインも Workspace の設定で決まるとみられる。4 名の外に super admin がいれば、その人も頂点になる | |
 | I28 | GitHub の組織の owner のうち、4 名に入らない 4 名（棚橋 耕太郎・安本 雅啓・渡邉 礁太郎・山下 卓也）の位置付け。C1 は止められているか | C1 が通るなら、この 4 名も実質の最高権限者に近い | |
-| I19 | `gcp-organization-admins@`・`gcp-security-admins@` に付いている GCP のロール（1 回目では未確認） | C2 の有無 | |
+| I19 | `gcp-organization-admins@`・`gcp-security-admins@` に付いている GCP のロール（1 回目では未確認）。`gcp-organization-admins@` のメンバーは 山崎 明美・棚橋 耕太郎・山口 祐 で、最上位の 4 名と食い違う | C2 の有無。組織管理者なら、最上位は 4 名より多い | |
+| I29 | Workspace の apply のサービスアカウントの管理ロールの範囲（ドメイン全体か、OU に限っているか） | 通知の受け手を IaC の外に置いても、apply から書き換えられるか | |
+| I30 | cdk-apps の `main` の保護を、組織のルールセットに移せるか（Team プランで使えるか、owner として設定してもらえるか）。今ある組織のルールセット（I4） | リポジトリの admin が `main` の保護を外せないようにする。システム保全責任者が cdk-apps の admin を兼ねる条件 | |
 
 
 ## 最初に伝えること（1 分）
