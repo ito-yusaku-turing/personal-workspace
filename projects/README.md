@@ -12,6 +12,7 @@
 注力している順に並べる。1件は `- [<project-id>/workstream/<名前>.md](./<同じパス>): 一言メモ` の1行にする。状態そのものは各 workstream の `- 状態:` 行に書き、ここには写さない。
 
 - [aws-data-protection/workstream/s3-data-protection-2.md](./aws-data-protection/workstream/s3-data-protection-2.md): WORM の Quick Win プラン（worm-quickwin-plan.md）を決めた。次は試しと書き込みの経路の確かめ。掃除（cleanup-runbook.md）は伊藤が実施する段
+- [privileged-access/workstream/apex-privileges.md](./privileged-access/workstream/apex-privileges.md): 権限の頂点の群の把握と管理。CorpIT に 1 回目の聞き取りをした。次は止めてある循環の詳細を聞く
 - [tern-ios-auth/workstream/tern-backend-api.md](./tern-ios-auth/workstream/tern-backend-api.md):
 - [m2m-auth/workstream/m2m-auth.md](./m2m-auth/workstream/m2m-auth.md):
 - [information-resource-inventory/workstream/aws-resource-inventory.md](./information-resource-inventory/workstream/aws-resource-inventory.md): tuscenes-prod の総ざらい
@@ -32,5 +33,6 @@
 - [information-resource-inventory/](./information-resource-inventory/README.md): 情報資源の棚卸し
 - [m2m-auth/](./m2m-auth/README.md): 車載装置・CI 用マシンの認証
 - [personal-dev-hardware/](./personal-dev-hardware/README.md): 作業用 PC など物理的な個人開発環境の管理と購買
+- [privileged-access/](./privileged-access/README.md): 組織の権限の頂点の把握と管理
 - [tern-ios-auth/](./tern-ios-auth/README.md): Tern iOS アプリの認証
 - [what-did-i-do/](./what-did-i-do/README.md): 自分の操作の通知と、人でない主体の見張り

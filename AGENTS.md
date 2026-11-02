@@ -26,6 +26,7 @@ personal-workspace/
 │   ├── information-resource-inventory/ # project:information-resource-inventory。情報資源の棚卸し
 │   ├── m2m-auth/                 # project:m2m-auth。車載装置・CI 用マシンの認証
 │   ├── personal-dev-hardware/    # project:personal-dev-hardware。作業用 PC など物理的な個人開発環境
+│   ├── privileged-access/        # project:privileged-access。組織の権限の頂点の把握と管理
 │   ├── tern-ios-auth/            # project:tern-ios-auth。Tern iOS アプリの認証
 │   └── what-did-i-do/            # project:what-did-i-do。自分の操作の通知と、人でない主体の見張り
 ├── .claude/commands/   # /commit /push /pr /now /list-workstream

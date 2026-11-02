@@ -1,0 +1,183 @@
+<title>権限の頂点の輪</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column; each diagram sits in its own scrollable panel, with its notes directly below */
+:root {
+  --bg: #f6f7f9;
+  --panel: #ffffff;
+  --fg: #1c2330;
+  --muted: #5a6474;
+  --line: #d8dde5;
+  --accent: #0f5f6e;
+  --cycle: #c0392b;
+  --font-body: "BIZ UDPGothic", "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12161d; --panel: #1a2029; --fg: #e6e9ee; --muted: #9aa4b2;
+    --line: #2e3744; --accent: #5fb7c6; --cycle: #ef7466; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12161d; --panel: #1a2029; --fg: #e6e9ee; --muted: #9aa4b2;
+  --line: #2e3744; --accent: #5fb7c6; --cycle: #ef7466; color-scheme: dark;
+}
+body {
+  background: var(--bg); color: var(--fg);
+  font-family: var(--font-body); font-size: 15px; line-height: 1.75;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 64px;
+}
+main { max-width: 980px; margin: 0 auto; display: grid; gap: 40px; }
+header { display: grid; gap: 8px; }
+.eyebrow { font-size: 12px; letter-spacing: .08em; color: var(--muted); }
+h1 { font-size: 28px; line-height: 1.35; margin: 0; text-wrap: balance; }
+h2 { font-size: 20px; line-height: 1.4; margin: 0; text-wrap: balance; }
+p { margin: 0; max-width: 68ch; }
+section { display: grid; gap: 14px; min-width: 0; }
+.figure {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 6px;
+  padding: 16px; overflow-x: auto;
+}
+.figure pre.mermaid { margin: 0; min-width: 640px; text-align: center; background: transparent; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 13px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 8px; }
+.sw { width: 28px; height: 0; border-top: 2px solid var(--muted); display: inline-block; }
+.sw.dash { border-top-style: dashed; }
+.sw.red { border-top-color: var(--cycle); border-top-width: 3px; }
+ul { margin: 0; padding-left: 1.3em; display: grid; gap: 6px; max-width: 72ch; }
+code { font-family: var(--font-mono); font-size: .9em; }
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: 14px; }
+th, td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+th { color: var(--muted); font-weight: 700; font-size: 12px; letter-spacing: .04em; }
+td.id { font-family: var(--font-mono); color: var(--accent); white-space: nowrap; }
+.note { font-size: 13px; color: var(--muted); }
+</style>
+
+<main>
+  <header>
+    <div class="eyebrow">project:privileged-access ／ 2026-11-02 時点</div>
+    <h1>権限の頂点の輪</h1>
+    <p>GitHub・identity・GCP・Okta・Google Workspace の管理者が、互いに届き合っています。どこか 1 つの頂点が乗っ取られると、ほかの頂点の守りや通知も外せます。誰かのやり方の問題ではなく、ID 基盤が自分自身をコードで管理すると生まれやすい形です。</p>
+    <div class="legend">
+      <span><i class="sw"></i>確認済み</span>
+      <span><i class="sw dash"></i>推定（ヒアリング項目で確かめる）</span>
+      <span><i class="sw red"></i>輪を閉じている辺</span>
+    </div>
+  </header>
+
+  <section>
+    <h2>現状 1: 輪の中心</h2>
+    <div class="figure">
+<pre class="mermaid">
+flowchart TB
+  GH["GitHub の組織<br/>owner 7 名・team-leaders 5 名"]
+  APPLY["identity の apply<br/>（GitHub Actions）"]
+  GCP["GCP corp-it-485102<br/>apply の鍵・state"]
+  OKTA["Okta"]
+  GWS["Google Workspace"]
+
+  GH -->|"P5: identity の admin が<br/>environment の制限を外す"| APPLY
+  GCP -->|"apply の鍵"| APPLY
+  APPLY -->|"members.tf で<br/>owner にする"| GH
+  APPLY -.->|"E1: gcp-organization-admins@<br/>のメンバーを書く（I19）"| GCP
+  APPLY -->|"ユーザー・グループ"| OKTA
+  APPLY -->|"ユーザー・グループ"| GWS
+  GWS -->|"管理者は SAML を<br/>迂回してログイン"| GCP
+  OKTA -.->|"SAML でログイン（I18）"| GCP
+
+  linkStyle 0,1,2,3 stroke:#c0392b,stroke-width:3px
+</pre>
+    </div>
+    <ul>
+      <li>GitHub の owner と <code>team-leaders</code> の 10 名超は、1 人で、誰にも通知されずに輪を一周できます（P5 → apply → owner）。</li>
+      <li>identity の apply は、Workspace のグループ <code>gcp-organization-admins@</code> のメンバーを書けます。このグループに GCP の組織管理者のロールが付いていれば、PR 1 つで apply の鍵すべてに届きます（E1）。</li>
+      <li>identity の README によれば、GCP の管理者は Okta を通らずにログインできます。Workspace は Okta より上にいます。</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>現状 2: 輪から下に伸びる枝</h2>
+    <div class="figure">
+<pre class="mermaid">
+flowchart LR
+  APEX["頂点の群<br/>（現状 1 の 5 つ）"]
+  CDK["cdk-apps<br/>admin 13 名"]
+  ORGPOL["organization-policy"]
+  IC["管理アカウントの<br/>Identity Center"]
+  ALL["全アカウントの<br/>FullAccess"]
+  PROD["tuscenes-prod<br/>原本バケット"]
+  MONO["mono-e2e の<br/>CI のロール"]
+  AWSM["AWS 管理アカウント・root<br/>（別系統）"]
+
+  APEX -->|"GitHub の owner・admin"| CDK
+  CDK --> ORGPOL --> IC --> ALL
+  CDK -->|"deploy のロール"| PROD
+  CDK --> MONO
+  APEX -->|"Okta のグループ<br/>→ 権限セット"| PROD
+  APEX -.->|"E4: aws@ のメンバー・<br/>社用メール（I20）"| AWSM
+  AWSM --> ALL
+</pre>
+    </div>
+    <ul>
+      <li>AWS の管理アカウントは AWS の中ではすべてに届きますが、GitHub・Okta・GCP には届かないとみられます。</li>
+      <li>ただし <code>aws@</code> が root の登録のメールなら、identity の PR でメンバーを足すだけで、root の回復のメールを受け取れます（E4）。</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>あるべき姿の案: 頂点を 1 か所に据え、矢印を一方向にする</h2>
+    <div class="figure">
+<pre class="mermaid">
+flowchart TB
+  ROOT["頂点: Workspace の super admin<br/>専用アカウント 2〜3 名・セキュリティキー<br/>＋ ドメインと DNS"]
+  PRIV["特権のグループ<br/>gcp-organization-admins@ ほか"]
+  GCP["GCP の組織・corp-it-485102<br/>apply の鍵・state"]
+  APPLY["identity の apply<br/>一般のユーザー・グループ・チームだけ"]
+  OKTA["Okta<br/>日常の ID の中心"]
+  GH["GitHub の組織<br/>owner 2〜3 名"]
+  CDK["cdk-apps"]
+  AWS["AWS の各アカウント"]
+  AWSM["AWS 管理アカウント・root<br/>root のメールは IaC の外"]
+  LOG["輪の外のログ置き場<br/>（Object Lock）"]
+
+  ROOT -->|"直接管理"| PRIV
+  PRIV --> GCP
+  GCP -->|"鍵"| APPLY
+  APPLY --> OKTA
+  APPLY --> GH
+  OKTA -->|"権限セット"| AWS
+  GH --> CDK --> AWS
+  ROOT -->|"root のメール"| AWSM
+  AWSM --> AWS
+  ROOT -.->|"変更を即時に通知"| LOG
+  GCP -.-> LOG
+  OKTA -.-> LOG
+  GH -.-> LOG
+</pre>
+    </div>
+    <p>原則は「<strong>下の層は、自分の管理者を守る仕組みに書き込めない</strong>」です。頂点は Workspace 全体ではなく、日常に使わない数名の専用アカウントに限ります。</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>辺</th><th>今</th><th>ほどき方</th></tr></thead>
+        <tbody>
+          <tr><td class="id">E1</td><td>identity が特権のグループのメンバーを書ける</td><td>特権のグループを apply の書き込みの対象から外し、super admin が直接管理する</td></tr>
+          <tr><td class="id">E2</td><td>管理者が Okta を通ってログインしていれば、Okta の管理者が頂点に届く</td><td>管理者の専用アカウントは Okta から外し、Google 自身のログインとセキュリティキーにする</td></tr>
+          <tr><td class="id">E3</td><td>GitHub の owner・identity の admin が apply の鍵を取れる（P5）</td><td>Team プランでは断てない。E1 を切って、apply の届く範囲を一般のユーザー・グループ・チームに縮める</td></tr>
+          <tr><td class="id">E4</td><td><code>aws@</code> が root のメールなら、apply で回復のメールを受け取れる</td><td>root のメールを、IaC の外で super admin だけが触れるアドレスに移す</td></tr>
+          <tr><td class="id">E5</td><td>緊急用の資格情報を Keeper（Okta の App）に置いていれば、輪が残る</td><td>Okta に依存しない置き場に分ける</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">E1 を切っても、GitHub の owner は cdk-apps を通して AWS の大部分に届きます。頂点ではありませんが、最も大きな枝として残るリスクに数えます。</p>
+  </section>
+
+  <section>
+    <h2>出典</h2>
+    <p class="note">identity（8b8e953）の README・<code>platform/google-workspace/groups/</code>・<code>platform/okta/README.md</code>、GitHub の API（伊藤のアカウントで読める範囲）。点線と I 番号の付いた辺は、CorpIT への聞き取りで確かめます。詳細は personal-workspace の <code>projects/privileged-access/workstream/apex-privileges/privilege-map.md</code> の 9・10 章にあります。</p>
+  </section>
+</main>
