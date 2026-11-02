@@ -1,7 +1,7 @@
 # S3 バケットのデータ保護 第二弾（権限設計のアップグレード）
 
 - 開始: 2026-10-20
-- 状態: **要件を固め、BreakGlass は撤回の方向・WORM は本命の候補（仮決定）とした。掃除の手順書を作り、伊藤が実施する段**（2026-10-30）。次は掃除（[cleanup-runbook.md](s3-data-protection-2/cleanup-runbook.md) の 1〜11）の実施の確認と、全体設計（解除の経路の設定・2 人目の確認の強め方・骨格への当てはめ）
+- 状態: **WORM の Quick Win プランを決め、使い捨てのバケットで試している段**（2026-11-02。[worm-quickwin-plan.md](s3-data-protection-2/worm-quickwin-plan.md)）。次は 2026-11-04 に試しの続き（Q12・Q9）と、書き手のチェックサムの手当て。権限の頂点の問題は別の案件（project:privileged-access）
 - 所属: project:aws-data-protection（2026-10-26 に `~/docs/workstream/` から移した）
 - 前段（第一弾、完了）:
   - [走行データ消失リスクへの対応](done/raw-data-security.md)（バケットの種別と処遇、裁定の正本）
@@ -539,3 +539,46 @@
     - 控えの IAM ユーザーの JSON に、アクセスキーの ID が入ったまま一度 push した（cf4b5d2）。f0433d3 で伏せ字にした。キーは無効で、ユーザーごと消す予定。
     - 全主体の判定の一次情報（`iam.json`）は scratchpad にだけ置いた（git には入れていない）。取り直すときは `aws --profile readonly iam get-account-authorization-details > iam.json` → `iam-scan/escalation.py iam.json out.json`。
     - cdk-apps のローカルのブランチ `original-bucket-audit-trail-12` は、マージ済みで残っている。
+- 2026-11-02: **2 人目の確認（要件 12）の議論を始めた。** 決めたことは [requirements.md](s3-data-protection-2/requirements.md) の 7 章。
+  - **要承認操作**（伊藤が命名）: 提案と承認を通さないと実行できない操作。要件 9 の集まりに、台帳から外すことと名簿の変更を足した（S3 のバケットの分。対象が広がったら種類ごとに足す）。
+  - **システム保全責任者**（伊藤が命名）: 要承認操作を提案・承認できる人。仮に 3 人。互いに対等で、1 件ごとに提案者と承認者に分かれる。パイプラインなどにも広がる見込みがあるので、名前を S3 に縛らない。名簿と流れは、S3 専用の共通部に置かない。
+  - **上位の権限保持者は、できれば作らない**（伊藤）。行き詰まりは、仕組みを強めて人数を増やすことで避ける。
+  - **権限の構造を先に調べる**（伊藤）。ゴール（要承認操作・名簿の書き換え）から逆にたどる。GitHub の組織・identity・cdk-apps の層を [privilege-map.md](../../privileged-access/workstream/apex-privileges/privilege-map.md) にまとめた（P1〜P14）。
+    - 分かったこと: 1 人で、通知なしに名簿や流れを書き換えられる経路が多い。組織の owner 7 名、`team-leaders` 5 名（組織のロール `all_repo_admin` で全リポジトリの admin。API の協力者の一覧には出ない）、cdk-apps の admin 13 名、admin を持つチームの maintainer。identity の admin は environment `github-prod` の制限を外せば apply の鍵を取れるので、組織の owner と同じ力を持つとみられる。identity の GitHub の Terraform には差分の定期の検知が無い。
+    - cdk-apps の `packages/original-bucket-guard` は `*` の Code Owner（MLOps 1・3 の 1 名）の承認でマージできる。企画 1・OTA のアプリも、それぞれ 1 名の承認で、共通の deploy のロールを使える。
+    - 見えなかったもの: GitHub の組織の設定（owner だけ）、identity のブランチの保護（admin だけ）、GCP の `corp-it-485102`（devbox の gcloud にユーザーのログインが無い）、管理アカウント、Okta。CorpIT への質問の案を privilege-map.md の 7 章に置いた（まだ送っていない）。
+  - **上位者を置かない案の評価**（伊藤の依頼）: 方向は賛成。注意点は 4 つ。構造上の上位者は消せない。人数を増やすと、名簿から人を外す操作が乗っ取りに使われうる（猶予・全員への通知・1 人の拒否で止める案。ただし拒否し続ける乗っ取りには、構造上の上位者に頼る）。不在がまとまって起きる（補充の決まり・下限の警告）。最初の名簿は組織の決定として扱う。
+  - **構造上の上位権限者は、存在を受け入れ、何が存在するかの把握と管理を徹底する**（伊藤）。台帳を privilege-map.md の 8 章に作った（U1〜U11）。流れには組み込まず、最後のエスケープハッチにする。
+  - **不明点はヒアリング項目として溜め、設計を整理してからまとめて相談する**（伊藤）。privilege-map.md の 7 章（I1〜I14）。
+  - privilege-map.md に人名を入れた（identity の `people.tf` から。10 章に人ごとの一覧）。
+  - **上位の構造を整理し、評価した**（伊藤の問い「GitHub > identity > cdk-apps > mono-e2e の階層か」から。privilege-map.md の 9 章）。一直線ではなく、GitHub の owner・identity の admin・GCP の管理者・Okta の管理者が互いに届き合う「頂点の群」がある（一部推定、I15〜I18）。AWS の管理アカウントは別系統の頂点。mono-e2e は AWS の側では cdk-apps の下、GitHub の側では横並び。
+    - 評価: 要件 7（乗っ取り）に対して良くない。1 人で全体に届く人が 10 名を超え、残りは見えない。輪なので頂点どうしで見張り合えず、使われても通知されない。GitHub の上の 2 人の確認は、頂点の群の乗っ取りには効かない。頂点に頼らない守りは WORM の猶予だけで、通知は輪の外に届ける必要がある。頂点を狭めるのは CorpIT と組織の判断になる。
+  - **頂点の問題を別の案件に分けた**（伊藤）。新しい project:privileged-access の [権限の頂点の把握と管理](../../privileged-access/workstream/apex-privileges.md) に、privilege-map.md ごと移した。CorpIT は別の部署として扱わず、一体で取り組む（伊藤）。この案件は、頂点の群の乗っ取りを残るリスクとし、頂点に頼らない守り（WORM の猶予・輪の外への通知の受け手）と、ふつうの経路での 2 人の確認を持つ（requirements.md の 7.4）。
+  - **課題を K1〜K11 に整理し直した**（requirements.md の 8 章）。
+  - **WORM を、最小限の設計で先に入れる考察をした**（伊藤の問い）。伊藤が許容した: 解除の後 30 日は絶対に消せないこととその費用、解除できるのが今の FullAccess など（存在を把握できていればよい）。これで解除の経路の設計（K1・K2）が WORM の前提ではなくなった。
+  - **WORM の Quick Win プランを決めた**（伊藤の作戦をレビューして取りまとめた。[worm-quickwin-plan.md](s3-data-protection-2/worm-quickwin-plan.md)）。ガバナンスで 12 本すべてに鍵をかけ、解除はすぐに通知し、通知を外せるのは FullAccess（認識された穴）。権限の設計が固まったら、解除できるのをシステム保全責任者だけにするフルスペックに差し替える。
+    - レビューで足したこと: ガバナンスでは迂回の権限（AdministratorAccess に含まれる）で待たずに消せるので、迂回を全員に Deny する。通知を外せる主体が FullAccess だけかは確かめていない。書き込みのチェックサムのヘッダーが、いちばん大きい運用上のリスク。試しに Q7〜Q10（迂回の Deny、解除のあとのかけ直し、ライフサイクル、通知のイベント）を足す。
+  - 次: Quick Win の作業の順番を決め、試し（作業 6）と書き込みの経路の確かめ（作業 5）から進める。
+- 2026-11-02: **Quick Win の試し（作業 6）を始めた。** スクリプトは `~/runbook/worm-probe/worm-probe.sh`（git の管理外。ホストからは `~/homes/jadd-studio/runbook/worm-probe/`）。伊藤がホストの WSL で実行した（AWS CLI を 2.27.46 から 2.39.3 に上げた。2.27.46 はイベントホールドを知らない）。1 回目は、スクリプトの誤り（`--body /dev/stdin`）と古い CLI で失敗し、片付けてやり直した。結果は [worm-probe-runbook.md](s3-data-protection-2/worm-probe-runbook.md) の結果の表。
+  - Q2: ガバナンスでは迂回のヘッダーでホールド中の版も消せる → 迂回を全員に Deny するのが必須。Q7: Deny すると FullAccess でも迂回で消せない。
+  - Q5: チェックサムのヘッダーの無い書き込みは拒まれる → 書き手の確かめ（作業 5）が必須。
+  - Q8: 解除のあとにホールドをかけ直せる（30 日のあいだに止める仕組みの土台）。
+  - Q10・Q11: 解除は `Object Retention Updated` で、ポリシーなどの変更は CloudTrail 経由で、EventBridge に届く。拒まれた管理の操作も届く。setup の直後は数分届かなかった。
+  - `compliance`（Q4）は今回は行わない（解除に失敗するとバケットが永久に残る）。フルスペックのときに別のバケットで行う。
+- 2026-11-02: **作業 7（解除できる主体の一覧）と作業 4（通知を外せる主体）を済ませた**（[worm-quickwin-plan.md](s3-data-protection-2/worm-quickwin-plan.md) の 7・8 章）。全主体の IAM の設定を ReadOnly で取り直した（726 主体）。入口を 2 つ（S3 のイベントと CloudTrail 経由の管理イベント）にし、送り先を SNS にすれば、通知を外せる主体は解除できる主体とほぼ同じ集まりにできる。バケットの通知の設定を外せる主体は 18 あるが、その変更は 2 つ目の入口で気づける。Databricks が 6 本に通知の設定を作っているので、`s3:PutBucketNotification` の Deny は今は勧めない。掃除の手順書の 9〜11 の IAM ユーザーは消えていた。
+- 2026-11-02 のセッションの終わり。引き継ぎ（これより前の引き継ぎより、こちらを正とする）:
+  - **今日の結果:**
+    - 2 人目の確認の議論で、要承認操作・システム保全責任者・提案者と承認者を決めた（[requirements.md](s3-data-protection-2/requirements.md) の 7 章）。上位者は置かない。構造上の上位権限者は把握と管理を徹底する。
+    - 権限の頂点の問題を、新しい project:privileged-access に分けた（[権限の頂点の把握と管理](../../privileged-access/workstream/apex-privileges.md)）。この案件は、頂点の群の乗っ取りを残るリスクとして進める。
+    - 課題を K1〜K11 に整理した（requirements.md の 8 章）。
+    - **WORM の Quick Win プランを決めた**（[worm-quickwin-plan.md](s3-data-protection-2/worm-quickwin-plan.md)）。試しを始め、作業 4・7 を済ませた。
+  - **次にやること:**
+    1. **2026-11-04（11-03 は祝日）に、伊藤が試しの続きを実行する:** `holdcheck`（Q12: ホールド ON のまま期限の欄が過ぎた版を消せないか。**消せてしまうなら前提が崩れる**）→ `status`（Q9: ライフサイクル）→ `events`（届くまでの時間）→ `release-all`。その 1 日後に `cleanup`。エージェントはログ（`~/runbook/worm-probe/log/`）を読み、手順書の結果の表を埋める。
+    2. 作業 5 の結果（[worm-quickwin-plan.md](s3-data-protection-2/worm-quickwin-plan.md) の 9 章）の手当てを決める。**tuscenes-model の Cosmos の checkpoint（mono-e2e の `when_required`、書き込みの約 82%）と jadd-cli（presigned URL）は、直さないと止まる。** 持ち主への連絡、試しへの Q13（boto3・presigned URL・CopyObject）の追加、DataSync・Databricks の volume・gaming の PC の確かめ。
+    3. 作業 1〜3（バケットポリシーの文、すぐの通知）の設計。通知は 8.2 の形（入口 2 つ・SNS）を案にする。バケットの通知の設定は、Databricks の設定を残したまま EventBridge を足す。
+    4. 試しが終わったら、Quick Win を入れる順番（作業 8）を決める。
+  - **注意:**
+    - 試しのバケット `worm-probe-767397804933` と、ロール 2 本・SQS・ルール 2 本が、片付けまで tuscenes-prod に残っている（ホールド中の版あり。期限は 2026-11-03 の 07:4x〜07:53 UTC だが、ホールドは解除するまで外れない）。
+    - スクリプトのイベントの読み出しは 11-02 に直した（キューが空のときに止まらなかった）。
+    - 全主体の IAM の設定（`iam.json`）は scratchpad にだけ置いた（git には入れていない）。
+- 2026-11-02: **作業 5（書き手のチェックサム）を調べた**（サブエージェント。監査の証跡の全期間 139 万件。プランの 9 章）。直さないと止まるのは tuscenes-model の 2 つ（Cosmos の checkpoint と jadd-cli）。ほかのログに出た書き手は付ける。DataSync・Databricks（catalog `denso` の WRITE_VOLUME の場所）・gaming の PC・SkyPilot は不明。boto3 の CRC32 の trailer が Object Lock で通るかは未確認（Q13）。

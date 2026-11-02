@@ -4,6 +4,7 @@
 - 親: [原本バケットの WORM 化の設計](worm-design.md) の 2.1「試して確かめること」
 - 状態: **保留（2026-10-30）。** WORM は「外せない層」の本命の候補（仮決定）。Q4（コンプライアンスで解除できるか）はドキュメントで「できる」と確かめた（[option-reassessment.md](option-reassessment.md) の 7.3）。WORM を採ると決めたときに再開する。Batch Operations の CloudTrail の記録は、別のセッション（pw-1030-pr）がカナリアで確かめ済み（option-reassessment.md の 7.4）
 - 実行する人: 伊藤（`full` プロファイル＝tuscenes-prod の SSO の FullAccess）。エージェントは ReadOnly で結果を確かめる
+- **2026-11-02 の注:** Quick Win プラン（[worm-quickwin-plan.md](worm-quickwin-plan.md)）の作業 6 として再開した。この手順書の Q1〜Q6 に Q7〜Q11 を足し、順番を Quick Win に合わせたスクリプトを `~/runbook/worm-probe/worm-probe.sh`（git の管理外）に作った。Q12（ホールドが ON のまま期限の欄が過ぎた版は消せるか）も足した。ホストの WSL の AWS CLI は 2.39.3 に上げてから実行した（2.27.46 はイベントホールドを知らない）。実行はスクリプトで行い、結果はこの手順書の「結果」の表に書く
 
 原本バケットに入れる前に、ドキュメントに書かれていない挙動を、使い捨てのバケット 1 本で確かめる。
 
@@ -230,10 +231,16 @@ rm -f /tmp/worm-probe-*.json /tmp/worm-probe-manifest.csv
 
 | # | 結果 | 日時・メモ |
 |---|---|---|
-| Q1 | | |
-| Q2 | | |
-| Q3 | | |
+| Q1 | `Days` を省いて `DefaultEventHold`（1 日）だけで既定を設定できた。書いた版は GOVERNANCE・ON・1 日。ホールド中でも期限の欄に「書いた時刻＋1 日」が入る（意味は Q12 で確かめる） | 2026-11-02 07:41〜07:43 UTC。スクリプトの setup・basic |
+| Q2 | **迂回のヘッダーを付ければ、ホールド中の版でも消せた。** 版を指定しただけの削除は拒まれた | 07:43。ガバナンスでは迂回の Deny が必須（Quick Win の作業 1） |
+| Q3 | 解除に迂回は要らない（FullAccess で通った）。解除の後の期限は「解除した時刻＋1 日」で、期限前の削除は拒まれたが、迂回のヘッダーでは消せた。`Mode` を省いた解除は `MalformedXML` | 07:43 |
 | Q4 | | |
-| Q5 | | |
-| Q6 | | |
+| Q5 | **チェックサムのヘッダーの無い書き込みは拒まれた**（`InvalidRequest: Content-MD5 OR x-amz-checksum- HTTP header is required`。1 回の書き込みも、マルチパートの `UploadPart` も）。Content-MD5 だけ、または CLI の既定（CRC）なら通った | 07:44。書き手ごとの確かめ（Quick Win の作業 5）が必須 |
+| Q6 | Batch Operations で、鍵の無い既存の版 2 件にホールドをかけられた（Complete・成功 2・失敗 0）。ジョブのロールに迂回の権限は要らなかった | 07:47〜07:48。Quick Win のポリシーの前に行った（後ではジョブのロールが拒まれる） |
+| Q7 | **迂回を全員に Deny すると、FullAccess でもホールド中・解除直後の版を迂回で消せなかった。** FullAccess の解除とかけ直しは通った。例外でない主体は、書き込み・上書き・ふつうの削除は通り、解除・迂回の削除・版の削除・リーガルホールド・鍵の既定・ポリシーの削除・かけ直しは拒まれた。削除マーカーが付いても版の鍵は残った | 07:50〜07:51。スクリプトの policy・guarded |
+| Q8 | **解除の後にホールドをかけ直せた**（迂回なし）。期限はかけ直した時刻から数え直しになり、削除は拒まれた | 07:43 |
+| Q9 | | |
+| Q10 | **解除（`event-hold: OFF`）・かけ直し・Batch Operations でのホールドが、`Object Retention Updated` として EventBridge に届いた**（モード・期限・ホールドの状態がイベントに入る）。拒まれた鍵の操作は S3 のイベントには出ない。setup の直後（07:43〜07:44 の basic）のイベントは 1 件も届かなかった（ルールかバケットの通知の設定の反映待ちとみられる）。届くまでの時間は、1 回目の読み出しでは記録していない | 07:47〜07:53 のイベント 20 件 |
+| Q11 | **管理イベントは `AWS API Call via CloudTrail` として tuscenes-prod の default のバスに届いた**（`PutBucketPolicy`・`PutBucketLifecycle`）。**拒まれた試みも届いた**（例外でない主体の `PutBucketObjectLockConfiguration`・`DeleteBucketPolicy`、`errorCode: AccessDenied`） | 07:49〜07:53。10-29 からの未確認が解けた |
+| Q12 | | |
 | 片付け | | |

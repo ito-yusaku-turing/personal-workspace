@@ -1,0 +1,847 @@
+{
+ "direct": [
+  {
+   "arn": "arn:aws:iam::767397804933:role/AWS-QuickSetup-SSM-ManageInstanceProfile-o693l",
+   "exempt": false,
+   "groups": [
+    "昇格"
+   ],
+   "all_conditional": true,
+   "hits": {
+    "昇格: ロールにポリシーを付ける": "conditional"
+   },
+   "last_used": "2026-11-02T07:59:48+00:00",
+   "trust": [
+    "Service:ssm.amazonaws.com"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/AWS-QuickSetup-SSM-ManageInstanceProfile-x96t4",
+   "exempt": false,
+   "groups": [
+    "昇格"
+   ],
+   "all_conditional": true,
+   "hits": {
+    "昇格: ロールにポリシーを付ける": "conditional"
+   },
+   "last_used": "2026-10-23T01:52:45+00:00",
+   "trust": [
+    "Service:ssm.amazonaws.com"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/AWSControlTowerExecution",
+   "exempt": false,
+   "groups": [
+    "バケット",
+    "ルール",
+    "昇格",
+    "証跡",
+    "送り先"
+   ],
+   "all_conditional": false,
+   "hits": {
+    "ルール: ルールの削除": "allow",
+    "ルール: ルールの無効化": "allow",
+    "ルール: ルールの書き換え": "allow",
+    "ルール: 送り先の取り外し": "allow",
+    "ルール: 送り先の差し替え": "allow",
+    "送り先: SNS のトピックの削除": "allow",
+    "送り先: SNS のトピックの設定の変更": "allow",
+    "送り先: Lambda の削除": "allow",
+    "送り先: Lambda のコードの差し替え": "allow",
+    "送り先: Lambda の同時実行を 0 にする": "allow",
+    "送り先: Slack の鍵の書き換え": "allow",
+    "送り先: Slack の鍵の削除": "allow",
+    "バケット: バケットの通知の設定の変更": "allow",
+    "証跡: 証跡の停止": "allow",
+    "証跡: 証跡の削除": "allow",
+    "証跡: 記録の対象の変更": "allow",
+    "昇格: ロールにポリシーを付ける": "allow",
+    "昇格: ロールにインラインを書く": "allow",
+    "昇格: ロールの信頼の変更": "allow",
+    "昇格: ユーザーにポリシーを付ける": "allow",
+    "昇格: ユーザーにインラインを書く": "allow",
+    "昇格: ポリシーの版の作成": "allow"
+   },
+   "last_used": "2025-09-12T04:17:58+00:00",
+   "trust": [
+    "AWS:arn:aws:iam::210332786925:root"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/AzureDatabricks-AutoLoaderRoleC3E331F2-KQKEObx1SfBf",
+   "exempt": false,
+   "groups": [
+    "バケット"
+   ],
+   "all_conditional": false,
+   "hits": {
+    "バケット: バケットの通知の設定の変更": "allow"
+   },
+   "last_used": "2025-03-24T23:27:20+00:00",
+   "trust": [
+    "AWS:arn:aws:iam::767397804933:user/AzureDatabricks-AutoLoaderUser9DD361CD-IOmwjtfT92Xw"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/Coder-ClusterProvisionerRole5A5401D6-SfPcwuJH2Dfx",
+   "exempt": false,
+   "groups": [
+    "昇格"
+   ],
+   "all_conditional": true,
+   "hits": {
+    "昇格: ロールにポリシーを付ける": "conditional",
+    "昇格: ロールにインラインを書く": "conditional",
+    "昇格: ロールの信頼の変更": "conditional",
+    "昇格: ポリシーの版の作成": "conditional"
+   },
+   "last_used": "2026-10-29T11:45:29+00:00",
+   "trust": [
+    "Service:pods.eks.amazonaws.com"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/Coder-ServiceTaskDefTaskRole0CFE2F57-pI7xAbczeAm7",
+   "exempt": false,
+   "groups": [
+    "昇格"
+   ],
+   "all_conditional": true,
+   "hits": {
+    "昇格: ロールにポリシーを付ける": "conditional",
+    "昇格: ロールにインラインを書く": "conditional",
+    "昇格: ロールの信頼の変更": "conditional",
+    "昇格: ポリシーの版の作成": "conditional"
+   },
+   "last_used": "2026-11-02T07:24:31+00:00",
+   "trust": [
+    "Service:ecs-tasks.amazonaws.com"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/Coder-WorkspaceRole736431E1-QNn6za9CHBGQ",
+   "exempt": false,
+   "groups": [
+    "バケット",
+    "送り先"
+   ],
+   "all_conditional": false,
+   "hits": {
+    "送り先: Lambda の削除": "allow",
+    "送り先: Lambda のコードの差し替え": "allow",
+    "バケット: バケットの通知の設定の変更": "allow"
+   },
+   "last_used": "2026-10-29T11:38:43+00:00",
+   "trust": [
+    "Service:ec2.amazonaws.com"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/CoderWorkspace-ClusterWorkspaceRoleCB6131B7-soWYRnYcQ7Vo",
+   "exempt": false,
+   "groups": [
+    "バケット",
+    "送り先"
+   ],
+   "all_conditional": false,
+   "hits": {
+    "送り先: Lambda の削除": "allow",
+    "送り先: Lambda のコードの差し替え": "allow",
+    "バケット: バケットの通知の設定の変更": "allow"
+   },
+   "last_used": null,
+   "trust": [
+    "Service:pods.eks.amazonaws.com"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/CoderWorkspace-ClusterWorkspaceRoleCB6131B7-vGvHsN3RkavH",
+   "exempt": false,
+   "groups": [
+    "バケット",
+    "送り先"
+   ],
+   "all_conditional": false,
+   "hits": {
+    "送り先: Lambda の削除": "allow",
+    "送り先: Lambda のコードの差し替え": "allow",
+    "バケット: バケットの通知の設定の変更": "allow"
+   },
+   "last_used": "2025-02-26T09:01:36+00:00",
+   "trust": [
+    "Service:pods.eks.amazonaws.com"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/CoderWorkspaceRole",
+   "exempt": false,
+   "groups": [
+    "バケット",
+    "送り先"
+   ],
+   "all_conditional": false,
+   "hits": {
+    "送り先: Lambda の削除": "allow",
+    "送り先: Lambda のコードの差し替え": "allow",
+    "送り先: Slack の鍵の書き換え": "allow",
+    "送り先: Slack の鍵の削除": "allow",
+    "バケット: バケットの通知の設定の変更": "allow"
+   },
+   "last_used": "2025-10-08T12:09:05+00:00",
+   "trust": [
+    "Service:ec2.amazonaws.com"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/Databricks-AutoLoaderRoleC3E331F2-pm2YjnDjEja9",
+   "exempt": false,
+   "groups": [
+    "バケット"
+   ],
+   "all_conditional": false,
+   "hits": {
+    "バケット: バケットの通知の設定の変更": "allow"
+   },
+   "last_used": "2026-11-02T07:13:33+00:00",
+   "trust": [
+    "AWS:arn:aws:iam::767397804933:user/Databricks-AutoLoaderUser9DD361CD-gg7BX1vayZSS"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/Datalake-BucketNotificationsHandler050a0587b7544547-MQRHnJmjVHpw",
+   "exempt": false,
+   "groups": [
+    "バケット"
+   ],
+   "all_conditional": false,
+   "hits": {
+    "バケット: バケットの通知の設定の変更": "allow"
+   },
+   "last_used": "2025-04-08T08:31:43+00:00",
+   "trust": [
+    "Service:lambda.amazonaws.com"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/ModelConverter-BucketNotificationsHandler050a0587b7-oFZfjgHokJqK",
+   "exempt": false,
+   "groups": [
+    "バケット"
+   ],
+   "all_conditional": false,
+   "hits": {
+    "バケット: バケットの通知の設定の変更": "allow"
+   },
+   "last_used": "2025-05-21T08:38:49+00:00",
+   "trust": [
+    "Service:lambda.amazonaws.com"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/ModelConverter-EgpuModelConverterSfnStateMachineRol-pWggJSa7Bftn",
+   "exempt": false,
+   "groups": [
+    "ルール"
+   ],
+   "all_conditional": false,
+   "hits": {
+    "ルール: ルールの書き換え": "allow",
+    "ルール: 送り先の差し替え": "allow"
+   },
+   "last_used": "2026-10-29T03:46:28+00:00",
+   "trust": [
+    "Service:states.amazonaws.com"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/ModelConverter-ModelConverterSfnStateMachineRoleCC5-kaNTzgvat6JJ",
+   "exempt": false,
+   "groups": [
+    "ルール"
+   ],
+   "all_conditional": false,
+   "hits": {
+    "ルール: ルールの書き換え": "allow",
+    "ルール: 送り先の差し替え": "allow"
+   },
+   "last_used": "2026-11-02T07:02:14+00:00",
+   "trust": [
+    "Service:states.amazonaws.com"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/aws-controltower-AdministratorExecutionRole",
+   "exempt": false,
+   "groups": [
+    "バケット",
+    "ルール",
+    "昇格",
+    "証跡",
+    "送り先"
+   ],
+   "all_conditional": false,
+   "hits": {
+    "ルール: ルールの削除": "allow",
+    "ルール: ルールの無効化": "allow",
+    "ルール: ルールの書き換え": "allow",
+    "ルール: 送り先の取り外し": "allow",
+    "ルール: 送り先の差し替え": "allow",
+    "送り先: SNS のトピックの削除": "allow",
+    "送り先: SNS のトピックの設定の変更": "allow",
+    "送り先: Lambda の削除": "allow",
+    "送り先: Lambda のコードの差し替え": "allow",
+    "送り先: Lambda の同時実行を 0 にする": "allow",
+    "送り先: Slack の鍵の書き換え": "allow",
+    "送り先: Slack の鍵の削除": "allow",
+    "バケット: バケットの通知の設定の変更": "allow",
+    "証跡: 証跡の停止": "allow",
+    "証跡: 証跡の削除": "allow",
+    "証跡: 記録の対象の変更": "allow",
+    "昇格: ロールにポリシーを付ける": "allow",
+    "昇格: ロールにインラインを書く": "allow",
+    "昇格: ロールの信頼の変更": "allow",
+    "昇格: ユーザーにポリシーを付ける": "allow",
+    "昇格: ユーザーにインラインを書く": "allow",
+    "昇格: ポリシーの版の作成": "allow"
+   },
+   "last_used": null,
+   "trust": [
+    "AWS:arn:aws:iam::494249021538:role/aws-controltower-AuditAdministratorRole"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/aws-reserved/sso.amazonaws.com/us-west-2/AWSReservedSSO_AWSAdministratorAccess_619c2f8a913e315a",
+   "exempt": true,
+   "groups": [
+    "バケット",
+    "ルール",
+    "昇格",
+    "証跡",
+    "送り先"
+   ],
+   "all_conditional": false,
+   "hits": {
+    "ルール: ルールの削除": "allow",
+    "ルール: ルールの無効化": "allow",
+    "ルール: ルールの書き換え": "allow",
+    "ルール: 送り先の取り外し": "allow",
+    "ルール: 送り先の差し替え": "allow",
+    "送り先: SNS のトピックの削除": "allow",
+    "送り先: SNS のトピックの設定の変更": "allow",
+    "送り先: Lambda の削除": "allow",
+    "送り先: Lambda のコードの差し替え": "allow",
+    "送り先: Lambda の同時実行を 0 にする": "allow",
+    "送り先: Slack の鍵の書き換え": "allow",
+    "送り先: Slack の鍵の削除": "allow",
+    "バケット: バケットの通知の設定の変更": "allow",
+    "証跡: 証跡の停止": "allow",
+    "証跡: 証跡の削除": "allow",
+    "証跡: 記録の対象の変更": "allow",
+    "昇格: ロールにポリシーを付ける": "allow",
+    "昇格: ロールにインラインを書く": "allow",
+    "昇格: ロールの信頼の変更": "allow",
+    "昇格: ユーザーにポリシーを付ける": "allow",
+    "昇格: ユーザーにインラインを書く": "allow",
+    "昇格: ポリシーの版の作成": "allow"
+   },
+   "last_used": "2026-11-02T05:12:01+00:00",
+   "trust": [
+    "Federated:arn:aws:iam::767397804933:saml-provider/AWSSSO_8f412d6696ffa96f_DO_NOT_DELETE"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/aws-reserved/sso.amazonaws.com/us-west-2/AWSReservedSSO_FullAccess_ed608317ee39a850",
+   "exempt": true,
+   "groups": [
+    "バケット",
+    "ルール",
+    "昇格",
+    "証跡",
+    "送り先"
+   ],
+   "all_conditional": false,
+   "hits": {
+    "ルール: ルールの削除": "allow",
+    "ルール: ルールの無効化": "allow",
+    "ルール: ルールの書き換え": "allow",
+    "ルール: 送り先の取り外し": "allow",
+    "ルール: 送り先の差し替え": "allow",
+    "送り先: SNS のトピックの削除": "allow",
+    "送り先: SNS のトピックの設定の変更": "allow",
+    "送り先: Lambda の削除": "allow",
+    "送り先: Lambda のコードの差し替え": "allow",
+    "送り先: Lambda の同時実行を 0 にする": "allow",
+    "送り先: Slack の鍵の書き換え": "allow",
+    "送り先: Slack の鍵の削除": "allow",
+    "バケット: バケットの通知の設定の変更": "allow",
+    "証跡: 証跡の停止": "allow",
+    "証跡: 証跡の削除": "allow",
+    "証跡: 記録の対象の変更": "allow",
+    "昇格: ロールにポリシーを付ける": "allow",
+    "昇格: ロールにインラインを書く": "allow",
+    "昇格: ロールの信頼の変更": "allow",
+    "昇格: ユーザーにポリシーを付ける": "allow",
+    "昇格: ユーザーにインラインを書く": "allow",
+    "昇格: ポリシーの版の作成": "allow"
+   },
+   "last_used": "2026-11-02T07:55:55+00:00",
+   "trust": [
+    "Federated:arn:aws:iam::767397804933:saml-provider/AWSSSO_8f412d6696ffa96f_DO_NOT_DELETE"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/aws-reserved/sso.amazonaws.com/us-west-2/AWSReservedSSO_JADDViewer_0467b1be8aab6820",
+   "exempt": false,
+   "groups": [
+    "バケット",
+    "送り先"
+   ],
+   "all_conditional": false,
+   "hits": {
+    "送り先: Lambda の削除": "allow",
+    "送り先: Lambda のコードの差し替え": "allow",
+    "バケット: バケットの通知の設定の変更": "allow"
+   },
+   "last_used": "2026-04-02T06:37:12+00:00",
+   "trust": [
+    "Federated:arn:aws:iam::767397804933:saml-provider/AWSSSO_8f412d6696ffa96f_DO_NOT_DELETE"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/aws-reserved/sso.amazonaws.com/us-west-2/AWSReservedSSO_TeamE2E_87b32d413e7af329",
+   "exempt": false,
+   "groups": [
+    "バケット"
+   ],
+   "all_conditional": false,
+   "hits": {
+    "バケット: バケットの通知の設定の変更": "allow"
+   },
+   "last_used": "2026-11-02T08:00:59+00:00",
+   "trust": [
+    "Federated:arn:aws:iam::767397804933:saml-provider/AWSSSO_8f412d6696ffa96f_DO_NOT_DELETE"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling",
+   "exempt": false,
+   "groups": [
+    "ルール"
+   ],
+   "all_conditional": true,
+   "hits": {
+    "ルール: ルールの削除": "conditional",
+    "ルール: ルールの書き換え": "conditional",
+    "ルール: 送り先の取り外し": "conditional",
+    "ルール: 送り先の差し替え": "conditional"
+   },
+   "last_used": "2026-11-02T07:58:54+00:00",
+   "trust": [
+    "Service:autoscaling.amazonaws.com"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/aws-service-role/ecs.amazonaws.com/AWSServiceRoleForECS",
+   "exempt": false,
+   "groups": [
+    "ルール"
+   ],
+   "all_conditional": true,
+   "hits": {
+    "ルール: ルールの書き換え": "conditional",
+    "ルール: 送り先の差し替え": "conditional"
+   },
+   "last_used": "2026-11-02T08:00:46+00:00",
+   "trust": [
+    "Service:ecs.amazonaws.com"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/aws-service-role/ssm.amazonaws.com/AWSServiceRoleForAmazonSSM",
+   "exempt": false,
+   "groups": [
+    "ルール"
+   ],
+   "all_conditional": true,
+   "hits": {
+    "ルール: ルールの書き換え": "conditional",
+    "ルール: 送り先の差し替え": "conditional"
+   },
+   "last_used": "2026-11-02T07:45:05+00:00",
+   "trust": [
+    "Service:ssm.amazonaws.com"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/cdk-hnb659fds-cfn-exec-role-767397804933-ap-northeast-1",
+   "exempt": false,
+   "groups": [
+    "バケット",
+    "ルール",
+    "昇格",
+    "証跡",
+    "送り先"
+   ],
+   "all_conditional": false,
+   "hits": {
+    "ルール: ルールの削除": "allow",
+    "ルール: ルールの無効化": "allow",
+    "ルール: ルールの書き換え": "allow",
+    "ルール: 送り先の取り外し": "allow",
+    "ルール: 送り先の差し替え": "allow",
+    "送り先: SNS のトピックの削除": "allow",
+    "送り先: SNS のトピックの設定の変更": "allow",
+    "送り先: Lambda の削除": "allow",
+    "送り先: Lambda のコードの差し替え": "allow",
+    "送り先: Lambda の同時実行を 0 にする": "allow",
+    "送り先: Slack の鍵の書き換え": "allow",
+    "送り先: Slack の鍵の削除": "allow",
+    "バケット: バケットの通知の設定の変更": "allow",
+    "証跡: 証跡の停止": "allow",
+    "証跡: 証跡の削除": "allow",
+    "証跡: 記録の対象の変更": "allow",
+    "昇格: ロールにポリシーを付ける": "allow",
+    "昇格: ロールにインラインを書く": "allow",
+    "昇格: ロールの信頼の変更": "allow",
+    "昇格: ユーザーにポリシーを付ける": "allow",
+    "昇格: ユーザーにインラインを書く": "allow",
+    "昇格: ポリシーの版の作成": "allow"
+   },
+   "last_used": "2026-10-21T09:03:47+00:00",
+   "trust": [
+    "Service:cloudformation.amazonaws.com"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/cdk-hnb659fds-cfn-exec-role-767397804933-us-east-1",
+   "exempt": false,
+   "groups": [
+    "バケット",
+    "ルール",
+    "昇格",
+    "証跡",
+    "送り先"
+   ],
+   "all_conditional": false,
+   "hits": {
+    "ルール: ルールの削除": "allow",
+    "ルール: ルールの無効化": "allow",
+    "ルール: ルールの書き換え": "allow",
+    "ルール: 送り先の取り外し": "allow",
+    "ルール: 送り先の差し替え": "allow",
+    "送り先: SNS のトピックの削除": "allow",
+    "送り先: SNS のトピックの設定の変更": "allow",
+    "送り先: Lambda の削除": "allow",
+    "送り先: Lambda のコードの差し替え": "allow",
+    "送り先: Lambda の同時実行を 0 にする": "allow",
+    "送り先: Slack の鍵の書き換え": "allow",
+    "送り先: Slack の鍵の削除": "allow",
+    "バケット: バケットの通知の設定の変更": "allow",
+    "証跡: 証跡の停止": "allow",
+    "証跡: 証跡の削除": "allow",
+    "証跡: 記録の対象の変更": "allow",
+    "昇格: ロールにポリシーを付ける": "allow",
+    "昇格: ロールにインラインを書く": "allow",
+    "昇格: ロールの信頼の変更": "allow",
+    "昇格: ユーザーにポリシーを付ける": "allow",
+    "昇格: ユーザーにインラインを書く": "allow",
+    "昇格: ポリシーの版の作成": "allow"
+   },
+   "last_used": "2026-01-27T08:26:25+00:00",
+   "trust": [
+    "Service:cloudformation.amazonaws.com"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/cdk-hnb659fds-cfn-exec-role-767397804933-us-east-2",
+   "exempt": false,
+   "groups": [
+    "バケット",
+    "ルール",
+    "昇格",
+    "証跡",
+    "送り先"
+   ],
+   "all_conditional": false,
+   "hits": {
+    "ルール: ルールの削除": "allow",
+    "ルール: ルールの無効化": "allow",
+    "ルール: ルールの書き換え": "allow",
+    "ルール: 送り先の取り外し": "allow",
+    "ルール: 送り先の差し替え": "allow",
+    "送り先: SNS のトピックの削除": "allow",
+    "送り先: SNS のトピックの設定の変更": "allow",
+    "送り先: Lambda の削除": "allow",
+    "送り先: Lambda のコードの差し替え": "allow",
+    "送り先: Lambda の同時実行を 0 にする": "allow",
+    "送り先: Slack の鍵の書き換え": "allow",
+    "送り先: Slack の鍵の削除": "allow",
+    "バケット: バケットの通知の設定の変更": "allow",
+    "証跡: 証跡の停止": "allow",
+    "証跡: 証跡の削除": "allow",
+    "証跡: 記録の対象の変更": "allow",
+    "昇格: ロールにポリシーを付ける": "allow",
+    "昇格: ロールにインラインを書く": "allow",
+    "昇格: ロールの信頼の変更": "allow",
+    "昇格: ユーザーにポリシーを付ける": "allow",
+    "昇格: ユーザーにインラインを書く": "allow",
+    "昇格: ポリシーの版の作成": "allow"
+   },
+   "last_used": "2025-07-15T04:41:42+00:00",
+   "trust": [
+    "Service:cloudformation.amazonaws.com"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/cdk-hnb659fds-cfn-exec-role-767397804933-us-west-2",
+   "exempt": false,
+   "groups": [
+    "バケット",
+    "ルール",
+    "昇格",
+    "証跡",
+    "送り先"
+   ],
+   "all_conditional": false,
+   "hits": {
+    "ルール: ルールの削除": "allow",
+    "ルール: ルールの無効化": "allow",
+    "ルール: ルールの書き換え": "allow",
+    "ルール: 送り先の取り外し": "allow",
+    "ルール: 送り先の差し替え": "allow",
+    "送り先: SNS のトピックの削除": "allow",
+    "送り先: SNS のトピックの設定の変更": "allow",
+    "送り先: Lambda の削除": "allow",
+    "送り先: Lambda のコードの差し替え": "allow",
+    "送り先: Lambda の同時実行を 0 にする": "allow",
+    "送り先: Slack の鍵の書き換え": "allow",
+    "送り先: Slack の鍵の削除": "allow",
+    "バケット: バケットの通知の設定の変更": "allow",
+    "証跡: 証跡の停止": "allow",
+    "証跡: 証跡の削除": "allow",
+    "証跡: 記録の対象の変更": "allow",
+    "昇格: ロールにポリシーを付ける": "allow",
+    "昇格: ロールにインラインを書く": "allow",
+    "昇格: ロールの信頼の変更": "allow",
+    "昇格: ユーザーにポリシーを付ける": "allow",
+    "昇格: ユーザーにインラインを書く": "allow",
+    "昇格: ポリシーの版の作成": "allow"
+   },
+   "last_used": "2026-11-02T07:56:55+00:00",
+   "trust": [
+    "Service:cloudformation.amazonaws.com"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/ecsTaskExecutionRole",
+   "exempt": false,
+   "groups": [
+    "バケット",
+    "送り先"
+   ],
+   "all_conditional": false,
+   "hits": {
+    "送り先: Slack の鍵の書き換え": "allow",
+    "送り先: Slack の鍵の削除": "allow",
+    "バケット: バケットの通知の設定の変更": "allow"
+   },
+   "last_used": "2025-03-25T20:26:15+00:00",
+   "trust": [
+    "Service:ecs-tasks.amazonaws.com"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/service-role/AmazonEMRStudio_RuntimeRole",
+   "exempt": false,
+   "groups": [
+    "バケット"
+   ],
+   "all_conditional": false,
+   "hits": {
+    "バケット: バケットの通知の設定の変更": "allow"
+   },
+   "last_used": "2024-08-28T06:38:03+00:00",
+   "trust": [
+    "Service:emr-serverless.amazonaws.com"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/service-role/CodeCatalystWorkflowDevelopmentRole-tuscenes-prod",
+   "exempt": false,
+   "groups": [
+    "バケット",
+    "ルール",
+    "昇格",
+    "証跡",
+    "送り先"
+   ],
+   "all_conditional": false,
+   "hits": {
+    "ルール: ルールの削除": "allow",
+    "ルール: ルールの無効化": "allow",
+    "ルール: ルールの書き換え": "allow",
+    "ルール: 送り先の取り外し": "allow",
+    "ルール: 送り先の差し替え": "allow",
+    "送り先: SNS のトピックの削除": "allow",
+    "送り先: SNS のトピックの設定の変更": "allow",
+    "送り先: Lambda の削除": "allow",
+    "送り先: Lambda のコードの差し替え": "allow",
+    "送り先: Lambda の同時実行を 0 にする": "allow",
+    "送り先: Slack の鍵の書き換え": "allow",
+    "送り先: Slack の鍵の削除": "allow",
+    "バケット: バケットの通知の設定の変更": "allow",
+    "証跡: 証跡の停止": "allow",
+    "証跡: 証跡の削除": "allow",
+    "証跡: 記録の対象の変更": "allow",
+    "昇格: ロールにポリシーを付ける": "allow",
+    "昇格: ロールにインラインを書く": "allow",
+    "昇格: ロールの信頼の変更": "allow",
+    "昇格: ユーザーにポリシーを付ける": "allow",
+    "昇格: ユーザーにインラインを書く": "allow",
+    "昇格: ポリシーの版の作成": "allow"
+   },
+   "last_used": "2024-03-14T02:31:28+00:00",
+   "trust": [
+    "Service:codecatalyst-runner.amazonaws.com",
+    "Service:codecatalyst.amazonaws.com"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/service-role/tuscenes-sampler-test-role-n1huu9jg",
+   "exempt": false,
+   "groups": [
+    "バケット",
+    "送り先"
+   ],
+   "all_conditional": false,
+   "hits": {
+    "送り先: Slack の鍵の書き換え": "allow",
+    "送り先: Slack の鍵の削除": "allow",
+    "バケット: バケットの通知の設定の変更": "allow"
+   },
+   "last_used": "2024-07-10T03:18:47+00:00",
+   "trust": [
+    "Service:lambda.amazonaws.com"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/sfn-auto-labeling-AwsBatchPreprocessFunctionService-fn3Nf1jGLQTc",
+   "exempt": false,
+   "groups": [
+    "バケット"
+   ],
+   "all_conditional": false,
+   "hits": {
+    "バケット: バケットの通知の設定の変更": "allow"
+   },
+   "last_used": "2024-10-11T06:24:48+00:00",
+   "trust": [
+    "Service:lambda.amazonaws.com"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/skypilot-v1",
+   "exempt": false,
+   "groups": [
+    "バケット"
+   ],
+   "all_conditional": false,
+   "hits": {
+    "バケット: バケットの通知の設定の変更": "allow"
+   },
+   "last_used": "2026-08-14T01:38:51+00:00",
+   "trust": [
+    "Service:ec2.amazonaws.com"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/stacksets-exec-ff6bf58b4ea65bd878839a71faebc74a",
+   "exempt": false,
+   "groups": [
+    "バケット",
+    "ルール",
+    "昇格",
+    "証跡",
+    "送り先"
+   ],
+   "all_conditional": false,
+   "hits": {
+    "ルール: ルールの削除": "allow",
+    "ルール: ルールの無効化": "allow",
+    "ルール: ルールの書き換え": "allow",
+    "ルール: 送り先の取り外し": "allow",
+    "ルール: 送り先の差し替え": "allow",
+    "送り先: SNS のトピックの削除": "allow",
+    "送り先: SNS のトピックの設定の変更": "allow",
+    "送り先: Lambda の削除": "allow",
+    "送り先: Lambda のコードの差し替え": "allow",
+    "送り先: Lambda の同時実行を 0 にする": "allow",
+    "送り先: Slack の鍵の書き換え": "allow",
+    "送り先: Slack の鍵の削除": "allow",
+    "バケット: バケットの通知の設定の変更": "allow",
+    "証跡: 証跡の停止": "allow",
+    "証跡: 証跡の削除": "allow",
+    "証跡: 記録の対象の変更": "allow",
+    "昇格: ロールにポリシーを付ける": "allow",
+    "昇格: ロールにインラインを書く": "allow",
+    "昇格: ロールの信頼の変更": "allow",
+    "昇格: ユーザーにポリシーを付ける": "allow",
+    "昇格: ユーザーにインラインを書く": "allow",
+    "昇格: ポリシーの版の作成": "allow"
+   },
+   "last_used": "2026-10-29T00:22:20+00:00",
+   "trust": [
+    "AWS:arn:aws:iam::210332786925:role/aws-service-role/stacksets.cloudformation.amazonaws.com/AWSServiceRoleForCloudFormationStackSetsOrgAdmin"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/tuscenes-BucketNotificationsHandler050a0587b7544547-kIHXehFBc80Z",
+   "exempt": false,
+   "groups": [
+    "バケット"
+   ],
+   "all_conditional": false,
+   "hits": {
+    "バケット: バケットの通知の設定の変更": "allow"
+   },
+   "last_used": "2025-04-09T01:44:03+00:00",
+   "trust": [
+    "Service:lambda.amazonaws.com"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:role/tuscenes-processing",
+   "exempt": false,
+   "groups": [
+    "バケット"
+   ],
+   "all_conditional": false,
+   "hits": {
+    "バケット: バケットの通知の設定の変更": "allow"
+   },
+   "last_used": "2024-07-16T09:40:51+00:00",
+   "trust": [
+    "Service:ec2.amazonaws.com"
+   ]
+  },
+  {
+   "arn": "arn:aws:iam::767397804933:user/tokyo30-dataupload-pc-01",
+   "exempt": false,
+   "groups": [
+    "バケット"
+   ],
+   "all_conditional": false,
+   "hits": {
+    "バケット: バケットの通知の設定の変更": "allow"
+   },
+   "last_used": null,
+   "trust": [
+    "(user)"
+   ]
+  }
+ ],
+ "via": []
+}
