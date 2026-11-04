@@ -21,6 +21,7 @@ tuscenes-prod（767397804933）の S3 原本バケットを、消失や破壊か
   - [workstream/s3-data-protection-2/worm-quickwin-plan.md](./workstream/s3-data-protection-2/worm-quickwin-plan.md): **WORM 化の Quick Win プラン**（2026-11-02）。権限の設計を待たず、ガバナンスモードで 12 本に先に鍵をかける作戦。決めたこと・評価（得られるもの・認識された穴 A〜D・運用上のリスク）・作業 1〜9 と試しの追加項目 Q7〜Q13・フルスペックで足りない部分・解除できる主体の一覧・通知を外せる主体・書き手の確かめ・試しで分かったことのまとめ（2026-11-04）
   - [workstream/s3-data-protection-2/worm-quickwin-design.md](./workstream/s3-data-protection-2/worm-quickwin-design.md): **WORM 化の Quick Win の設計案**（2026-11-04）。バケットポリシーの 2 文（迂回の Deny・鍵の操作の Deny）と入れる時期、すぐの通知（入口 2 つ・SNS・解除は警報でまとめる・通知の部品の見張り）、入れる順番（PR-1 → カナリアで予行 → 4 つの波 → PR-3）と戻し方、書き手の直し、決めてほしいこと
   - [workstream/s3-data-protection-2/worm-design.md](./workstream/s3-data-protection-2/worm-design.md): **原本バケットの WORM 化の設計**（TODO 26。2026-10-30 に全体設計の選択肢の 1 つに戻した）。決めたこと（12 本・コンプライアンス・時間がたっても外れない鍵＝可変の保持期間・解除の後 30 日・解除は BreakGlass だけ・既存の最新版にもかける〈仮〉）、費用（一度きり約 $3,900） と理由、誰が鍵を外せるか、ガバナンスの強さ、ライフサイクルとの衝突、消す必要が出る想定ケース（2026-10-30）
+  - [workstream/s3-data-protection-2/worm-decisions.md](./workstream/s3-data-protection-2/worm-decisions.md): WORM 化の**決定と理由の一覧**（2026-11-04）。選択肢から 1 つに絞ったもの（D1〜D12: WORM を本命に・12 本すべて・イベントホールド・30 日・モードの見直し・解除できる主体の見直し・既存の最新バージョン・閉鎖に備えない・解除の経路・大量に消す方法・SNS・通知の設定を Deny しない）と、設計案の提案（P1〜P7）
   - [workstream/s3-data-protection-2/worm-glossary.md](./workstream/s3-data-protection-2/worm-glossary.md): WORM の資料の**用語集**（2026-11-04）。資料を共有用に仕上げるときに使う。書き方の決まり（言い換えには括弧で AWS の正式名を補う）、「鍵」の書き分け、Object Lock・チェックサム・通知の正式名、自分たちで作った呼び名と共有資料での置き換え案
   - [workstream/s3-data-protection-2/worm-reference.md](./workstream/s3-data-protection-2/worm-reference.md): WORM 化の設計の添付。比べたこと（鍵の表し方・モード・解除後の日数）と調べたこと（可変の保持期間の仕様と出典、CloudFormation・CLI・Batch Operations の対応、12 本の今の設定と件数・費用）（2026-10-30）
   - [workstream/s3-data-protection-2/worm-probe-runbook.md](./workstream/s3-data-protection-2/worm-probe-runbook.md): 可変の保持期間（イベントホールド）を使い捨てのバケットで試す手順書と結果の表（2026-10-30 作成、Quick Win の作業 6 として 2026-11-02〜 実行）。Q1〜Q13（既定の意味・迂回・解除・チェックサム・Batch Operations・通知・ライフサイクル・boto3 の書き方ごとの書き込み）。Q9 と Q13 の 2 回目が残り
@@ -49,6 +50,6 @@ tuscenes-prod（767397804933）の S3 原本バケットを、消失や破壊か
 ## documents/ — 参考資料
 
 - [documents/raw-data-security.md](./documents/raw-data-security.md): **走行データ消失リスク調査（2026-10）**。安本さんの調査（Notion から取り込み）。workstream の G 番号はこの資料の所見 ID
-- [documents/notion-s3-object-lock.md](./documents/notion-s3-object-lock.md): **S3 Object Lock（WORM）の整理**。チーム共有用（Notion に上げる）。仕組み・モード・今の守りへの重なり方・費用・決めること（2026-10-26）
+- [documents/notion-s3-object-lock.md](./documents/notion-s3-object-lock.md): **S3 Object Lock（WORM）の整理**。チーム共有用（Notion に上げる）。仕組み・バケットとバージョンと操作の関係・イベントホールドとリーガルホールドの違い・モード・今の守りへの重なり方・費用・決めること（2026-10-26、2026-11-04 に追記。Notion は未反映）
 - [documents/privileged-access-and-break-glass.md](./documents/privileged-access-and-break-glass.md): **特権アクセスと break-glass の一般論**。学習用。組織と人のレイヤーの設計、緊急用のアクセス、特権を持つ人の要件を、NIST・ISO・Microsoft・AWS・政府統一基準・IPA を根拠にまとめた（2026-10-29）
 - [documents/aws-privilege-hierarchy.md](./documents/aws-privilege-hierarchy.md): **AWS の権限の階層**。複数アカウントの組織での権限の階層の一般論と、うちの組織への当てはめ（管理アカウントへの CI の経路の調査を含む）

@@ -38,6 +38,65 @@ WORM（Write Once Read Many）は、「一度書いたデータは、決めた�
 
 どちらの場合も、Object Lock の有効化はバケット全体に効きます。守らないプレフィックスも、バージョニングを止められなくなる点は変わりません。
 
+### バケット・バージョンと操作の関係
+
+Object Lock を、「何に（エンティティ）」「どんな値が付き（属性）」「どの操作で変わるか（メソッド）」で整理します（2026-11-04 に追記。検証で確かめたことを含みます）。
+
+**要点:** 保護がかかるのは、バケットでもキーでもなく、**オブジェクトのバージョン 1 つ 1 つ**です。バケットが持つのは「Object Lock を使えるか」と「新しいバージョンに最初に付ける保持の既定値」だけです。消せるかどうかは、各バージョンの保持の状態と、バケットポリシーで決まります。
+
+```
+S3 バケット
+├─ バージョニング（PutBucketVersioning）………… Object Lock の前提。有効にしたあとは停止できない
+├─ Object Lock の設定（PutObjectLockConfiguration）
+│   ├─ ObjectLockEnabled: Enabled …………… 有効化。一度有効にしたら戻せない
+│   └─ Rule.DefaultRetention …………………… 既定の保持設定（無くてもよい）
+│        ├─ Mode: GOVERNANCE / COMPLIANCE
+│        ├─ Days / Years …………………………… 固定の保持期間
+│        └─ DefaultEventHold.Days …………… イベントホールドの解除後の保持期間
+├─ バケットポリシー（PutBucketPolicy）…………… 下の操作を、誰が呼べるかを絞る
+└─ キー（いわゆる「オブジェクト」。名前だけ）
+     └─ バージョン（VersionId）………………… ★ 保護がかかる単位
+          ├─ 保持（retention）
+          │   ├─ Mode ………………………………… GOVERNANCE / COMPLIANCE
+          │   ├─ RetainUntilDate ………………… 保持期限
+          │   ├─ EventHold: ON / OFF ………… イベントホールド
+          │   └─ EventHoldDuration …………… 解除後の保持期間
+          └─ リーガルホールド（LegalHold: ON / OFF）…… 保持とは独立したフラグ
+     （削除マーカーもバージョンの 1 つだが、保持は付かない）
+```
+
+- **既定の保持設定は、書き込みの時点でバージョンに写されるだけです。** あとでバケットの既定を変えたり外したりしても、すでにあるバージョンの保持は変わりません。既存のバージョンを守るには、バージョンごとに保持を付けます（S3 Batch Operations の `PutObjectRetention`）。
+- **バージョンが保護されている状態**は、次のどれかに当てはまるあいだです。
+  - `LegalHold = ON`
+  - `EventHold = ON`（このあいだ `RetainUntilDate` は「今＋日数」として計算され、読むたびに先へ動く。期限は来ない）
+  - 現在時刻 < `RetainUntilDate`
+
+**バケットに対する操作**
+
+| 操作（権限） | 何をするか | Object Lock との関係 |
+|---|---|---|
+| `CreateBucket`（`ObjectLockEnabledForBucket`） | 作るときに Object Lock を有効にする | バージョニングも同時に有効になる |
+| `PutObjectLockConfiguration`（`s3:PutBucketObjectLockConfiguration`） | 既存のバケットで有効にする。既定の保持設定を入れる・変える・外す（`Rule` の無い設定を入れる） | 既存のバージョンには効かない |
+| `GetObjectLockConfiguration` | 設定を読む | |
+| `PutBucketPolicy` | 下の操作の呼び出しを Deny で絞る | ガバナンスモードでは、迂回の Deny がここに要る |
+| `PutBucketLifecycleConfiguration` | 失効を設定する | 保護されているバージョンは失効で消えない。削除マーカーは付く |
+| `DeleteBucket` | バケットを消す | 空でないと消せない。保護されているバージョンが残る限り空にできない |
+
+**バージョンに対する操作**
+
+| 操作（権限） | 何をするか | 保護されているときの挙動 |
+|---|---|---|
+| `PutObject`・`CompleteMultipartUpload`・`CopyObject` | 新しいバージョンを作る | 保持は、明示のヘッダー（`x-amz-object-lock-*`）が無ければ既定の保持設定から付く。古いバージョンは上書きされず残る。チェックサムのヘッダー（`Content-MD5` か `x-amz-checksum-*`）が必須 |
+| `PutObjectRetention`（`s3:PutObjectRetention`） | 保持（`Mode`・`RetainUntilDate`・`EventHold`）を変える | 延ばすのはいつでもできる。縮める・`Mode` を外すのは、ガバナンスモードなら迂回が要り、コンプライアンスモードではだれにもできない |
+| 　└ イベントホールドの解除（`EventHold: OFF`） | 保持期限を「解除した時刻＋日数」で固める | ガバナンスモードでは迂回なしで通る（検証で確認） |
+| `PutObjectLegalHold`（`s3:PutObjectLegalHold`） | リーガルホールドを付け外す | 保持とは独立している |
+| `GetObjectRetention`・`GetObjectLegalHold`・`HeadObject` | 状態を読む | |
+| `DeleteObject`（`VersionId` なし） | 削除マーカーを付ける | **常に通る**。バージョンは残る |
+| `DeleteObject`（`VersionId` あり） | バージョンを消す | **拒まれる**（`403 Access Denied`）。次の迂回だけが例外 |
+| 　└ ガバナンスモードの迂回（`x-amz-bypass-governance-retention` ヘッダー＋`s3:BypassGovernanceRetention`） | | ガバナンスモードで、リーガルホールドが無ければ消せる。コンプライアンスモードとリーガルホールドは迂回できない |
+
+**通知:** バージョンの保持の変更は、EventBridge に `Object Retention Updated` として届きます（`event-hold` に `ON`・`OFF` が入る）。バケットに対する操作は、CloudTrail の管理イベント（EventBridge では `AWS API Call via CloudTrail`）として届き、拒まれた試みも届きます。
+
 ## 2. 鍵の種類
 
 1 つの版に、保持期間とリーガルホールドの両方を付けられます。
@@ -51,6 +110,24 @@ WORM（Write Once Read Many）は、「一度書いたデータは、決めた�
 - 可変の保持期間は、2026-09-08 に追加された機能です。追加の費用はかかりません。
 - バケットに**既定の保持期間**（固定・可変のどちらでも）を設定すると、それ以降に書かれる版に自動で鍵がかかります。
 - 保持期間は延ばせますが、コンプライアンスモードでは縮められません。上限は 100 年です。
+
+### イベントホールドとリーガルホールドの違い
+
+どちらも「外すまで消せない」点は同じです。違いは、どの仕組みの中にあるかです（2026-11-04 に追記）。
+
+- **イベントホールド**（`EventHold`）は、**保持（retention）の一部**です。モードと日数を持ち、バケットの既定にできます。解除したあとも、決めた日数は消せません。
+- **リーガルホールド**（`LegalHold`）は、**保持とは別の ON / OFF のフラグ**です。モードも期限も既定値もなく、外した瞬間に保護がなくなります。
+
+| | イベントホールド | リーガルホールド |
+|---|---|---|
+| どこにあるか | 保持の一部（`PutObjectRetention`） | 独立したフラグ（`PutObjectLegalHold`） |
+| モード | 必須（ガバナンス / コンプライアンス） | 無い |
+| バケットの既定 | できる（既定の保持設定の `DefaultEventHold`） | **できない**。書き込み元がバージョンごとに付ける |
+| ON のあいだ | 消せない。ガバナンスモードなら迂回で消せる | 消せない。**迂回も効かない** |
+| 外したあと | **決めた日数は消せない**（保持期限が「解除した時刻＋日数」で固まる） | **すぐ消せる** |
+| 外せる主体 | `s3:PutObjectRetention` を持つ主体。条件キー `s3:object-lock-event-hold`（`ON`・`OFF`）で絞れる。ただし条件キーは、バケットの既定で付くホールドには効かない | `s3:PutObjectLegalHold` を持つ主体なら、いつでも |
+| 外したあと、付け直せるか | 保持期限のうちなら、もう一度 `ON` にできる | いつでも付けられる |
+| 本来の使い道 | 「出来事が起きるまで保持し、起きてから N 日」（契約の終了など） | 訴訟・監査での一時的な凍結 |
 
 ## 3. 2 つのモード
 

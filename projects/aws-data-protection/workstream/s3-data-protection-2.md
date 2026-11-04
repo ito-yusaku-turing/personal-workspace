@@ -634,3 +634,8 @@
     - 試しのバケット `worm-probe-767397804933` と、ロール 2 本・SQS・ルール 2 本は、cleanup まで残る。ホールドはすべて解除済み（保持期限は q9 などが 11-05 01:43 UTC、q13 が 11-05 02:36 UTC まで。2 回目の q13 の版はその 1 日後まで）。
     - `~/runbook/worm-probe/` に `q13.py` を足し、`worm-probe.sh` に `q13` を足した（git の管理外。元の版の控えは `tmp/worm-probe.sh.bak-20261104`）。holdcheck は期限の欄が動く仕様では何も試せないので、もう使わない。
 
+- 2026-11-04（続き）: **資料の整理（伊藤の依頼）。**
+  - 用語集 [worm-glossary.md](s3-data-protection-2/worm-glossary.md) を作った。共有用に仕上げるとき、言い換え（「鍵」など）には括弧で AWS の正式名を補い、自分たちで作った呼び名（Quick Win・フルスペックなど）は使うかどうかを都度確かめる。
+  - [S3 Object Lock（WORM）の整理](../documents/notion-s3-object-lock.md) に、1 章「バケット・バージョンと操作の関係」（エンティティ・属性・操作で見た Object Lock）と、2 章「イベントホールドとリーガルホールドの違い」を足した。**Notion 版はまだ更新していない**（反映は最後に、伊藤の許可を取って行う）。
+  - 決定と理由の一覧 [worm-decisions.md](s3-data-protection-2/worm-decisions.md) を作った（D1〜D12 と、設計案の提案 P1〜P7）。D5（Quick Win をガバナンスにした理由）と D2（S2 の消去の義務）は、資料に理由や答えが無いところを「補足・要確認」とした。伊藤に確かめる。
+  - 設計案の通知（ルール A）は `Object Retention Updated` だけを拾うので、リーガルホールドの付け外しは通知されない。EventBridge にどう届くかをカナリアで確かめ、要れば足す（設計案の 3.6 にまだ書いていない）。
