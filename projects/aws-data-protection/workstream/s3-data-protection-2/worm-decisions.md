@@ -17,7 +17,7 @@
 | D1 | 消せない保護の本命 | **WORM（S3 Object Lock）**。BreakGlass は撤回の方向 | 仮決定（10-30） | option-reassessment.md の 1・6 章 |
 | D2 | 対象のバケット | **原本バケット 12 本すべて**。例外を置かない | 決定（10-30・11-02。S2 の義務は 11-04 に確認） | worm-design.md の 1 章、worm-quickwin-plan.md の 2 章 |
 | D3 | 保護の表し方 | **イベントホールド（可変の保持期間）** | 決定（10-30） | worm-reference.md の 1 章、worm-design.md の 2.1 |
-| D4 | 解除後の保持期間 | **30 日** | 決定（10-30） | worm-reference.md の 3 章 |
+| D4 | 解除後の保持期間 | **30 日** | 決定（10-30）→ 仮決定に戻す案（11-04、E1。チームで正式な値を決める） | worm-reference.md の 3 章 |
 | D5 | モード | 10-30 は**コンプライアンス** → **Quick Win はガバナンス** | 見直し（11-02）→ 決定（11-04、理由を確認） | worm-design.md の 3 章、worm-quickwin-plan.md の 1・2 章 |
 | D6 | 解除できる主体 | 10-30 は **BreakGlass だけ** → 11-02 に **Quick Win では FullAccess ほか数人のまま** | 見直し（11-02） | worm-design.md の 2.2、worm-quickwin-plan.md の 2・3.2 章 |
 | D7 | 既存のオブジェクト | **今の最新バージョンにかけ、古いバージョンにはかけない** | 仮決定（10-30） | worm-design.md の 2.4 |
@@ -190,6 +190,42 @@ Quick Win の構成（迂回を全員に Deny、Q7）での、保護されてい
   - 代わりに、`PutBucketNotification` を通知 2（バケット設定の変更、ルール B）で拾う。
   - Deny するなら、Databricks の担当と相談する。
 - **出典:** [worm-quickwin-plan.md](worm-quickwin-plan.md) の 8.2
+
+## 検討中（2026-11-04 に伊藤が出した案。仮のまま、次回に詰める）
+
+伊藤が出した追加の決定の案と、エージェントが確かめて挙げた論点。**どれも決まっていない。** 次回の議論はここから始める。
+
+**伊藤の案:**
+
+- E1. 保護期間（解除後の保持期間）は 30 日とする。仮決定で、チームで話し合って正式な値を決める。
+- E2. FullAccess から、オブジェクトの削除と保護の解除の権限をすべて外す。迂回もできなくする。
+- E3. FullAccess より上位の権限（仮に AdministratorAccess）は、保護を解除できる。ただし、設定された保護期間のあいだは、AdministratorAccess でも削除できない。
+- E4. バケットポリシーの側でも、上の仕様になるよう守る。
+
+**エージェントの見立て（方向は問題ない。詰めるところ）:**
+
+- E1: 日数を後で長くするのは延長なので迂回が要らないが、縮めるのはガバナンスモードでは迂回が要る（ドキュメントからの見込み。試していない）。**正式な値は、段階 1 の Batch Operations の前に決める**。既存のバージョンに書いたあとで変えると、全件に流し直す（約 $3,900）。新しいバージョンの分は既定の保持設定を変えるだけ。D4 は「仮決定」に戻す。
+- E2: 外す対象は、バージョンの削除（`s3:DeleteObjectVersion`）、解除（`s3:PutObjectRetention`・`s3:PutObjectLegalHold`）、既定の保持設定の変更（`s3:PutBucketObjectLockConfiguration`）。迂回は全員に Deny するので満たす。**FullAccess にバケットポリシーの変更（`DenyProtectionRemoval` の例外）が残ると、ポリシーごと書き換えて戻せるので、ここからも外す必要がある。** CLI で設定しているバケット（td1-rlog・tuscenes-calibration（旧）・denso-raw）のポリシーを、今だれがどう入れているかを確かめる。
+- E3: 「解除して 30 日待つ」道（D5 の①）は守られる。**ただし AWSAdministratorAccess はバケットポリシーを変えられるので、迂回の Deny を外して迂回すれば、その場で消せる（D5 の②）。** deploy のロールと root も同じ。仕様は「バケットポリシーを変えない限り消せない。変更は通知される」と書くのが正確。条件なしにするには、RCP で迂回を拒否するか、コンプライアンスモードに移す（フルスペックの候補）。
+- E4: バケットポリシーの文は 4 つになる見込み。
+
+| 文 | 対象の操作 | 例外（案） |
+|---|---|---|
+| `DenyGovernanceBypass`（新） | `s3:BypassGovernanceRetention` | なし（全員） |
+| `DenyLockChange`（新） | `s3:PutObjectRetention`・`s3:PutObjectLegalHold` | AWSAdministratorAccess だけ |
+| `DenyIrreversibleDelete`（既存を直す） | バージョンの削除・バケットの削除・`s3:PutBucketObjectLockConfiguration` | AWSAdministratorAccess だけ（FullAccess を外す） |
+| `DenyProtectionRemoval`（既存を直す） | ポリシー・バージョニング・ライフサイクルなどの変更 | AWSAdministratorAccess と deploy のロール（FullAccess を外す） |
+
+- 波及: D6（解除できる主体）が「`DenyLockChange` の後は AWSAdministratorAccess だけ（ほかに deploy のロールと root）」に変わる。既定の保持設定を入れる・外す（戻し方）作業は AWSAdministratorAccess で行う。既存のバージョンへの Batch Operations は `DenyLockChange` の前に流すので変わらない。
+- 1-(c) の論点（11-04、P1・P2 と一緒に確認を頼んだもの）: deploy のロールはバケットポリシーを変えられるので、PR で迂回の Deny を外して迂回する道が残る。案は「受け入れて、PR のレビューとルール B の通知で気づく（穴 B）」。対案は RCP。
+
+**次回に確かめること:**
+
+1. 「オブジェクトの削除」は、バージョンの削除だけか（ふつうの削除＝削除マーカーまで FullAccess から外すと、日々の作業が止まるおそれ。エージェントの案はバージョンの削除だけ）。
+2. E3 を「バケットポリシーを変えない限り」の条件つきで決めてよいか。
+3. 「上位の権限」は SSO の権限セット `AWSAdministratorAccess` か（AWS 管理ポリシーの `AdministratorAccess` を持つ cfn-exec-role などは含めない。用語集に書き分ける）。
+4. FullAccess から、バケットポリシー・バージョニング・ライフサイクルの変更も外してよいか。
+5. P1（迂回の Deny を先に入れる）・P2（`DenyLockChange` はかけ終えてから）・1-(c)（deploy のロールの道を受け入れる）。
 
 ## 提案（11-04 の設計案。伊藤のレビュー待ち）
 

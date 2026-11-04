@@ -1,7 +1,7 @@
 # S3 バケットのデータ保護 第二弾（権限設計のアップグレード）
 
 - 開始: 2026-10-20
-- 状態: **WORM の Quick Win の試しがほぼ終わり、作業 1〜3・8 の設計案を書いた段**（2026-11-04。[worm-quickwin-design.md](s3-data-protection-2/worm-quickwin-design.md)）。次は 11-05 10:00 に Q9、11:00 に Q13 の 2 回目（presigned URL の SigV4）、そのあと設計案のレビュー。権限の頂点の問題は別の案件（project:privileged-access）
+- 状態: **WORM の Quick Win は、モードをガバナンスに決め（D5）、周辺の仕様（バケットポリシーの例外・解除できる主体）を詰めている段**（2026-11-04。[worm-decisions.md](s3-data-protection-2/worm-decisions.md) の「検討中」）。次は 11-05 10:00 に Q9、11:00 に Q13 の 2 回目、そのあと「検討中」の E1〜E4 の議論。権限の頂点の問題は別の案件（project:privileged-access）
 - 所属: project:aws-data-protection（2026-10-26 に `~/docs/workstream/` から移した）
 - 前段（第一弾、完了）:
   - [走行データ消失リスクへの対応](done/raw-data-security.md)（バケットの種別と処遇、裁定の正本）
@@ -639,3 +639,13 @@
   - [S3 Object Lock（WORM）の整理](../documents/notion-s3-object-lock.md) に、1 章「バケット・バージョンと操作の関係」（エンティティ・属性・操作で見た Object Lock）と、2 章「イベントホールドとリーガルホールドの違い」を足した。**Notion 版はまだ更新していない**（反映は最後に、伊藤の許可を取って行う）。
   - 決定と理由の一覧 [worm-decisions.md](s3-data-protection-2/worm-decisions.md) を作った（D1〜D12 と、設計案の提案 P1〜P7）。D5（Quick Win をガバナンスにした理由）と D2（S2 の消去の義務）は、資料に理由や答えが無いところを「補足・要確認」とした。伊藤に確かめる。
   - 設計案の通知（ルール A）は `Object Retention Updated` だけを拾うので、リーガルホールドの付け外しは通知されない。EventBridge にどう届くかをカナリアで確かめ、要れば足す（設計案の 3.6 にまだ書いていない）。
+- 2026-11-04（続き 2）: **モードをガバナンスに決め、周辺の仕様の議論を始めた。**
+  - D5（モード）を、理由を確かめて決定にした（Q4 が未確認・Batch Operations の打ち間違いを直せる・後からコンプライアンスへ移せる・迂回を全員に Deny すればふだんはコンプライアンスに近い）。ガバナンスで増える穴は「バケットポリシーから迂回の Deny を外して迂回する」道だけ。
+  - D2: DENSO から受け取ったデータ（S2）に返却・消去の義務は無い（伊藤）。12 本すべてのまま。
+  - 伊藤が追加の決定の案 E1〜E4 を出した（保護期間 30 日は仮、FullAccess から削除・解除・迂回を外す、AWSAdministratorAccess は解除できるが保護期間中は消せない、バケットポリシーでも守る）。**仮のまま。** 論点と次回に確かめること 5 つを [worm-decisions.md](s3-data-protection-2/worm-decisions.md) の「検討中」に書いた。
+- 2026-11-04 のセッションの終わり（2 回目）。引き継ぎ（これより前の引き継ぎより、こちらを正とする）:
+  - **2026-11-05 の予定**は前の引き継ぎのまま（10:00 JST に `status`＝Q9、11:00 JST に `Q13_ONLY=presign-v4 Q13_VERSIONS=1.42.11 bash worm-probe.sh q13`、`cleanup` は 11-06 の昼以降）。エージェントはログを読んで結果の表を埋める。
+  - **次の議論:** worm-decisions.md の「検討中」の E1〜E4 と、次回に確かめること 1〜5。決まったら、決定の一覧（D4・D6 の見直しと新しい決定）、設計案の 2 章（バケットポリシーの 4 文）、用語集（`AWSAdministratorAccess` と `AdministratorAccess` の書き分け）を直す。
+  - そのあと周辺の仕様を順に固める: (2) 保持の値（既定の保持設定と Batch Operations のジョブ）→ (3) 通知 → (4) 導入の順番と予行 → (5) 戻し方。
+  - 設計案の 3.6 に、リーガルホールドの付け外しが EventBridge にどう届くか（ルール A は拾わない）をまだ足していない。
+  - Notion（notion-s3-object-lock.md）への反映は最後に、伊藤の許可を取って行う。
