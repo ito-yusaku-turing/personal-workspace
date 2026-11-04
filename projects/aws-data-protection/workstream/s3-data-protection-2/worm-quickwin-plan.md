@@ -2,7 +2,7 @@
 
 - 作成: 2026-11-02 ／ 伊藤
 - 親: [S3 バケットのデータ保護 第二弾](../s3-data-protection-2.md)・[全体の状態と要件](requirements.md) の 8 章（課題 K6）
-- 状態: **作戦を決めた段**（2026-11-02）。次は 4 章の作業の順番を決めて、試しの準備から
+- 状態: **試しがほぼ終わり、作業 1〜3・8 の設計案を書いた段**（2026-11-04。[worm-quickwin-design.md](worm-quickwin-design.md)）。次は設計案のレビューと、書き手の直し（Cosmos・backend-api・jadd-cli）の連絡
 
 権限の設計（2 人目の確認・専用の経路）が固まるのを待たず、最小限の設計で WORM を先に入れる。穴があることは承知のうえで、誤操作と、いちばん大きい穴（ふつうの PR でライフサイクルから大量に消える）を先に塞ぐ。権限の設計が固まったら、フルスペックに差し替える。
 
@@ -66,14 +66,14 @@
 
 | # | 作業 | 中身 | 状態 |
 |---|---|---|---|
-| 1 | **迂回を全員に Deny する** | バケットポリシーで `s3:BypassGovernanceRetention` を、例外の主体も含めて全員に Deny する。FullAccess が迂回するには、先にポリシーを外す必要があり、その変更は通知に乗る（作業 3） | 未 |
-| 2 | 鍵の操作を例外の主体に閉じる | バケットポリシーで `s3:PutObjectRetention`・`s3:PutObjectLegalHold`・`s3:PutBucketObjectLockConfiguration` を、ステージ 1 の例外の主体以外に Deny する | 未 |
-| 3 | **すぐの通知** | 対象: ホールドの解除と保持の変更（S3 のイベント `Object Retention Updated`、CloudTrail の `PutObjectLockRetention`）、バケットの鍵の設定の変更、バケットポリシーの変更、バケットの通知の設定の変更、通知のルールそのものの変更・削除。受け手は暫定でよい（フルスペックで頂点の群の外へ移す） | 未。Slack の bot の準備（保留中の 0-2・0-3）が関わる |
+| 1 | **迂回を全員に Deny する** | バケットポリシーで `s3:BypassGovernanceRetention` を、例外の主体も含めて全員に Deny する。FullAccess が迂回するには、先にポリシーを外す必要があり、その変更は通知に乗る（作業 3） | 設計案（2026-11-04、設計の 2 章）。鍵より先に入れる |
+| 2 | 鍵の操作を例外の主体に閉じる | バケットポリシーで `s3:PutObjectRetention`・`s3:PutObjectLegalHold`・`s3:PutBucketObjectLockConfiguration` を、ステージ 1 の例外の主体以外に Deny する | 設計案（2026-11-04、設計の 2 章）。`PutBucketObjectLockConfiguration` はステージ 1 で入っている。残りはホールドをかけ終えてから |
+| 3 | **すぐの通知** | 対象: ホールドの解除と保持の変更（S3 のイベント `Object Retention Updated`、CloudTrail の `PutObjectLockRetention`）、バケットの鍵の設定の変更、バケットポリシーの変更、バケットの通知の設定の変更、通知のルールそのものの変更・削除。受け手は暫定でよい（フルスペックで頂点の群の外へ移す） | 設計案（2026-11-04、設計の 3 章）。入口 2 つ・SNS・解除は警報でまとめる。Slack は 0-2・0-3 と一緒に |
 | 4 | **通知を外せる主体を確かめる** | 通知のルール・通知先・バケットの通知の設定を変えられる主体を、全主体の判定と同じ方法で洗い出す。FullAccess だけでなければ、穴 A の範囲を広げるか、見張りを外に置く（5 章） | 済み（2026-11-02、8 章）。入口を 2 つ・送り先を SNS にすれば、解除できる主体とほぼ同じ集まりにできる |
-| 5 | **書き込みの経路を確かめる** | 12 本の書き手（アップロード用の PC・DataSync・Databricks・各アプリ）が、チェックサムのヘッダーを付けて書くか。試しの Q5 の結果と、書き手ごとのクライアントの版で判断する | ログに出た分は済み（2026-11-02、9 章）。**tuscenes-model の Cosmos と jadd-cli は直さないと止まる。** DataSync・Databricks・gaming の PC は不明 |
-| 6 | **試し** | 使い捨てのバケットで、[worm-probe-runbook.md](worm-probe-runbook.md) の Q1〜Q6 に、下の Q7〜Q11 を足して確かめる。スクリプトは `~/runbook/worm-probe/worm-probe.sh`（git の管理外。伊藤が Full 権限で実行し、ログは同じフォルダの `log/`） | 実行中。2026-11-02 に setup〜events。Q2・Q5 で迂回の Deny と書き手の確かめが必須、Q7 で迂回の Deny が効くこと、Q10・Q11 で解除と管理イベント（拒まれた試みを含む）が EventBridge に届くことが分かった。Q9・Q12 は翌日以降 |
+| 5 | **書き込みの経路を確かめる** | 12 本の書き手（アップロード用の PC・DataSync・Databricks・各アプリ）が、チェックサムのヘッダーを付けて書くか。試しの Q5 の結果と、書き手ごとのクライアントの版で判断する | ログに出た分は済み（2026-11-02、9 章）。Q13 で SDK ごとの可否を確かめた（2026-11-04、10 章）。**tuscenes-model の Cosmos と jadd-cli は直さないと止まる（確定）。** DataSync・Databricks の volume は不明 |
+| 6 | **試し** | 使い捨てのバケットで、[worm-probe-runbook.md](worm-probe-runbook.md) の Q1〜Q6 に、下の Q7〜Q11 を足して確かめる。スクリプトは `~/runbook/worm-probe/worm-probe.sh`（git の管理外。伊藤が Full 権限で実行し、ログは同じフォルダの `log/`） | 実行中。2026-11-02 に setup〜events。Q2・Q5 で迂回の Deny と書き手の確かめが必須、Q7 で迂回の Deny が効くこと、Q10・Q11 で解除と管理イベント（拒まれた試みを含む）が EventBridge に届くことが分かった。2026-11-04: Q12 は前提どおり（ホールド中は期限の欄が「読んだ時刻＋1 日」で動き、過ぎない）。Q10 で解除がキューまで 0〜2 秒で届いた。release-all 済み。Q9 は 11-05 に見る。Q13 は未 |
 | 7 | 解除できる主体の一覧（穴 B） | ステージ 1 の例外と、全主体の判定（[iam-scan/](iam-scan/escalation.py)）から作る。構造上の上位権限者は privilege-map.md の台帳を指す | 済み（2026-11-02、7 章） |
-| 8 | 入れる | バケットの既定（ガバナンス、イベントホールド、解除の後 30 日）→ 既存の最新版に Batch Operations でホールドをかける（worm-design.md の 2.4）→ バケットポリシーの変更（作業 1・2）を cdk-apps の PR で。**Batch Operations のジョブのロールは例外の主体ではないので、作業 2 のポリシーの後では鍵の操作を拒まれる。** ホールドをかけ終えてからポリシーを当てるか、ジョブのロールを例外に足す | 未 |
+| 8 | 入れる | バケットの既定（ガバナンス、イベントホールド、解除の後 30 日）→ 既存の最新版に Batch Operations でホールドをかける（worm-design.md の 2.4）→ バケットポリシーの変更（作業 1・2）を cdk-apps の PR で。**Batch Operations のジョブのロールは例外の主体ではないので、作業 2 のポリシーの後では鍵の操作を拒まれる。** ホールドをかけ終えてからポリシーを当てるか、ジョブのロールを例外に足す | 設計案（2026-11-04、設計の 4 章）。PR-1（迂回の Deny と通知）→ カナリアで予行 → 4 つの波 → PR-3（鍵の操作の Deny） |
 | 9 | 入れたあとの確かめ | 12 本の鍵の設定、ホールドのかかった件数、書き込みのエラー、通知が届くこと（カナリアで解除して確かめる） | 未 |
 
 試しに足す項目:
@@ -168,14 +168,14 @@ Quick Win のバケットポリシー（試しの `policy` と同じ形: ステ�
 | 書き手 | バケット | 件数（PutObject＋UploadPart） | 理由 | 直し方 |
 |---|---|---|---|---|
 | **TeamE2E の Cosmos の checkpoint**（`cosmos3/.../*.distcp`） | tuscenes-model | **1,146,088**（書き込みの約 82%） | mono-e2e `projects/wm_generation/src/omnidreams/_src/imaginaire/utils/easy_io/backends/boto3_client.py:282` と `utils/object_store.py:29` が `request_checksum_calculation="when_required"` を指定している（コードで確かめた） | 指定を消すか `when_supported` にする。aioboto3 と multi-storage-client の経路も確かめる。持ち主への連絡が要る |
-| **jadd-cli（backend-api の presigned URL）** | tuscenes-model | 1,227（0.1.7・0.1.8 と、0.1.6 以前とみられる python-requests） | presigned URL にはチェックサムが入らない。jadd-cli は `requests.put` で User-Agent しか送らない（`packages/jadd-cli/src/jadd/model/api.py:151,156,191`。コードで確かめた） | URL に Content-MD5 を入れて発行し、クライアントが同じ値を送る、など。古い版の jadd-cli は書けなくなる |
+| **jadd-cli（backend-api の presigned URL）** | tuscenes-model | 1,227（0.1.7・0.1.8 と、0.1.6 以前とみられる python-requests） | presigned URL にはチェックサムが入らない。jadd-cli は `requests.put` で User-Agent しか送らない（`packages/jadd-cli/src/jadd/model/api.py:151,156,191`。コードで確かめた） | **presigned URL を SigV4 にしたうえで**、チェックサムを付ける（2026-11-04 の Q13: 既定の URL は SigV2 で、Object Lock のバケットでは拒まれる）。付け方は 11-04 の 2 回目の試しで決める。古い版の jadd-cli は書けなくなる |
 
 ### 9.2 付けると判定したもの
 
 アップロード用の PC（aws-cli 2.38.5・2.25.8・2.23.7 は CRC、2.15.58・2.16.9 は Content-MD5）、Datalake の rlog のデコーダー（boto3 1.36.14、CRC32）、LocalizationNightly、ModelConverter、PerceptionDetection（CLI と JS）、ModelcoreBuild、TeamE2E の人の手の操作。
 
 - アップロード用の PC の 2.23.7・2.25.8 は、設定で `when_required` にしていなければ付ける。PC の `~/.aws/config` と環境変数を確かめる。
-- **boto3 の「CRC32 を trailer で付ける」送り方が Object Lock で通るかは、試していない**（11-02 の試しは CLI と Content-MD5 だけ）。Datalake など boto3 の書き手が多いので、試しに足す（Q13）。
+- boto3 の「CRC32 を trailer で付ける」送り方は、Object Lock のバケットで通った（2026-11-04 の Q13）。
 
 ### 9.3 不明なもの（ログに書き込みが無かった）
 
@@ -183,7 +183,7 @@ Quick Win のバケットポリシー（試しの `policy` と同じ形: ステ�
 |---|---|---|---|
 | DataSync（Azure から） | denso の 3 本 | 公式の資料に記述が無い | 使い捨ての Object Lock のバケットを宛先にしたタスクで試す |
 | Databricks | （書く経路はコードに見当たらない） | external location は READ_FILES だけ。ただし catalog `denso` に WRITE_VOLUME があり、volume の場所は Terraform から分からない。Databricks の KB では、S3A の UploadPart は Content-MD5 を付けず、Delta Lake は Object Lock のバケットに対応しない | volume の場所を UI で確かめる。12 本を指していれば Databricks の担当と相談 |
-| gaming-data-collection の各 PC | gaming-data-collection | boto3 の指定は `>=1.34` だけ。1.36 未満なら付けない | 各 PC の `pip show boto3` か、次の書き込みの userAgent |
+| gaming-data-collection の各 PC | gaming-data-collection | boto3 の指定は `>=1.34` だけ。**Q13 で、1.35 は Content-MD5 を、1.36 以降は CRC32 を既定で付けると分かったので、版にかかわらず止まらない見込み**（`when_required` にしていなければ） | 各 PC の `~/.aws/config` と環境変数（`AWS_REQUEST_CHECKSUM_CALCULATION`） |
 | SkyPilot の API サーバー | tuscenes-* の 5 本 | SDK の版がリポジトリから分からない | 書き込みがあれば userAgent で |
 
 この 3 日余り書き込みが無かったバケット: tuscenes-raw、tuscenes-calibration（新・旧）、td1-rlog、denso の 4 本、gaming-data-collection。
@@ -192,4 +192,44 @@ Quick Win のバケットポリシー（試しの `policy` と同じ形: ステ�
 
 - **tuscenes-model は、Cosmos と jadd-cli を直すまで入れられない。** 入れる順番（作業 8）では、tuscenes-model を後に回すか、直してから入れる。
 - 書き込みの止まっているバケット（tuscenes-raw・td1-rlog・tuscenes-calibration（旧）・denso-raw）は、書き手の問題が小さいので先に入れやすい。
-- 試しに足すもの（Q13）: boto3 の `put_object` と `upload_file`（マルチパート）、Content-MD5 を入れた presigned URL、CopyObject。DataSync は別に試す。
+- Q13 は 2026-11-04 に行った（10 章）。DataSync は別に試す（設計の 4.2 の波 2 の前）。
+
+## 10. 試しで分かったこと（2026-11-02〜04 のまとめ）
+
+結果の正本は [worm-probe-runbook.md](worm-probe-runbook.md) の結果の表。Quick Win の判断に効くものをまとめる。
+
+### 10.1 鍵の振る舞い
+
+| 分かったこと | Quick Win への意味 | # |
+|---|---|---|
+| ガバナンスでは、迂回のヘッダーでホールド中の版も消せる | 迂回の Deny が必須（作業 1） | Q2 |
+| バケットポリシーで迂回を Deny すると、FullAccess でも迂回で消せない。解除とかけ直しは通る | 作業 1 の形で足りる | Q7 |
+| **ホールドが ON のあいだ、期限の欄は「読んだ時刻＋日数」で先へ動く。期限が過ぎることはない** | 「解除するまで消えない」が成り立つ | Q12（2026-11-04） |
+| 解除すると、期限は「解除した時刻＋日数」で固まる。期限前の削除は拒まれる | 「解除の後 30 日」が成り立つ | Q3・Q12 |
+| 解除のあと、期限のうちにかけ直せる（迂回なし） | 30 日のあいだに止められる | Q8 |
+| Batch Operations で既存の版にホールドをかけられる。迂回の権限は要らない | 作業 8 の既存の版 | Q6 |
+| ライフサイクル | 未確定（2026-11-05 に見る） | Q9 |
+
+### 10.2 通知
+
+| 分かったこと | 設計への意味 | # |
+|---|---|---|
+| 解除・かけ直し・Batch Operations のホールドは `Object Retention Updated` として届く。`event-hold` に `ON`・`OFF` が入る | `ON` を除けば、Batch Operations で洪水にならない（設計の 3.2） | Q10 |
+| 解除のイベントは、キューまで 0〜2 秒で届く（18 件すべて） | すぐの通知に使える。setup の直後の数分は届かなかったので、入れた直後はカナリアで確かめる | Q10（2026-11-04） |
+| ポリシー・鍵の既定・ライフサイクルの変更は、管理イベントとして届く。拒まれた試みも届く | 入口 2（設計の 3.3） | Q11 |
+
+### 10.3 書き込み（Q5・Q13）
+
+| 書き方 | 結果 |
+|---|---|
+| AWS CLI の既定（CRC）、Content-MD5 | 通る |
+| boto3 1.35.99 の既定（PutObject・UploadPart に Content-MD5） | 通る |
+| boto3 1.36.14・1.43.123 の既定（CRC32 を trailer で） | 通る |
+| boto3 1.36 以降の `request_checksum_calculation="when_required"` | **拒まれる**（1 回の書き込みも、マルチパートも）。ContentMD5 を自分で付ければ通る |
+| CopyObject・UploadPartCopy（チェックサムなし、`when_required` でも） | 通る |
+| **presigned URL（boto3 の既定。SigV2）** | **拒まれる**（`require AWS Signature Version 4`）。Content-MD5 や CRC32 を入れても同じ。チェックサムの無い URL は、署名より先にチェックサムの不足で拒まれる |
+| presigned URL（SigV4）＋チェックサム | 未（2026-11-04 の 2 回目の試し、`Q13_ONLY=presign-v4`） |
+
+- 止まるのは **`when_required` の指定（Cosmos）と、presigned URL（backend-api → jadd-cli）** の 2 つ。どちらも tuscenes-model。
+- そのほかの SDK の書き手は、設定を変えていなければ版にかかわらず止まらない見込み。
+

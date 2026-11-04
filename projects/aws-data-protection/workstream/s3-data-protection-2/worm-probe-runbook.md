@@ -231,7 +231,7 @@ rm -f /tmp/worm-probe-*.json /tmp/worm-probe-manifest.csv
 
 | # | 結果 | 日時・メモ |
 |---|---|---|
-| Q1 | `Days` を省いて `DefaultEventHold`（1 日）だけで既定を設定できた。書いた版は GOVERNANCE・ON・1 日。ホールド中でも期限の欄に「書いた時刻＋1 日」が入る（意味は Q12 で確かめる） | 2026-11-02 07:41〜07:43 UTC。スクリプトの setup・basic |
+| Q1 | `Days` を省いて `DefaultEventHold`（1 日）だけで既定を設定できた。書いた版は GOVERNANCE・ON・1 日。ホールド中でも期限の欄に日時が入る。**この日時は「読んだ時刻＋1 日」で、読むたびに先へ動く**（2026-11-04 に分かった。Q12） | 2026-11-02 07:41〜07:43 UTC。スクリプトの setup・basic |
 | Q2 | **迂回のヘッダーを付ければ、ホールド中の版でも消せた。** 版を指定しただけの削除は拒まれた | 07:43。ガバナンスでは迂回の Deny が必須（Quick Win の作業 1） |
 | Q3 | 解除に迂回は要らない（FullAccess で通った）。解除の後の期限は「解除した時刻＋1 日」で、期限前の削除は拒まれたが、迂回のヘッダーでは消せた。`Mode` を省いた解除は `MalformedXML` | 07:43 |
 | Q4 | | |
@@ -239,8 +239,9 @@ rm -f /tmp/worm-probe-*.json /tmp/worm-probe-manifest.csv
 | Q6 | Batch Operations で、鍵の無い既存の版 2 件にホールドをかけられた（Complete・成功 2・失敗 0）。ジョブのロールに迂回の権限は要らなかった | 07:47〜07:48。Quick Win のポリシーの前に行った（後ではジョブのロールが拒まれる） |
 | Q7 | **迂回を全員に Deny すると、FullAccess でもホールド中・解除直後の版を迂回で消せなかった。** FullAccess の解除とかけ直しは通った。例外でない主体は、書き込み・上書き・ふつうの削除は通り、解除・迂回の削除・版の削除・リーガルホールド・鍵の既定・ポリシーの削除・かけ直しは拒まれた。削除マーカーが付いても版の鍵は残った | 07:50〜07:51。スクリプトの policy・guarded |
 | Q8 | **解除の後にホールドをかけ直せた**（迂回なし）。期限はかけ直した時刻から数え直しになり、削除は拒まれた | 07:43 |
-| Q9 | | |
-| Q10 | **解除（`event-hold: OFF`）・かけ直し・Batch Operations でのホールドが、`Object Retention Updated` として EventBridge に届いた**（モード・期限・ホールドの状態がイベントに入る）。拒まれた鍵の操作は S3 のイベントには出ない。setup の直後（07:43〜07:44 の basic）のイベントは 1 件も届かなかった（ルールかバケットの通知の設定の反映待ちとみられる）。届くまでの時間は、1 回目の読み出しでは記録していない | 07:47〜07:53 のイベント 20 件 |
+| Q9 | **未確定。** ライフサイクルはまだ動いていなかった。11-04 01:51 UTC の時点で、q9/ の 3 版は残っていて、削除マーカーも無かった。1 日の失効で対象になるのは 11-04 00:00 UTC からなので、早すぎた。release-all でホールドは解除済みで、版は 11-05 01:43 UTC まで保持期限で守られている。**11-05 の 01:43 UTC（10:43 JST）より前に status を見る。** 今の版に削除マーカーが付き、古い版が残っていれば OK | 2026-11-04 01:33（status）・01:51（ReadOnly で見直した） |
+| Q10 | **解除（`event-hold: OFF`）・かけ直し・Batch Operations でのホールドが、`Object Retention Updated` として EventBridge に届いた**（モード・期限・ホールドの状態がイベントに入る）。拒まれた鍵の操作は S3 のイベントには出ない。setup の直後（07:43〜07:44 の basic）のイベントは 1 件も届かなかった（ルールかバケットの通知の設定の反映待ちとみられる）。届くまでの時間は、1 回目の読み出しでは記録していない。**11-04 の release-all の解除 18 件は、18 件すべてが `Object Retention Updated`（`hold=OFF`）として届いた。イベントの時刻からキュー（SQS）に届くまで 0〜2 秒**（11-04 01:43:16〜01:43:48 UTC。11-04 10:54 JST の events で読んだ）。ルールが反映されたあとは、すぐの通知に使える速さ | 07:47〜07:53 のイベント 20 件 |
 | Q11 | **管理イベントは `AWS API Call via CloudTrail` として tuscenes-prod の default のバスに届いた**（`PutBucketPolicy`・`PutBucketLifecycle`）。**拒まれた試みも届いた**（例外でない主体の `PutBucketObjectLockConfiguration`・`DeleteBucketPolicy`、`errorCode: AccessDenied`） | 07:49〜07:53。10-29 からの未確認が解けた |
-| Q12 | | |
-| 片付け | | |
+| Q12 | **前提は崩れない。** ホールドが ON のあいだ、期限の欄は「読んだ時刻＋1 日」になり、読むたびに先へ動く（holdcheck の 01:31 では 11-05 01:31、status の 01:33 では 11-05 01:33。版ごとに読んだ秒だけずれる）。期限が過ぎることはなく、holdcheck は削除を試す版が無かった。ホールド中の版を、迂回せずに版を指定して消すと拒まれることは、Q2 で確かめ済み。解除すると、期限は「解除した時刻＋1 日」で固まる（release-all のあとの版は 11-05 01:43 UTC） | 2026-11-04 01:31（holdcheck）・01:33（status）。スクリプトの holdcheck は「期限が過ぎた版」を探す作りなので、この仕様では何も試せない |
+| Q13 | **1 回目（boto3 1.35.99・1.36.14・1.43.123）:** (1) **SDK の書き込みは、既定ならどの版も通った。** put_object・upload_file（マルチパート）とも。1.35.99 は Content-MD5 を付け、1.36 以降は CRC32 を trailer（`STREAMING-UNSIGNED-PAYLOAD-TRAILER`）で付ける。trailer の形も Object Lock のバケットで通る。(2) **1.36 以降で `when_required` にすると、1 回の書き込みもマルチパートも拒まれた**（Cosmos の設定の再現。`InvalidRequest: Content-MD5 OR x-amz-checksum- …`）。ContentMD5 を自分で付ければ通る。(3) **コピー（CopyObject・UploadPartCopy）は、チェックサムなしでも、`when_required` でも通った。** (4) **presigned URL は、boto3 の既定では SigV2 で発行され、Object Lock のバケットでは `InvalidArgument: Put Object requests with Object Lock parameters require AWS Signature Version 4` で拒まれた**（Content-MD5 や CRC32 を入れても）。チェックサムの無い URL は、署名より先にチェックサムの不足で拒まれた。backend-api（jadd-cli の upload_url）も既定の `boto3.client("s3")` で発行しているので、**SigV4 にすることと、チェックサムを入れることの両方が要る**。(5) 書けた 19 版は、02:36:50 UTC に解除した | 2026-11-04 02:35〜02:36 UTC（11:35 JST）。ログ `20261104-113526-q13.log`。SigV4 の URL での試し（2 回目、`Q13_ONLY=presign-v4`）は未 |
+| 片付け | release-all で 18 版のホールドを解除した（すべて通った）。cleanup は 11-05 01:43 UTC より後で、Q9 の status を見てから | 2026-11-04 01:43 |

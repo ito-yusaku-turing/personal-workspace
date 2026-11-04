@@ -1,7 +1,7 @@
 # S3 バケットのデータ保護 第二弾（権限設計のアップグレード）
 
 - 開始: 2026-10-20
-- 状態: **WORM の Quick Win プランを決め、使い捨てのバケットで試している段**（2026-11-02。[worm-quickwin-plan.md](s3-data-protection-2/worm-quickwin-plan.md)）。次は 2026-11-04 に試しの続き（Q12・Q9）と、書き手のチェックサムの手当て。権限の頂点の問題は別の案件（project:privileged-access）
+- 状態: **WORM の Quick Win の試しがほぼ終わり、作業 1〜3・8 の設計案を書いた段**（2026-11-04。[worm-quickwin-design.md](s3-data-protection-2/worm-quickwin-design.md)）。次は 11-05 10:00 に Q9、11:00 に Q13 の 2 回目（presigned URL の SigV4）、そのあと設計案のレビュー。権限の頂点の問題は別の案件（project:privileged-access）
 - 所属: project:aws-data-protection（2026-10-26 に `~/docs/workstream/` から移した）
 - 前段（第一弾、完了）:
   - [走行データ消失リスクへの対応](done/raw-data-security.md)（バケットの種別と処遇、裁定の正本）
@@ -595,3 +595,42 @@
      - 受け手の変更そのものを、変更前の受け手に通知する。案: 通知を 2 系統にする（Google の側は最高権限者が管理、AWS の側から直接届く受け手は cdk-apps で持ち、変更は要承認操作）。
      - システム保全責任者のアカウントはふつうのアカウントで、Okta や Workspace の apply から止められる余地があるが、受け手が複数で 2 系統なら許せる。
   - ほかに未決: 任命から権限を使えるまでの待ちの期間を、どう仕組みで強制するか（GitHub のチームは足すとすぐ効く）。
+- 2026-11-04: **試し（作業 6）の続きを、伊藤が実行した**（holdcheck・status・events・release-all）。結果は [worm-probe-runbook.md](s3-data-protection-2/worm-probe-runbook.md) の結果の表。
+  - Q12: **前提は崩れない。** ホールドが ON のあいだ、期限の欄は「読んだ時刻＋1 日」で、読むたびに先へ動く（11-02 に「書いた時刻＋1 日」と書いたのは誤り。Q1 の行も直した）。期限が過ぎないので、holdcheck は削除を試す版が無かった。解除すると、期限は「解除した時刻＋1 日」で固まる。
+  - Q9: 未確定。ライフサイクルがまだ動いていなかった（対象になるのは 11-04 00:00 UTC から）。
+  - Q10: 解除 18 件が、すべて `Object Retention Updated` として届いた。イベントの時刻からキューまで 0〜2 秒（events を release-all のあとにもう一度実行して確かめた）。
+  - release-all で 18 版のホールドを解除した。版は 11-05 01:43 UTC まで保持期限で守られている。
+  - 引き継ぎ（伊藤の作業）:
+    1. ~~今日のうちに `events` をもう一度実行する（Q10）~~ → 済み。
+    2. **11-05 の 10:43 JST より前に `status`**（Q9。q9/current.txt に削除マーカーが付き、古い版が残っていれば OK。その時刻を過ぎると保持期限が切れ、ライフサイクルが消しても正しい振る舞いになり、見分けられない）。
+    3. そのあと、10:43 JST を過ぎてから `cleanup`。
+  - スクリプトの holdcheck は、期限の欄が動く仕様では何も試せない作りだった（直していない。もう使わない）。
+  - **Q13 の試しを用意した**（伊藤の依頼）。`worm-probe.sh q13`（中身は `~/runbook/worm-probe/q13.py`。uv で boto3 の版を切り替える。最後に `q13/` のホールドを解除する）。boto3 1.35.99（gaming の PC の想定）・1.36.14（Datalake の rlog のデコーダー）・最新の 3 つ。スタブ（S3 に送らない）で、送るヘッダーを確かめた。
+    - 1.35.99 は、既定で PutObject・UploadPart に Content-MD5 を付ける。gaming の PC の boto3 が古くても、止まらない見込み（実物で確かめる）。
+    - 1.36 以降は、既定で CRC32 を trailer で付ける（`STREAMING-UNSIGNED-PAYLOAD-TRAILER`）。これが Object Lock のバケットで通るかが、Q13 の本題。
+    - 1.36 以降で `when_required` にすると、Content-MD5 も付けない（1.35 までの MD5 の付け足しが無くなった）。Cosmos の設定がこれ。
+    - コピー（CopyObject・UploadPartCopy）は、どの版もチェックサムを付けない。通るかは実物で見る。
+  - **Q13 の 1 回目を、伊藤が実行した**（11:35 JST）。SDK の書き込みは既定ならどの版も通る（1.36 以降の CRC32 の trailer も通る）。1.36 以降の `when_required` は拒まれる（Cosmos は直す必要がある、が確定）。コピーはチェックサムなしでも通る。**presigned URL は、boto3 の既定で SigV2 になり、Object Lock のバケットでは SigV4 が要るので拒まれる。** backend-api の upload_url（`projects/api/backend-api/routers/models.py:1203`、マルチパートは `:420`。クライアントは `:1095` の `boto3.client("s3")`、boto3 1.42.11）は、SigV4 にしたうえで Content-MD5（か CRC32）を入れる直しが要る。SigV4 の URL での試しを `Q13_ONLY=presign-v4 Q13_VERSIONS=1.42.11 bash worm-probe.sh q13` として足した（未実行）。
+    - **cleanup の時刻**: q13 で書いた版は、解除した時刻の 1 日後まで消せない（1 回目は 11-05 11:37 JST まで。2 回目を行えば、その時刻の 1 日後まで）。cleanup は q13 を実行した時刻の 1 日後より後に行う（鍵の残る版があれば、cleanup はバケットを残して止まるので、もう一度実行すればよい）。
+- 2026-11-04: **今日の結果を資料に整理し、設計案を書いた**（伊藤の依頼）。
+  - [worm-quickwin-plan.md](s3-data-protection-2/worm-quickwin-plan.md) に 10 章「試しで分かったこと」を足し、作業 1〜3・5・8 の状態と、9 章（書き手）を Q13 の結果で直した。
+  - [worm-quickwin-design.md](s3-data-protection-2/worm-quickwin-design.md) を書いた（作業 1・2・3・8 の設計案）。要点:
+    - バケットポリシー: 共通部 `packages/original-bucket-guard` に `DenyGovernanceBypass`（全員。鍵より先）と `DenyLockChange`（SSO の 2 つだけ例外。ホールドをかけ終えてから）を足す。鍵の既定は deploy の経路で変えず、FullAccess が CLI で入れる（ステージ 1 から `PutBucketObjectLockConfiguration` は SSO だけ。CloudFormation の `ObjectLockEnabled` で置き換えにならないかは確かめていない）。
+    - 通知: 入口 2 つ（解除の S3 のイベント・12 本の管理イベント）＋通知の部品の変更、送り先は SNS（最初はメール）。**解除は 1 件ずつ送らず、ルールの `MatchedEvents` の警報でまとめる**（Batch Operations でまとめて解除されると億の単位になる。`ON` のイベントは除くので、ホールドをかけるジョブでは鳴らない）。置き場所は `apps/original-bucket-audit` の新しいスタック。
+    - 順番: PR-1（迂回の Deny と通知）→ **カナリアで予行**（既存のバケットに後から Object Lock を有効にすることは、まだ試していない。鍵の既定を外せば書けるようになるか＝戻し方も確かめる）→ 4 つの波（書き込みの無い小さいもの → SDK の書き手 → td1-raw・tuscenes-raw → 書き手を直した tuscenes-model）→ PR-3（鍵の操作の Deny）。
+    - 新しく分かった要確認: 警報を外せる主体（`notification-tamper.py` に CloudWatch と Logs を足す）、入口 2 が頼っている証跡、td1-raw・tuscenes-model の EventBridge の持ち主。
+  - 決めてほしいこと（伊藤）: 設計案の 7 章の 5 つ（鍵の既定を CLI で、解除を警報でまとめる、最初の受け手、波、`DenyLockChange` の時期）。
+- 2026-11-04 のセッションの終わり。引き継ぎ（これより前の引き継ぎより、こちらを正とする）:
+  - **2026-11-05 の予定（伊藤が実行）:**
+    1. **10:00 JST に `status`**（Q9。10:43 JST より前に見る必要がある）。エージェントはログを読み、結果の表の Q9 を埋める。
+    2. **11:00 JST に `Q13_ONLY=presign-v4 Q13_VERSIONS=1.42.11 bash worm-probe.sh q13`**（presigned URL を SigV4 にしたときに、Content-MD5・CRC32 の付け方ごとに通るか。backend-api と jadd-cli の直し方を決める）。
+    3. `cleanup` は、2 の実行の 1 日後より後（11-06 の昼以降）。それより前に実行しても、鍵の残る版があればバケットを残して止まるだけ。
+  - **次にやること:**
+    1. 設計案（[worm-quickwin-design.md](s3-data-protection-2/worm-quickwin-design.md)）のレビューと、7 章の決定。
+    2. 書き手の直しの連絡（Cosmos は TeamE2E、backend-api・jadd-cli は持ち主）。jadd-cli の直し方は 11-05 の Q13 の 2 回目で決める。
+    3. 設計案の 3.6 の要確認と、カナリアでの予行の手順書。
+    4. DataSync を Object Lock のバケットに向けて試す（波 2 の前）。Databricks の volume の場所。
+  - **注意:**
+    - 試しのバケット `worm-probe-767397804933` と、ロール 2 本・SQS・ルール 2 本は、cleanup まで残る。ホールドはすべて解除済み（保持期限は q9 などが 11-05 01:43 UTC、q13 が 11-05 02:36 UTC まで。2 回目の q13 の版はその 1 日後まで）。
+    - `~/runbook/worm-probe/` に `q13.py` を足し、`worm-probe.sh` に `q13` を足した（git の管理外。元の版の控えは `tmp/worm-probe.sh.bak-20261104`）。holdcheck は期限の欄が動く仕様では何も試せないので、もう使わない。
+
