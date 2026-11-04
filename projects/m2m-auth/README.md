@@ -6,6 +6,10 @@
 
 関連する project: [project:idp-broker](../idp-broker/README.md)（人の認証。退職の同期・ロールの持ち場・BFF 撤廃後の入口が共通の論点）
 
+## documents/ — 調査・資料
+
+- [documents/iam-roles-anywhere.md](./documents/iam-roles-anywhere.md): **IAM Roles Anywhere の調査**（2026-11-04）。証明書 → 一時的な IAM 資格情報の仕組み、機体の見分け方、CRL での失効、費用、IoT credential provider との比較。CI 用マシンの第一候補
+
 ## workstream/ — 進行中の作業記録
 
 - [workstream/m2m-auth.md](./workstream/m2m-auth.md): **M2M 認証の手法の確立（車載装置・CI 用マシン）**。一般的なやり方の整理と、関係者（岩政さん・安本さんほか）の動きの把握。改善案は歩調を合わせてから詰める

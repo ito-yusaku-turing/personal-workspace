@@ -59,7 +59,7 @@
 
 ### 対象別の定石
 
-- **CI**: GitHub Actions なら（self-hosted runner でも）ジョブごとの OIDC トークンで IAM role を引き受ける。それ以外ならマシンごとの非対称鍵。
+- **CI**: GitHub Actions なら（self-hosted runner でも）ジョブごとの OIDC トークンで IAM role を引き受ける。それ以外なら、マシンごとの証明書を IAM Roles Anywhere で一時的な IAM 資格情報に替える（鍵は TPM に置ける。[IAM Roles Anywhere の調査](../documents/iam-roles-anywhere.md)）。
 - **車載装置**: 1 台 1 証明書。キッティングで機体の中で鍵を作り（できれば TPM の中）、自前の CA か IoT のサービスで証明書を入れる。
   - 持ち出しと盗難: 鍵を取り出せない作りの価値が大きい。盗まれた機体は台帳で 1 台だけ止める。
   - 回線が途切れる: 短命の資格情報が切れても、つながったときに取り直せる作りにする。長期の身元（証明書）は数か月〜年単位にし、失効は台帳（サーバー側の拒否リスト）で行う。
@@ -293,13 +293,13 @@ mender 証明書（iot-core-agent の MQTT・Device Shadow 用。IoT ポリシ�
 2. **安部さんの最終形に、backend-api の要件を入れてもらう**: 呼び先で機体を見分けられること（未定）、用途ごとに止められること、時期の目安（未定）。秘密鍵を機体の中で作るか。
 3. **機体の台帳をどこに置くか**（Thing・CDK・backend-api の DB）。封印・貸出の手順も含める。
 4. **BFF の撤廃後、backend-api の入口で何を受けるか**（JWT・API キー・IAM のどれを、どの authorizer で）。入口が backend-api の API Gateway になるなら、IAM の resource policy で絞れる。
-5. **CI は GitHub OIDC に寄せるか**（岩政さんの role がすでにある）。
+5. **CI は GitHub OIDC に寄せるか**（岩政さんの role がすでにある）。GitHub Actions のジョブとして動かない CI 用マシンは、IAM Roles Anywhere（1 台 1 証明書 → IAM role）を第一候補にしてよいか（[IAM Roles Anywhere の調査](../documents/iam-roles-anywhere.md)）。
 6. IdP の検討との接点: 退職の同期が 2 本ある（STUDIO と backend-prod）。ロールが STUDIO と backend-api（`user_role`）の 2 か所にできる。協力会社を backend-api まで通すなら揃える必要がある。
 
 ## 調べること（未確認）
 
 - [ ] 号車のハードウェアに TPM・セキュアエレメントがあるか。OS とキッティングの担当
-- [ ] 社内設置の CI 用マシンの実体（GitHub Actions の self-hosted runner か）
+- [ ] 社内設置の CI 用マシンの実体（GitHub Actions の self-hosted runner か、TPM があるか）。runner でなければ IAM Roles Anywhere が候補
 - [ ] edge-ansible #552（tern-api 用の証明書と秘密鍵の配布）・#531（CodeArtifact 用の `aws_credential_process.py`）の状態と、秘密鍵をどこに置いて配っているか
 - [ ] 2026-03-05 に credential provider と全台共通の証明書を作ったのは誰か（基盤の持ち主）
 - [ ] IoT credential provider で得た資格情報から、呼び先で機体（Thing 名・証明書 ID）を取り出せるか（role のセッション名・`userArn` に何が入るか）。安部さんの側でも未定
@@ -313,6 +313,7 @@ mender 証明書（iot-core-agent の MQTT・Device Shadow 用。IoT ポリシ�
 - cdk-apps: `apps/ota/README.md`（IoT credential provider、tern-api 用の証明書）、`apps/ota/docs/iot-credential-provider.md`、`apps/tern-api/README.md`（実機・JADD Studio から呼ぶ）
 - mono-e2e: `projects/api/backend-api/docs/offboarding.md`
 - JADD STUDIO: `docs/guidelines/backend-api.md`、`docs/workstream/external-viewer-auth.md`、`docs/workstream/offboarding-sync.md`
+- [IAM Roles Anywhere の調査](../documents/iam-roles-anywhere.md)（2026-11-04。仕組み・機体の見分け方・失効・費用・IoT credential provider との比較）
 - RFC 7523（JWT によるクライアント認証）、RFC 8705（mTLS と証明書に紐づくトークン）
 
 ## 進捗と引き継ぎ
@@ -322,4 +323,5 @@ mender 証明書（iot-core-agent の MQTT・Device Shadow 用。IoT ポリシ�
 - 2026-10-15: 岩政さんの車載装置向けの作業を詳しく調べ、「進捗と構想とのギャップ」を足した。型（秘密を送らない・短命・最小権限・コードで管理）は実現済みで、ギャップは 1 台ごとの身元・識別・失効・鍵の保護に集中している。openpilot #5940 と edge-ansible #552 で実機への切り替えが進行中。cdk-apps の piste-jp さんを別の人として書いていたが、安部 敦さんだったので直した。
 - 2026-10-15: 伊藤さんから、岩政さんの IoT の作業は backend-api の M2M ではなく別の目的（CodeArtifact への経路）だったこと、その証明書の基盤に乗って backend-api への経路を作る案が上がっていることを聞き、コードと PR で裏取りした。直した点: (1) 証明書と credential provider は 2026-03 に S3 用として手作業で作られたもので、CodeArtifact のために増えてはいない。(2) CodeArtifact に置くのは推論の枠組み・依存と固定のモデルで、実験で差し替えるモデルは S3 から取る。(3) CodeArtifact からの取得はコンテナ内の `uv sync` で、OTA の仕組み（Mender）とは別物。(4) 岩政さんの tern-api の作業は、実機から API を呼ぶ M2M としてこの基盤を使った初めての例。「岩政さんの作業: 進捗と構想とのギャップ」をやめ、「車載装置の IoT 証明書の基盤」（成り立ちと用途、backend-api を乗せる案の照合）に組み直した。
 - 2026-10-15: 安部さんにヒアリングした。1 台 1 証明書は安部さんが進めていて（岩政さんではない）、最終形は「共通の証明書には発行の role だけ → キッティングで機体ごとの証明書を作る → Mender の accept で Thing ができたら Lambda で紐付け」（claim 証明書による Fleet Provisioning と同じ形）。いまは mender・aws-access・tern-api の 3 枚を OTA で配り、それぞれ別の role alias に紐付く。時期と、呼び先で機体を見分ける方法はどちらも未定。「4. 車載装置用 M2M」の方針を「最終形が整ってから backend-api を乗せる」に改め、照合の表を「いまの共通の証明書」と「最終形」の 2 列にした。
+- 2026-11-04: IAM Roles Anywhere を公式ドキュメントで調べ、[IAM Roles Anywhere の調査](../documents/iam-roles-anywhere.md)にまとめた。証明書 → 一時的な IAM 資格情報という形は IoT credential provider と同じで、違いは台帳と失効（CA を信頼し、失効は CRL の取り込み。OCSP は見ない）。セッション名は既定で証明書のシリアル番号、CN は sourceIdentity とセッションタグに載る。クライアントは TPM・PKCS#11 に対応。伊藤の判断: GitHub Actions のジョブとして動かない CI 用マシンは Roles Anywhere を第一候補にする。車載装置は IoT の基盤のまま進める。「対象別の定石」「歩調を合わせる論点」の 5、「調べること」を更新した。
 - 次: 安部さんに backend-api の要件（機体の識別・用途ごとの停止）を伝え、安本さんと `jadv_` をつなぎにするかを決める。並行して「調べること」のうち TPM の有無と CI 用マシンの実体を確かめる。
