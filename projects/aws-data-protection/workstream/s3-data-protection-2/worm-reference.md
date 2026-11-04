@@ -1,5 +1,7 @@
 # 原本バケットの WORM 化: 比較と調査の記録
 
+> **2026-11-04 の注:** いまの正本は Quick Win の 2 本（[worm-quickwin-plan.md](worm-quickwin-plan.md)・[worm-quickwin-design.md](worm-quickwin-design.md)）。この資料は 2026-10-30 時点の比較と調べの記録で、モード（コンプライアンス）などは Quick Win でガバナンスに変えた。試しで分かったことは worm-quickwin-plan.md の 10 章。
+
 - 作成: 2026-10-30
 - 親: [原本バケットの WORM 化の設計](worm-design.md)（この資料はその添付）
 - 一般論: [S3 Object Lock（WORM）の整理](../../documents/notion-s3-object-lock.md)（以下「整理」）

@@ -1,5 +1,7 @@
 # BreakGlass と WORM の再評価
 
+> **2026-11-04 の注:** いまの正本は Quick Win の 2 本（[worm-quickwin-plan.md](worm-quickwin-plan.md)・[worm-quickwin-design.md](worm-quickwin-design.md)）。WORM を本命にした理由はここに残す。解除の経路（7 章）も Quick Win の設計で使っている。
+
 - 作成: 2026-10-30 ／ 伊藤（下書きはエージェント）
 - 親: [S3 バケットのデータ保護 第二弾](../s3-data-protection-2.md)
 - 前提: [requirements.md](requirements.md) の要件 1〜14（2026-10-30 に問い a〜h に答えたもの）、[current-state.md](current-state.md) の弱点 W1〜W16
