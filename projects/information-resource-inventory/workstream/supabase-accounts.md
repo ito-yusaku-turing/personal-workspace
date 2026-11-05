@@ -105,7 +105,7 @@ MFA 強制:
 
 ## 次セッションへの引き継ぎ
 
-- 次は伊藤が scoped PAT（Organization Members・Organization Projects の Read）を作り、エージェントが API でメンバー一覧とプロジェクト一覧を取る。トークンは画面に出さない形で渡してもらう（例: 権限 600 のファイルに置く）。
+- 次は伊藤が scoped PAT を作る。権限は Organization Members（Read）と Organization Projects（Read）の 2 つだけにし、対象の組織は `dhazyhuzuwitqasezcvr` だけにする。使うのは `GET /v2/organizations/{slug}/members` と `GET /v2/organizations/{slug}/projects`（DB の `infra_compute_size` も返る）。Projects (account-wide) は組織で絞れないので付けない。Legacy（全権限）は使わない。調査が終わったら失効させる。エージェントはそのトークンで API からメンバー一覧とプロジェクト一覧を取る。トークンは画面に出さない形で渡してもらう（例: 権限 600 のファイルに置く）。
 - MFA の強制と SSO の設定は Owner にしかできない。伊藤の役割は、案を作って Owner に頼むこと。
 
 ## 関連リンク
