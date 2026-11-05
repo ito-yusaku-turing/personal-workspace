@@ -1,7 +1,7 @@
 # Supabase のアカウントの棚卸しと SSO 化の検討
 
 - 開始: 2026-11-05
-- 状態: **方針を決め（SSO は見送り、MFA を必須化、使っていない人を外す）、アクションプランを作った**（2026-11-05）。メンバーを A/B/C に分けた。次は伊藤が日程を決め、C の 1 名を外し、山本さんへの依頼と A・B への連絡を送る
+- 状態: **完了**（2026-11-05）。SSO は見送り、MFA を必須にし、使っていない人を外した（20 → 16 名）
 - 所属: project:information-resource-inventory
 
 Supabase のアカウント（組織・チームのメンバーと、その権限）を棚卸しし、社の IdP（Okta / Google Workspace）による SSO に寄せられるかを検討する。
@@ -134,6 +134,17 @@ scoped PAT（Organization Members・Organization Projects の Read）で取っ�
 - 逆に、STUDIO の開発者名簿にいて Supabase にいない人が 11 名いる（全員在籍）。Supabase を直接触らずに開発できている、ということ。
 - 判断の材料: Administrator の徳地さん（執行役員・事業開発部）と、Developer の業務委託 1 名は、ロールが要るかを確かめる候補。
 
+## 完了時の確認（2026-11-05）
+
+伊藤から: MFA の必須化を有効にし、メンバーへのアナウンスを済ませた。これで完了とする。
+
+API で取り直した結果（一次情報は `~/supabase/dhazyhuzuwitqasezcvr/2026-11-05-after/`）:
+
+- メンバーは 20 名 → 16 名。外れたのは C の 1 名、B の 1 名、A の 2 名（区分の後に外すと決めたと思われる。個人ごとは見直しリスト）。
+- B のうち 3 名はメンバーに残っている。
+- MFA を設定済みなのは 16 名中 2 名（山本さん・伊藤）。残りの 14 名は、設定するまで組織のプロジェクトを開けない。
+- MFA の必須化がオンになっていることは、API では確かめていない（調査用の PAT に組織の設定を読む権限を付けていないため）。
+
 ## 設計判断と理由
 
 - 一次情報（メンバー一覧など。メールアドレスを含む）は git で管理せず、`~/supabase/dhazyhuzuwitqasezcvr/` に置く。aws-resource-inventory と同じ扱い。
@@ -177,7 +188,8 @@ scoped PAT（Organization Members・Organization Projects の Read）で取っ�
 - [x] 方針を決める（SSO は見送り、MFA を必須化、使っていない人を外す）
 - [x] アクションプランと依頼文の下書きを作る
 - [x] メンバーを A/B/C に分ける（A 15・B 4・C 1）
-- [ ] アクションプランの残りを進める
+- [x] C を外し、MFA を必須にして、アナウンスする（2026-11-05）
+- [x] API で結果を確かめる（16 名、MFA 設定済み 2 名）
 - [ ] ロールの見直しの案（Administrator 4 名・Developer 13 名が妥当か）
 - [ ] 退職者・不明なアカウント・強すぎる権限を掃除の候補にする
 - [x] SSO のためのプラン（Team）の料金を調べる（差額 $574/月。未確認の点は営業に問い合わせ）
@@ -185,12 +197,15 @@ scoped PAT（Organization Members・Organization Projects の Read）で取っ�
 
 ## 次セッションへの引き継ぎ
 
-- 方針は決まった（「設計判断と理由」）。メンバーは A/B/C に分けた（区分は requests.md、個人ごとは見直しリスト）。いまは「アクションプラン」の 1（日程を決める）と 4（C を外す）の段。依頼文は [supabase-accounts/requests.md](supabase-accounts/requests.md) の下書きを使う。
-- メンバーの見直しリスト（記入欄つき）は `~/supabase/dhazyhuzuwitqasezcvr/2026-11-05/review-list.md`（git 管理外）。
-- PAT（`~/.config/supabase/pat`）は、アクションプランの 10 で使ってから失効させる。期限が先に切れたら作り直す。
-- 旧 tuscenes（`seacktbfnjusvroguhwc`）がどこにあるかは未確認。
+完了した（2026-11-05）。方針は [documents/supabase-org-account-policy.md](../../documents/supabase-org-account-policy.md) に書き出した。残っているもの（この案件では扱わない）:
+
+- B のうち、メンバーに残っている 3 名のヒアリングの結果
+- MFA を設定していない 14 名へのフォロー
+- 再発防止（退職したときに組織から外す仕組み）
+- 旧 tuscenes（`seacktbfnjusvroguhwc`）の所在
+- 調査用の PAT（`~/.config/supabase/pat`）の失効と、ファイルの削除（伊藤）
 
 ## 関連リンク
 
-- [project:privileged-access](../../privileged-access/README.md): 組織の Owner は権限の頂点の地図（privilege-map.md）に反映する
-- [project:idp-broker](../../idp-broker/README.md): 社内アプリを使う人の認証の入口の選定（この案件は社員が Supabase そのものに入るためのアカウントで、別物）
+- [project:privileged-access](../../../privileged-access/README.md): 組織の Owner は権限の頂点の地図（privilege-map.md）に反映する
+- [project:idp-broker](../../../idp-broker/README.md): 社内アプリを使う人の認証の入口の選定（この案件は社員が Supabase そのものに入るためのアカウントで、別物）
