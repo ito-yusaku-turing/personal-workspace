@@ -202,7 +202,8 @@ API で取り直した結果（一次情報は `~/supabase/dhazyhuzuwitqasezcvr/
 - B のうち、メンバーに残っている 3 名: 不要と連絡があり次第、伊藤が外す
 - 再発防止（退職したときに組織から外す仕組み）
 - 旧 tuscenes（`seacktbfnjusvroguhwc`）の所在
-- 調査用の PAT（`~/.config/supabase/pat`）の失効と、ファイルの削除（伊藤）
+- 後日、全員が MFA を設定したかを確かめる（伊藤が依頼する）。調査用の PAT（`~/.config/supabase/pat`）は 7 日間有効（2026-11-05 作成なので 2026-11-12 ごろまで）。`GET /v2/organizations/dhazyhuzuwitqasezcvr/members` をページ送りで取り、`mfa_enabled` が false の人と、B の 3 名が外れたかを見る。期限が切れていたら、同じ権限（Organization Members と Organization Projects の Read）で作り直す
+- 確かめたら、PAT を失効させ、ファイルを消す（伊藤）
 
 ## 関連リンク
 
