@@ -10,7 +10,7 @@
 
 | 段 | 中身 | いつ |
 |---|---|---|
-| **Quick Win**（この資料の本体） | ガバナンスモードで 12 本に鍵をかける。解除はすぐに通知する。解除できる人は今の例外の主体のまま。穴は認識して受け入れる | 権限の設計を待たずに始める |
+| **Quick Win**（この資料の本体） | ガバナンスモードで S1・S2 の 10 本に鍵をかける（11-05 までは 12 本）。解除はすぐに通知する。解除できる人は今の例外の主体のまま。穴は認識して受け入れる | 権限の設計を待たずに始める |
 | フルスペック | 解除できるのをシステム保全責任者だけにする。解除の権限を取り戻せる経路をすべて塞ぐ（6 章） | 権限の設計（課題 K1・K2）が固まり次第 |
 
 これまでの資料との関係:
@@ -21,7 +21,7 @@
 ## 2. 決めたこと（2026-11-02、伊藤）
 
 1. **ガバナンスモードで始める。**
-2. **かける対象は、原本バケット 12 本すべて。** 大量に消す予定は無いので、鍵をかけない例外は置かない。
+2. ~~**かける対象は、原本バケット 12 本すべて。** 大量に消す予定は無いので、鍵をかけない例外は置かない。~~ → **2026-11-05 に、S1・S2 の 10 本に見直した**（tuscenes-model・tuscenes-annotation を外す。[worm-decisions.md](worm-decisions.md) の D2）。
 3. **解除できるのは、FullAccess を持つ人をはじめ、ほかに何人かいる状態でよい。** ほかにいる主体は、存在を把握できていればよい（3.2 の穴 B）。
 4. **解除の後 30 日たてば、版を含めて完全に消せる状態にする。** 解除しても 30 日は絶対に消せないことと、そのあいだの保存の費用は許容する。
 5. **解除するとすぐに通知が飛ぶようにする。**
@@ -71,7 +71,7 @@
 | 3 | **すぐの通知** | 対象: ホールドの解除と保持の変更（S3 のイベント `Object Retention Updated`、CloudTrail の `PutObjectLockRetention`）、バケットの鍵の設定の変更、バケットポリシーの変更、バケットの通知の設定の変更、通知のルールそのものの変更・削除。受け手は暫定でよい（フルスペックで頂点の群の外へ移す） | 設計案（2026-11-04、設計の 3 章）。入口 2 つ・SNS・解除は警報でまとめる。Slack は 0-2・0-3 と一緒に |
 | 4 | **通知を外せる主体を確かめる** | 通知のルール・通知先・バケットの通知の設定を変えられる主体を、全主体の判定と同じ方法で洗い出す。FullAccess だけでなければ、穴 A の範囲を広げるか、見張りを外に置く（5 章） | 済み（2026-11-02、8 章）。入口を 2 つ・送り先を SNS にすれば、解除できる主体とほぼ同じ集まりにできる |
 | 5 | **書き込みの経路を確かめる** | 12 本の書き手（アップロード用の PC・DataSync・Databricks・各アプリ）が、チェックサムのヘッダーを付けて書くか。試しの Q5 の結果と、書き手ごとのクライアントの版で判断する | ログに出た分は済み（2026-11-02、9 章）。Q13 で SDK ごとの可否を確かめた（2026-11-04、10 章）。**tuscenes-model の Cosmos と jadd-cli は直さないと止まる（確定）。** DataSync・Databricks の volume は不明 |
-| 6 | **試し** | 使い捨てのバケットで、[worm-probe-runbook.md](worm-probe-runbook.md) の Q1〜Q6 に、下の Q7〜Q11 を足して確かめる。スクリプトは `~/runbook/worm-probe/worm-probe.sh`（git の管理外。伊藤が Full 権限で実行し、ログは同じフォルダの `log/`） | 実行中。2026-11-02 に setup〜events。Q2・Q5 で迂回の Deny と書き手の確かめが必須、Q7 で迂回の Deny が効くこと、Q10・Q11 で解除と管理イベント（拒まれた試みを含む）が EventBridge に届くことが分かった。2026-11-04: Q12 は前提どおり（ホールド中は期限の欄が「読んだ時刻＋1 日」で動き、過ぎない）。Q10 で解除がキューまで 0〜2 秒で届いた。release-all 済み。Q9 は 11-05 に見る。Q13 は未 |
+| 6 | **試し** | 使い捨てのバケットで、[worm-probe-runbook.md](worm-probe-runbook.md) の Q1〜Q6 に、下の Q7〜Q11 を足して確かめる。スクリプトは `~/runbook/worm-probe/worm-probe.sh`（git の管理外。伊藤が Full 権限で実行し、ログは同じフォルダの `log/`） | 実行中。2026-11-02 に setup〜events。Q2・Q5 で迂回の Deny と書き手の確かめが必須、Q7 で迂回の Deny が効くこと、Q10・Q11 で解除と管理イベント（拒まれた試みを含む）が EventBridge に届くことが分かった。2026-11-04: Q12 は前提どおり（ホールド中は期限の欄が「読んだ時刻＋1 日」で動き、過ぎない）。Q10 で解除がキューまで 0〜2 秒で届いた。release-all 済み。2026-11-05: Q9 は OK（ライフサイクルは鍵のかかった版を消さない）。Q13 の 2 回目も済み（SigV4 の presigned URL は、チェックサムを署名に入れれば通る）。残りは cleanup（11-06 11:23 JST より後） |
 | 7 | 解除できる主体の一覧（穴 B） | ステージ 1 の例外と、全主体の判定（[iam-scan/](iam-scan/escalation.py)）から作る。構造上の上位権限者は privilege-map.md の台帳を指す | 済み（2026-11-02、7 章） |
 | 8 | 入れる | バケットの既定（ガバナンス、イベントホールド、解除の後 30 日）→ 既存の最新版に Batch Operations でホールドをかける（worm-design.md の 2.4）→ バケットポリシーの変更（作業 1・2）を cdk-apps の PR で。**Batch Operations のジョブのロールは例外の主体ではないので、作業 2 のポリシーの後では鍵の操作を拒まれる。** ホールドをかけ終えてからポリシーを当てるか、ジョブのロールを例外に足す | 設計案（2026-11-04、設計の 4 章）。PR-1（迂回の Deny と通知）→ カナリアで予行 → 4 つの波 → PR-3（鍵の操作の Deny） |
 | 9 | 入れたあとの確かめ | 12 本の鍵の設定、ホールドのかかった件数、書き込みのエラー、通知が届くこと（カナリアで解除して確かめる） | 未 |
@@ -168,7 +168,7 @@ Quick Win のバケットポリシー（試しの `policy` と同じ形: ステ�
 | 書き手 | バケット | 件数（PutObject＋UploadPart） | 理由 | 直し方 |
 |---|---|---|---|---|
 | **TeamE2E の Cosmos の checkpoint**（`cosmos3/.../*.distcp`） | tuscenes-model | **1,146,088**（書き込みの約 82%） | mono-e2e `projects/wm_generation/src/omnidreams/_src/imaginaire/utils/easy_io/backends/boto3_client.py:282` と `utils/object_store.py:29` が `request_checksum_calculation="when_required"` を指定している（コードで確かめた） | 指定を消すか `when_supported` にする。aioboto3 と multi-storage-client の経路も確かめる。持ち主への連絡が要る |
-| **jadd-cli（backend-api の presigned URL）** | tuscenes-model | 1,227（0.1.7・0.1.8 と、0.1.6 以前とみられる python-requests） | presigned URL にはチェックサムが入らない。jadd-cli は `requests.put` で User-Agent しか送らない（`packages/jadd-cli/src/jadd/model/api.py:151,156,191`。コードで確かめた） | **presigned URL を SigV4 にしたうえで**、チェックサムを付ける（2026-11-04 の Q13: 既定の URL は SigV2 で、Object Lock のバケットでは拒まれる）。付け方は 11-04 の 2 回目の試しで決める。古い版の jadd-cli は書けなくなる |
+| **jadd-cli（backend-api の presigned URL）** | tuscenes-model | 1,227（0.1.7・0.1.8 と、0.1.6 以前とみられる python-requests） | presigned URL にはチェックサムが入らない。jadd-cli は `requests.put` で User-Agent しか送らない（`packages/jadd-cli/src/jadd/model/api.py:151,156,191`。コードで確かめた） | **presigned URL を SigV4 にしたうえで**、チェックサムを付ける（2026-11-04 の Q13: 既定の URL は SigV2 で、Object Lock のバケットでは拒まれる）。**クライアントが MD5（か CRC32）を API に渡し、backend-api がそれを署名に入れる**（2026-11-05 の Q13 の 2 回目: URL に後からヘッダーを足すだけでは拒まれる）。API の形が変わり、古い版の jadd-cli は書けなくなる |
 
 ### 9.2 付けると判定したもの
 
@@ -190,7 +190,7 @@ Quick Win のバケットポリシー（試しの `policy` と同じ形: ステ�
 
 ### 9.4 Quick Win への影響
 
-- **tuscenes-model は、Cosmos と jadd-cli を直すまで入れられない。** 入れる順番（作業 8）では、tuscenes-model を後に回すか、直してから入れる。
+- ~~**tuscenes-model は、Cosmos と jadd-cli を直すまで入れられない。**~~ → 2026-11-05 に tuscenes-model を WORM の対象から外したので、直しは要らない（D2）。
 - 書き込みの止まっているバケット（tuscenes-raw・td1-rlog・tuscenes-calibration（旧）・denso-raw）は、書き手の問題が小さいので先に入れやすい。
 - Q13 は 2026-11-04 に行った（10 章）。DataSync は別に試す（設計の 4.2 の波 2 の前）。
 
@@ -208,7 +208,7 @@ Quick Win のバケットポリシー（試しの `policy` と同じ形: ステ�
 | 解除すると、期限は「解除した時刻＋日数」で固まる。期限前の削除は拒まれる | 「解除の後 30 日」が成り立つ | Q3・Q12 |
 | 解除のあと、期限のうちにかけ直せる（迂回なし） | 30 日のあいだに止められる | Q8 |
 | Batch Operations で既存の版にホールドをかけられる。迂回の権限は要らない | 作業 8 の既存の版 | Q6 |
-| ライフサイクル | 未確定（2026-11-05 に見る） | Q9 |
+| ライフサイクルは、鍵のかかった版（ホールド中・保持期限のうち）を消さない。今の版の失効は削除マーカーを付けるだけ | 原本バケットの既存のライフサイクル（古い版の失効など）が残っていても、保護は崩れない。保持期限が切れた版は消える（D10 の「解除して 30 日待ち、ライフサイクルで消す」が成り立つ見込み） | Q9（2026-11-05） |
 
 ### 10.2 通知
 
@@ -228,8 +228,8 @@ Quick Win のバケットポリシー（試しの `policy` と同じ形: ステ�
 | boto3 1.36 以降の `request_checksum_calculation="when_required"` | **拒まれる**（1 回の書き込みも、マルチパートも）。ContentMD5 を自分で付ければ通る |
 | CopyObject・UploadPartCopy（チェックサムなし、`when_required` でも） | 通る |
 | **presigned URL（boto3 の既定。SigV2）** | **拒まれる**（`require AWS Signature Version 4`）。Content-MD5 や CRC32 を入れても同じ。チェックサムの無い URL は、署名より先にチェックサムの不足で拒まれる |
-| presigned URL（SigV4）＋チェックサム | 未（2026-11-04 の 2 回目の試し、`Q13_ONLY=presign-v4`） |
+| presigned URL（SigV4）＋チェックサム | **通る。ただし、チェックサムを発行のときに署名に入れた場合だけ**（Content-MD5 でも CRC32 でも、マルチパートのパートごとでも）。チェックサムなしで発行した URL に、クライアントが Content-MD5 を足しても `AccessDenied`（署名されていないヘッダー）で拒まれる（2026-11-05 の 2 回目） |
 
-- 止まるのは **`when_required` の指定（Cosmos）と、presigned URL（backend-api → jadd-cli）** の 2 つ。どちらも tuscenes-model。
+- 止まるのは **`when_required` の指定（Cosmos）と、presigned URL（backend-api → jadd-cli）** の 2 つ。どちらも tuscenes-model（2026-11-05 に WORM の対象から外した）。
 - そのほかの SDK の書き手は、設定を変えていなければ版にかかわらず止まらない見込み。
 

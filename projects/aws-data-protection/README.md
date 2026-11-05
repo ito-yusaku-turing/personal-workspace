@@ -16,6 +16,7 @@ tuscenes-prod（767397804933）の S3 原本バケットを、消失や破壊か
   - [workstream/s3-data-protection-2/iam-scan/escalation-2026-10-30.json](./workstream/s3-data-protection-2/iam-scan/escalation-2026-10-30.json): その結果（2026-10-30、740 主体）
   - [workstream/s3-data-protection-2/iam-scan/notification-tamper.py](./workstream/s3-data-protection-2/iam-scan/notification-tamper.py): 通知の仕組み（ルール・送り先・バケットの通知の設定・証跡）を外せる主体を手元で判定するスクリプト（Quick Win の作業 4）
   - [workstream/s3-data-protection-2/iam-scan/notification-tamper-2026-11-02.json](./workstream/s3-data-protection-2/iam-scan/notification-tamper-2026-11-02.json): その結果（2026-11-02、726 主体）
+  - [workstream/s3-data-protection-2/iam-scan/sso-assignments.sh](./workstream/s3-data-protection-2/iam-scan/sso-assignments.sh): IAM Identity Center の権限セットの割り当てを、人の単位まで展開して TSV で出すスクリプト（読み取りだけ。管理アカウントのプロファイルで実行する）
   - [workstream/s3-data-protection-2/permission-upgrade-plan.md](./workstream/s3-data-protection-2/permission-upgrade-plan.md): チーム共有用のアップグレードプラン（4 原則と進め方。Notion に上げる）
   - [workstream/s3-data-protection-2/breakglass-proposal.md](./workstream/s3-data-protection-2/breakglass-proposal.md): **BreakGlass 権限の導入の提案**。MLOps チームと CorpIT チーム向け。BreakGlass 権限の考え方・今の FullAccess・ギャップ・移行の手順・残るリスク・お願いしたいこと（2026-10-29、第一版。2026-10-30 にチームの議論で選択肢の 1 つに戻した。Notion: https://app.notion.com/p/408a93b3e6f281b38292d14cbbed304c ）
   - [workstream/s3-data-protection-2/worm-quickwin-plan.md](./workstream/s3-data-protection-2/worm-quickwin-plan.md): **WORM 化の Quick Win プラン**（2026-11-02）。権限の設計を待たず、ガバナンスモードで 12 本に先に鍵をかける作戦。決めたこと・評価（得られるもの・認識された穴 A〜D・運用上のリスク）・作業 1〜9 と試しの追加項目 Q7〜Q13・フルスペックで足りない部分・解除できる主体の一覧・通知を外せる主体・書き手の確かめ・試しで分かったことのまとめ（2026-11-04）
@@ -51,5 +52,7 @@ tuscenes-prod（767397804933）の S3 原本バケットを、消失や破壊か
 
 - [documents/raw-data-security.md](./documents/raw-data-security.md): **走行データ消失リスク調査（2026-10）**。安本さんの調査（Notion から取り込み）。workstream の G 番号はこの資料の所見 ID
 - [documents/notion-s3-object-lock.md](./documents/notion-s3-object-lock.md): **S3 Object Lock（WORM）の整理**。チーム共有用（Notion に上げる）。仕組み・バケットとバージョンと操作の関係・イベントホールドとリーガルホールドの違い・モード・今の守りへの重なり方・費用・決めること（2026-10-26、2026-11-04 に追記。Notion は未反映）
+- [documents/notion-worm-governance-rollout.md](./documents/notion-worm-governance-rollout.md): **原本バケットの WORM 化: ガバナンスモードでの導入**。チーム共有用（Notion に上げる）。目標状態・誰が何をできるか・運用（日々の作業・意図した削除・戻し方）・導入の手順・注意すること・チームで決めてほしいこと（2026-11-05）。仕組みは下の参照用の資料から引用
+- [documents/notion-s3-object-lock-spec.md](./documents/notion-s3-object-lock-spec.md): **S3 Object Lock（WORM）の仕組み**。参照用・学習用（Notion に上げる。共有用の資料の予習に使えるが必須ではない）。仕様だけをまとめた資料: エンティティと属性・守り方の 3 種類・モード・操作・周辺の機能・検証の結果・用語（2026-11-05）。導入の話は別の資料
 - [documents/privileged-access-and-break-glass.md](./documents/privileged-access-and-break-glass.md): **特権アクセスと break-glass の一般論**。学習用。組織と人のレイヤーの設計、緊急用のアクセス、特権を持つ人の要件を、NIST・ISO・Microsoft・AWS・政府統一基準・IPA を根拠にまとめた（2026-10-29）
 - [documents/aws-privilege-hierarchy.md](./documents/aws-privilege-hierarchy.md): **AWS の権限の階層**。複数アカウントの組織での権限の階層の一般論と、うちの組織への当てはめ（管理アカウントへの CI の経路の調査を含む）

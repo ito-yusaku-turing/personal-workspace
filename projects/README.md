@@ -11,7 +11,7 @@
 
 注力している順に並べる。1件は `- [<project-id>/workstream/<名前>.md](./<同じパス>): 一言メモ` の1行にする。状態そのものは各 workstream の `- 状態:` 行に書き、ここには写さない。
 
-- [aws-data-protection/workstream/s3-data-protection-2.md](./aws-data-protection/workstream/s3-data-protection-2.md): WORM の Quick Win の試しがほぼ終わり、設計案（worm-quickwin-design.md）を書いた。次はレビューと書き手の直しの連絡。掃除（cleanup-runbook.md）は伊藤が実施する段
+- [aws-data-protection/workstream/s3-data-protection-2.md](./aws-data-protection/workstream/s3-data-protection-2.md): WORM のガバナンスモードでの導入。共有用の資料 2 本の初版ができた。次は Notion に上げてチームで話し合う
 - [privileged-access/workstream/apex-privileges.md](./privileged-access/workstream/apex-privileges.md): 権限の頂点の群の把握と管理。CorpIT に 1 回目の聞き取りをした。次は止めてある循環の詳細を聞く
 - [tern-ios-auth/workstream/tern-backend-api.md](./tern-ios-auth/workstream/tern-backend-api.md):
 - [m2m-auth/workstream/m2m-auth.md](./m2m-auth/workstream/m2m-auth.md):

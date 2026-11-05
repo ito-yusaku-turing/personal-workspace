@@ -1,7 +1,7 @@
 # S3 バケットのデータ保護 第二弾（権限設計のアップグレード）
 
 - 開始: 2026-10-20
-- 状態: **WORM の Quick Win は、モードをガバナンスに決め（D5）、周辺の仕様（バケットポリシーの例外・解除できる主体）を詰めている段**（2026-11-04。[worm-decisions.md](s3-data-protection-2/worm-decisions.md) の「検討中」）。次は 11-05 10:00 に Q9、11:00 に Q13 の 2 回目、そのあと「検討中」の E1〜E4 の議論。権限の頂点の問題は別の案件（project:privileged-access）
+- 状態: **WORM のガバナンスモードでの導入は、設計を決め（対象 10 本・E1〜E4・承認の仕組み）、チーム共有用の資料 2 本の初版を書いた段**（2026-11-05。[notion-worm-governance-rollout.md](../documents/notion-worm-governance-rollout.md)・[notion-s3-object-lock-spec.md](../documents/notion-s3-object-lock-spec.md)。Notion は未）。次は Notion に上げてチームで話し合い、Go サインが出たら cdk-apps の実装。11-06 の昼以降に検証用のバケットの cleanup（伊藤）。権限の頂点の問題は別の案件（project:privileged-access）
 - 所属: project:aws-data-protection（2026-10-26 に `~/docs/workstream/` から移した）
 - 前段（第一弾、完了）:
   - [走行データ消失リスクへの対応](done/raw-data-security.md)（バケットの種別と処遇、裁定の正本）
@@ -649,3 +649,39 @@
   - そのあと周辺の仕様を順に固める: (2) 保持の値（既定の保持設定と Batch Operations のジョブ）→ (3) 通知 → (4) 導入の順番と予行 → (5) 戻し方。
   - 設計案の 3.6 に、リーガルホールドの付け外しが EventBridge にどう届くか（ルール A は拾わない）をまだ足していない。
   - Notion（notion-s3-object-lock.md）への反映は最後に、伊藤の許可を取って行う。
+- 2026-11-05: **Q9 を、伊藤が status で確かめた（09:25 JST。10:43 JST より前）。OK。** ライフサイクル（`q9/` に今の版・古い版の失効 1 日）は 11-04 00:00 UTC に動き、今の版に削除マーカーを付けただけで、鍵のかかった 3 版（古い版の失効の対象を含む）はすべて残った。結果は [worm-probe-runbook.md](s3-data-protection-2/worm-probe-runbook.md) の結果の表と、[worm-quickwin-plan.md](s3-data-protection-2/worm-quickwin-plan.md) の 10.1。
+  - 保持期限が固まっていることも見えた（release-all の版は 11-05 01:43 UTC、q13 の 1 回目の版は 02:36 UTC で、読んだ時刻に関わらず同じ）。
+  - E1〜E4 の「次回に確かめること 1〜5」に、エージェントの案を付けて伊藤に出した（返事待ち）。
+- 2026-11-05: **Q13 の 2 回目（SigV4 の presigned URL）を、伊藤が実行した（11:21 JST）。** ログは `20261105-112111-q13.log`、結果は [worm-probe-runbook.md](s3-data-protection-2/worm-probe-runbook.md) の結果の表。
+  - **SigV4 の URL は、発行のときに ContentMD5（か ChecksumCRC32）を署名に入れれば通る。** マルチパートもパートごとに入れれば通る。チェックサムなしの URL は拒まれる。
+  - **チェックサムなしで発行した URL に、クライアントが Content-MD5 を足すだけでは `AccessDenied`（署名されていないヘッダー）。** API の形を変えずに jadd-cli だけで直す道は無い。
+  - したがって backend-api の直しは、`signature_version="s3v4"` にすることと、クライアントから MD5（パートごと）を受け取って署名に入れること。jadd-cli は、MD5 を計算して API に渡し、同じ Content-MD5 を付けて PUT する。backend-api は今、MD5 を受け取っていない（`models.py` に md5・checksum の扱いが無い）。設計案の 5 章と計画書の 9 章を直した。
+  - cleanup は 11-06 02:23 UTC（11:23 JST）より後（q13 の 22 版を 11-05 02:22 UTC に解除したため）。
+- 2026-11-05: **WORM の対象を、S1・S2 の 10 本に見直した（D2、伊藤が決定）。** tuscenes-model（S3）と tuscenes-annotation（S4）を外した。
+  - 理由: WORM は「失ったら取り返せない」ものに絞る。tuscenes-model は入れ替わりが激しく、意図しない削除があってもビジネスの損害は軽い（伊藤）。S4 も費用をかければ作り直せる。2 本には、ステージ 1 のバケットポリシーとバージョニングが残る。
+  - 結果: 止まる書き手（Cosmos・jadd-cli）がどちらも tuscenes-model の書き手だったので、**ほかのチームへの直しの依頼は要らなくなった**。設計案の波 4 と 5 章（PR-2）も要らない（5 章は、後で tuscenes-model にかけるときのために残した）。
+  - バケットポリシーの共通部とルール B（設定の変更の通知）は 12 本のまま。足す 2 文は Object Lock の無いバケットでは何も効かない。
+  - 直した資料: [worm-decisions.md](s3-data-protection-2/worm-decisions.md)（D2・P7）、[worm-quickwin-design.md](s3-data-protection-2/worm-quickwin-design.md)（4.2・5 章）、[worm-quickwin-plan.md](s3-data-protection-2/worm-quickwin-plan.md)（1・2・9.4・10 章）、[worm-design.md](s3-data-protection-2/worm-design.md)（1 章の表）、[worm-glossary.md](s3-data-protection-2/worm-glossary.md)。
+  - 別件のメモ: tuscenes-model のライフサイクルには古い版の失効が無く、古い版は無期限に残っている。入れ替わりが激しいので、古い版を何日残すかを別に決めてもよい（伊藤に伝えた。未決）。
+- 2026-11-05: **E1〜E4 を決めた。**
+  - E1: 30 日は仮決定のまま。流し直しの費用は単発なら予算上問題ない（安本さん）。
+  - E2〜E4 は「費用を減らすための意図した掃除をどう行うか」から決めた（伊藤の提案）。方針: 対象を決めるまでは FullAccess、実行は AWSAdministratorAccess が承認してジョブが執行、対象は prefix・正規表現、頻度は 3 か月に 1 度あるかないか（MLOps チームが決める）、緊急の削除はしない。
+  - 承認は (a)（AWSAdministratorAccess がジョブを作る）。設計案の 2.1 に組んだ: ジョブのロール `central/original-bucket-lock-batch`（中央管理のロール。`DenyLockChange` の唯一の例外）、SCP で PassRole を AWSAdministratorAccess だけに、マニフェストの置き場、バケットポリシーの 4 文（FullAccess を例外から外す）。下書きのポリシー 4 つは Access Analyzer で指摘なし。
+  - 波及: P2 の順番の縛りが無くなった（最初のホールドも同じロールで流せる）。FullAccess を外すのは PR-3（導入の後）にする案。中央管理のロールの型を、サービスの信頼が書けるように広げる必要がある。
+  - 未決: 2.1 のレビュー。AWSAdministratorAccess の 1 名が誰で、承認の役を担えるか。カナリアで確かめる 4 点（設計案の 2.1 の末尾）。
+- 2026-11-05: **権限と人の対応を整理した**（[current-state.md](s3-data-protection-2/current-state.md) の 3.1.1）。以前の資料には人数しか無かった。
+  - Identity Store は tuscenes-prod の ReadOnly で読めた。AWSAdministratorAccess は `Engineers` の 山本 修平 1 名で、10-30・11-02 に使っている。FullAccess は Group 3・Group 4 の正社員で 14 名（10-29 の 13 名から 1 名多い）。
+  - 割り当て（`sso-admin`）は管理アカウントでしか読めない。[iam-scan/sso-assignments.sh](s3-data-protection-2/iam-scan/sso-assignments.sh) を作ったが、伊藤の FullAccess では拒まれた。山本 修平が持っていると分かれば足りるとした。ほかに 1〜2 名いる見込みで、名前は伊藤が後で確かめる。
+  - 設計案の 2.1 の承認者は 山本 修平（CorpIT）になる。導入の作業（PR-3 より後の鍵の既定・ジョブ）もこの人の権限が要る。役を担えるか、2 名にするかは要相談。
+- 2026-11-05: **共有用の資料を 2 本書いた**（Notion は未）。[notion-s3-object-lock-spec.md](../documents/notion-s3-object-lock-spec.md)（参照用・学習用。仕組みだけ）と [notion-worm-governance-rollout.md](../documents/notion-worm-governance-rollout.md)（共有用。ガバナンスモードでの導入。参照用から引用して単独で読めるようにした）。言い回しの決まりは [worm-glossary.md](s3-data-protection-2/worm-glossary.md) の 1 章（保護・通常の削除・最新／最新ではないバージョン・検証済み／未検証）。
+  - 共有用の資料に新しく書いたこと: 誤って通常の削除をしたときの戻し方（直前のバージョンのコピー）、意図した削除の取りやめ方（イベントホールドの付け直し）と、ライフサイクルを 2 段にする案（最後に取りやめられる期間。案は 7 日）。
+  - 暗号化の鍵: 10 本は該当しない（9 本は SSE-S3、tuscenes-calibration（新）は `aws/s3` の SSE-KMS。利用者管理のキーは SSM 用の 3 つで、過去 90 日に 10 本で使われた記録なし）。共有用の資料からは外し、参照用の資料の一般論だけに残した。
+- 2026-11-05: **共有用の資料 2 本の初版を仕上げた**（伊藤が初版とした）。サブエージェント 2 つで整合性チェックと推敲のレビューを受け、伊藤の了承のうえで直した。
+  - 設計に関わる指摘 4 件（伊藤の了承済み）:
+    1. FullAccess も deploy のロールを通してバケットポリシーを書き換えられる → 残るリスクとして書いた（設計案 2.1・共有用の資料 3.2・3.6）。
+    2. 日数の打ち間違いは解除のジョブでは直せない（迂回の Deny を外して迂回のジョブで直す）→ D5 の理由 4・設計案 4.3・共有用の資料 4.4 を直した。
+    3. denso-nx-raw を段階 1 から 2 へ移した（DataSync の書き込み先）。
+    4. 保持の値を明示する書き込みは `DenyLockChange` に拒まれる → 各段階の前の確かめに足した。
+  - そのほか、要点の誤り（「すべてのバージョン」）、手順の抜け（有効化）、未検証の前提、言い回しの決まりへの違反を直した。6 章をなくす提案と、用語の大幅な追加は採らなかった。
+  - Notion にはまだ上げていない（上げる前に伊藤の確認を取る）。
+

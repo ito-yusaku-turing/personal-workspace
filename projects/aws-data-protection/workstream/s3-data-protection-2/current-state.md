@@ -39,11 +39,26 @@
 
 | 主体 | 中の人・入り方 | できること | 注 |
 |---|---|---|---|
-| SSO `FullAccess` | 13 名。Okta のグループ `ORG:Autonomous Driving Group 3 Regular Employees`（Infrastructure Team と担当役員）と `Group 4`（MLOps 1・3 Team と担当役員） | 古い版の削除・守りの変更・バケットの削除（12）。ふつうの削除（10） | td1-raw・tuscenes-raw は、権限セットのインラインの Deny で、ふつうの削除も古い版の削除もできない。ただし守りは外せる |
+| SSO `FullAccess` | 13 名（2026-11-05 の数え直しで 14 名。3.1.1）。Okta のグループ `ORG:Autonomous Driving Group 3 Regular Employees`（Infrastructure Team と担当役員）と `Group 4`（MLOps 1・3 Team と担当役員） | 古い版の削除・守りの変更・バケットの削除（12）。ふつうの削除（10） | td1-raw・tuscenes-raw は、権限セットのインラインの Deny で、ふつうの削除も古い版の削除もできない。ただし守りは外せる |
 | SSO `AWSAdministratorAccess` | 1 名（`Engineers`） | すべて（12） | |
 | `cdk-hnb659fds-cfn-exec-role-*`（4 リージョン） | CloudFormation だけが引き受ける。中身は deploy の経路（3.2） | 守りの変更（12）。ポリシーから Deny を外した後は、古い版の削除も | ライフサイクルで古い版を失効させれば、CloudFormation から大量に消せる |
 
 人数は cdk-apps・identity のリポジトリから数えた（2026-10-29）。管理画面で直接した割り当ては見えていない。
+
+#### 3.1.1 人との対応（2026-11-05）
+
+グループの割り当ては cdk-apps の `apps/organization-policy/lib/groups-synced.ts`（`main`）、メンバーは Identity Store（`d-9267723e8a`）を tuscenes-prod の ReadOnly で読んだ（`identitystore list-group-memberships`・`describe-user`）。割り当てそのもの（`sso-admin list-account-assignments`）は管理アカウントでしか読めないので、**管理画面で直接した割り当て（ユーザーへの直接の割り当てを含む）は、確かめていない。** [iam-scan/sso-assignments.sh](iam-scan/sso-assignments.sh) は管理アカウントの権限が要り、伊藤の FullAccess（tuscenes-prod）では拒まれた（2026-11-05）。山本 修平が持っていると分かれば足りるとした。ほかに 1〜2 名いる見込みで、名前は伊藤が後で確かめる（2026-11-05）。
+
+| 権限セット | 経路（グループ） | 人 |
+|---|---|---|
+| `AWSAdministratorAccess` | `Engineers`（2022 年の旧 SCIM の残り。Okta にも cdk-apps にも定義が無い。identity の `docs/aws-manual-groups.md`） | 山本 修平（CorpIT） |
+| `FullAccess` | `ORG:Autonomous Driving Group 3 Regular Employees` | 神尾 皓・藤井 一喜・山口 祐・大戸 一希・渡辺 晃平・深澤 開 |
+| `FullAccess` | `ORG:Autonomous Driving Group 4 Regular Employees` | 伊藤 祐策・岩政 公平・犬塚 眞太郎・安本 雅啓・渡邉 孝文・塚本 周平・加藤 祐二・大戸 一希・寺西 裕紀 |
+
+- FullAccess は、2 つのグループを合わせて **14 名**（大戸 一希は両方にいる）。10-29 の 13 名から 1 名多い（数え方の違いか、メンバーの変化かは確かめていない）。
+- AWSAdministratorAccess は使われている。CloudTrail（tuscenes-prod、`Username` で引いた直近 50 件）では、山本 修平 が 2026-10-30 14:50〜14:57 JST にこの権限セットで S3 のバケットの設定・CloudTrail の証跡・Amplify を読み、11-02 14:10 JST にもサインインしている。ほかに使った人がいるかは、全件を引くと 1 日約 2,000 件のサインインがあって重いので、見ていない。
+- AWSAdministratorAccess の 山本 修平 は、GitHub の組織の owner・GCP の実質の最高権限者でもある（project:privileged-access の privilege-map.md の 8・11 章）。
+
 
 ### 3.2 例外を名乗れる（間接に 3.1 と同じことができる）
 

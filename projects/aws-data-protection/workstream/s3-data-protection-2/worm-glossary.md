@@ -10,6 +10,9 @@
 2. **同じ言葉に複数の意味を持たせない。** 「鍵」はとくに 5 つの意味で使っていたので、2 章の表で書き分ける。
 3. **自分たちで作った呼び名（6 章）は、共有資料で使うかどうかを都度確認する。** 共有資料では「第一段階」のような、初めて読む人にも分かる語を選ぶ。
 4. 補うのは、その段落で初めて出てくるところだけでよい。同じ段落で何度も括弧を付けない。
+5. **「守る」「守り」は使わず、「保護する」「保護」と書く**（2026-11-05、伊藤）。「ふつうの削除」は「通常の削除」と書く。
+7. **バージョンは「最新のバージョン」「最新ではないバージョン」と書く**（複数バージョンがある場合の最新のもの・それ以外。2026-11-05、伊藤）。「今のバージョン」「古いバージョン」「古い版」は使わない。`DeleteObjectVersion` は「古いバージョンの削除」ではなく「バージョンを指定した削除」と書く。
+6. **確かめ方の印を付ける**（2026-11-05、伊藤）: 実際に試して確かめたものは「（検証済み）」、AWS のドキュメントにあるがまだ試していないものは「（未検証）」。冒頭で印の意味を説明する。
 
 ## 2. 「鍵」の書き分け
 
@@ -40,8 +43,14 @@
 | 迂回の Deny | バケットポリシーでの `s3:BypassGovernanceRetention` の Deny | 設計案の `DenyGovernanceBypass` |
 | 鍵の操作の Deny | バケットポリシーでの `s3:PutObjectRetention`・`s3:PutObjectLegalHold` の Deny | 設計案の `DenyLockChange` |
 | 消す（版を） | バージョンを指定した削除（`DeleteObject` に `VersionId`） | 版を指定しない削除は削除マーカーを付けるだけ |
+| ふつうの削除 | **通常の削除**（バージョンを指定しない `DeleteObject`。削除マーカーを置く） | 共有資料では「通常の削除」と書く（2026-11-05、伊藤） |
 | 削除マーカー | 削除マーカー（delete marker） | Object Lock では守られない |
-| ライフサイクルで消える | ライフサイクルの失効（`NoncurrentVersionExpiration`・`Expiration`） | 保持されているバージョンは消せない（Q9 で確かめる） |
+| 掃除・意図した掃除 | 費用を減らすための、意図した一括削除（マニフェスト → 承認 → ジョブで解除とタグ付け → 30 日 → タグで絞ったライフサイクル） | 設計案の 2.1 |
+| 承認 | AWSAdministratorAccess がジョブを作ること | ジョブのロールを渡せる（`iam:PassRole`）のは AWSAdministratorAccess だけ |
+| ジョブのロール | S3 Batch Operations のジョブが使う IAM ロール `central/original-bucket-lock-batch` | `DenyLockChange` の唯一の例外 |
+| AWSAdministratorAccess | **SSO の権限セット**（Control Tower が作ったもの。`AWSReservedSSO_AWSAdministratorAccess_*` のロール）。今は 1 名 | AWS 管理ポリシーの `AdministratorAccess` とは別物。後者を付けたロール（cfn-exec-role など）は「上位の権限」に含めない |
+| FullAccess | **SSO の権限セット**（`AWSReservedSSO_FullAccess_*`）。14 名（2026-11-05。current-state.md の 3.1.1） | AWS 管理ポリシーの `AmazonS3FullAccess` とは別物 |
+| ライフサイクルで消える | ライフサイクルの失効（`NoncurrentVersionExpiration`・`Expiration`） | 保持されているバージョンは消さない（Q9、2026-11-05 に確かめた） |
 
 ## 4. 書き込みとチェックサム
 
@@ -72,13 +81,13 @@
 
 | 作業資料での語 | 共有資料での案 | 中身 |
 |---|---|---|
-| Quick Win | 第一段階 | 権限の設計を待たず、ガバナンスモードで 12 本に入れる |
+| Quick Win | **ガバナンスモードでの導入**（2026-11-05 に伊藤が決めた） | 権限の設計を待たず、ガバナンスモードで S1・S2 の 10 本に入れる |
 | フルスペック | 第二段階、または完成形 | 権限の設計のあとで、コンプライアンスモードや tuscenes-prod の外の見張りまで入れる |
 | 外せない層 | 使わない。「管理者権限でも消せない保護」のように中身を書く | |
 | 書き手 | 書き込み元のシステム | バケットに書き込むプログラム・ジョブ・人の操作 |
 | 波 1〜4 | 導入の段階 1〜4（または第 1 陣〜第 4 陣） | 12 本を分けて入れる順番 |
 | カナリア | 予行用のバケット（`original-bucket-canary-767397804933`） | |
-| 12 本 | 原本バケット 12 本 | 一覧は [worm-design.md](worm-design.md) の 2.5 |
+| 12 本 | 原本バケット 12 本（ステージ 1 のバケットポリシーの対象） | 一覧は [worm-design.md](worm-design.md) の 1 章と 2.5。**WORM をかけるのは、そのうち S1・S2 の 10 本**（2026-11-05 に tuscenes-model・tuscenes-annotation を外した。D2） |
 | 穴 A〜D | 第一段階で残るリスク A〜D | [worm-quickwin-plan.md](worm-quickwin-plan.md) の 3.2 |
 | PR-1・PR-2・PR-3 | 中身で呼ぶ（迂回の Deny と通知の PR、書き込み元の直しの PR、保持の変更の Deny の PR） | |
 | 試し・Q1〜Q13 | 検証・検証項目 Q1〜Q13 | |

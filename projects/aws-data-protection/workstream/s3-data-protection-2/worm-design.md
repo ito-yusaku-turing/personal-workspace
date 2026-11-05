@@ -46,8 +46,8 @@
 | denso-nx-raw | S2 | cdk-apps（DensoNx） |
 | denso-raw | S2 | AWS CLI |
 | denso-taxi-processed | S2 | cdk-apps（DensoTaxiStack） |
-| tuscenes-model | S3 | 要確認（第一弾では手を入れていない） |
-| tuscenes-annotation | S4 | cdk-apps（Datalake） |
+| ~~tuscenes-model~~ | S3 | 2026-11-05 に WORM の対象から外した（D2） |
+| ~~tuscenes-annotation~~ | S4 | 2026-11-05 に WORM の対象から外した（D2） |
 
 ## 2. 決定を組み合わせて出てくる論点
 

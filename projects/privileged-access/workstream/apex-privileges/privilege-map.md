@@ -412,4 +412,4 @@ GitHub のアカウント名と氏名の対応は、identity の `platform/githu
 | 安部 敦 | piste-jp | | | P10（OTA） |
 | 齋藤 諒子 | ryokosaito-rgb | 契約社員。identity の外部の協力者（write） | | identity の Okta のユーザーとグループのメンバーの承認（P6 には入らない） |
 
-AWS の側（tuscenes-prod の FullAccess 13 名など）の人は [current-state.md](../../../aws-data-protection/workstream/s3-data-protection-2/current-state.md) にある。管理アカウント・GCP・Okta の管理者は分からない（I7・I10・I13）。
+AWS の側（tuscenes-prod の FullAccess 14 名・AWSAdministratorAccess 1 名）の人は [current-state.md](../../../aws-data-protection/workstream/s3-data-protection-2/current-state.md) の 3.1.1 にある（2026-11-05。グループ経由の分だけ。直接の割り当ては未確認）。管理アカウント・GCP・Okta の管理者は分からない（I7・I10・I13）。
