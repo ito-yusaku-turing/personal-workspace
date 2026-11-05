@@ -1,7 +1,7 @@
 # Supabase のアカウントの棚卸しと SSO 化の検討
 
 - 開始: 2026-11-05
-- 状態: **メンバー 20 名を名簿と突き合わせ、退職者が残っていないことを確かめた**（2026-11-05）。MFA が有効なのは 1 名だけ。次は STUDIO の名簿外の 8 名の使い道の確認と、MFA の強制の案
+- 状態: **メンバー 20 名を名簿と突き合わせ、退職者が残っていないことを確かめた**（2026-11-05）。MFA が有効なのは 1 名だけ。次は伊藤が 20 名の見直しリストで全員に確かめ、外す人を決める
 - 所属: project:information-resource-inventory
 
 Supabase のアカウント（組織・チームのメンバーと、その権限）を棚卸しし、社の IdP（Okta / Google Workspace）による SSO に寄せられるかを検討する。
@@ -147,7 +147,8 @@ scoped PAT（Organization Members・Organization Projects の Read）で取っ�
 - [x] scoped PAT を作り、メンバー一覧（ロール・MFA）とプロジェクト一覧を API で取る（20 名・11 件）
 - [x] リポジトリのプロジェクトと組織のプロジェクトを突き合わせる（旧 tuscenes がこの組織に無い）
 - [x] 在籍者の名簿（Okta）と STUDIO の開発者名簿と突き合わせる（退職者なし。名簿外 8 名）
-- [ ] 名簿外の 8 名の使い道を確かめる
+- [x] 20 名の見直しリストを作る（`~/supabase/dhazyhuzuwitqasezcvr/2026-11-05/review-list.md`。所属・MFA・Supabase を使うリポジトリでの最終コミット日）
+- [ ] 伊藤が全員に確かめ、外す人を決める（Administrator 以下は伊藤が外せる。Owner は外せない）
 - [ ] ロールの見直しの案（Administrator 4 名・Developer 13 名が妥当か）
 - [ ] 退職者・不明なアカウント・強すぎる権限を掃除の候補にする
 - [x] SSO のためのプラン（Team）の料金を調べる（差額 $574/月。未確認の点は営業に問い合わせ）
@@ -157,7 +158,8 @@ scoped PAT（Organization Members・Organization Projects の Read）で取っ�
 ## 次セッションへの引き継ぎ
 
 - メンバー一覧とプロジェクト一覧は取った。PAT（`~/.config/supabase/pat`）は、調査が終わったら伊藤が失効させる。
-- 名簿との突き合わせは済んだ（退職者なし）。次は、STUDIO の名簿外の 8 名の使い道の確認と、MFA の強制の案。強制は Owner の山本さん（唯一 MFA を設定済みの Owner）に頼むのが早い。
+- 名簿との突き合わせは済んだ（退職者なし）。20 名の見直しリスト（git 管理外）を作った。伊藤が全員に確かめて外す人を決めている。その後に MFA の強制の案。
+- 見直しリストの最終コミット日は、手元の clone から取った参考値。ダッシュボードの最終ログインは API で取れない。強制は Owner の山本さん（唯一 MFA を設定済みの Owner）に頼むのが早い。
 - 旧 tuscenes（`seacktbfnjusvroguhwc`）がどこにあるかは未確認。
 
 ## 関連リンク
