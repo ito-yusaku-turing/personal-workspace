@@ -94,6 +94,29 @@ SSO:
 - `GET /v10/projects`: プロジェクトの一覧。
 - トークンはチームや 1 つのプロジェクトに絞れ、有効期限も付けられる。**読み取りだけのスコープは無い**（チームに絞ったトークンでも読み書きできる）。
 
+## 共有アカウントを使わないデプロイの方法（2026-11-05 に調べた）
+
+背景: jadd_studio3 は GitHub Actions + Vercel CLI でデプロイしている。伊藤の認識では、**Vercel のアカウントが無い人にも（main への merge で）デプロイの権利を開くため**。トークンは共有アカウント `jaddstudio3-deployment-4700` のもの。共有アカウントはやめたい。
+
+分かったこと:
+
+- **個人に紐づかないトークンは無い**。トークンは必ずユーザーのもの（範囲は Full Account / Team / Project）。チームが所有するトークンやサービスアカウントの機能は無い（[Access tokens](https://vercel.com/docs/accounts/access-tokens)）。
+- **GitHub Actions から OIDC でデプロイする仕組みは、まだ無い**。公式の手順書に "Vercel doesn't currently support OIDC for authenticating the GitHub Actions deployment itself" とある（[kb](https://vercel.com/kb/guide/how-can-i-use-github-actions-with-vercel)）。2026-10-22 のブログで「API と CLI に OIDC を広げる」と予告している（[blog](https://vercel.com/blog/death-to-long-lived-static-credentials)。時期は書いていない）。
+- **Pro の Git 連携では、非公開リポジトリのコミットの作者がチームのメンバー（有料の席）でないとデプロイされない**（[Git](https://vercel.com/docs/git#deploying-private-git-repositories)・[Collaboration](https://vercel.com/docs/accounts#collaboration-settings)）。Viewer（無料）ではデプロイできない。
+- Vercel はこの席の要件を回避する抜け道を最近ふさいだと書いている（[kb、2026-10-16 更新](https://vercel.com/kb/guide/why-aren-t-commits-triggering-deployments-on-vercel)）。Vercel の社員はコミュニティで「Deploy Hook や CLI で席の要件を回避していた人に影響する」と書いた（[community、2026-05-07](https://community.vercel.com/t/deploy-hooks-now-blocked-if-commit-author-not-in-vercel-team/41348)。公式のドキュメントではない）。**いまの「アカウントの無い人も CLI でデプロイできる」形は、Vercel から見ると席の要件の回避にあたるおそれがある**（推測。CLI のデプロイが作者を検査するかは公式に書かれていない。いまは動いている）。
+- Integration のトークンは 2FA の必須化の対象外だが、導入した人が抜けると無効になる。CLI の prebuilt で使えるかも未確認。
+- **2026-12-31 から、Vercel の全ユーザーに認証アプリが必須になる**。共有アカウントを続けるなら、TOTP の秘密も共有することになる。
+
+選択肢:
+
+| 案 | アカウントの無い人も merge でデプロイできるか | 利点 | 欠点 |
+|---|---|---|---|
+| A. 担当者 1 名（Owner など）の個人のトークン（プロジェクトに絞り、期限付き）に替え、共有アカウントを消す | ○（いまと同じ） | 変更が最小。共有と TOTP の共有が無くなる。prebuilt とキャッシュはそのまま | 担当者の異動・退職で止まる。席の要件の回避にあたるおそれは残る |
+| B. Git 連携に戻し、Deployment Checks で GitHub Actions のチェックを必須にする | ×（コミットの作者ごとに有料の席 $20/月が要る） | トークンが要らない。Vercel の推奨に最も近い | 席の費用。ビルドが Vercel 側になる（`installCommand` で `npm ci` などにする） |
+| C. GitHub Actions から Deploy Hook を叩く | ×（作者の検査を受けるとされる） | Vercel のトークンが要らない | URL が秘密そのもの。prebuilt にできない。勧めない |
+| D. 自作の Integration のトークン | △（未確認） | 2FA の必須化の対象外 | 用途外の使い方。導入者が抜けると無効。勧めない |
+| E. CLI の OIDC を待つ | ○（Pro に開かれれば） | 静的な秘密が無くなる | いまは使えない。時期が分からない |
+
 ## 設計判断と理由
 
 （まだ無い）
@@ -108,7 +131,7 @@ SSO:
 
 ## 次セッションへの引き継ぎ
 
-- 公式ドキュメントの調べと、現状の聞き取り（Pro・Owner 4 名・2FA は約半分）は済んだ。次はメンバー一覧と 2FA の状況を取り、名簿と突き合わせる。
+- 公式ドキュメントの調べと、現状の聞き取り（Pro・Owner 4 名・2FA は約半分）は済んだ。共有アカウントをなくす案は「共有アカウントを使わないデプロイの方法」にまとめた。伊藤が選ぶ。次はメンバー一覧と 2FA の状況を取り、名簿と突き合わせる。
 - **2FA を必須にする前に、CI の `VERCEL_TOKEN` を作った人が 2FA を設定しているか確かめる**。fleet-ops は塚本さん（2FA 設定済み）で問題ない。jadd_studio3 は `jaddstudio3-deployment-4700`（確定）で 2FA 未設定。必須にする前に、このアカウントに 2FA を設定する（ログインの情報と認証アプリを誰が持つかも決める。作ったのは海老澤さんと思われる）。海老澤さん（Owner）本人の 2FA も要る。
 - メンバー一覧は API で取れるが、2FA の有無は API で取れない。ダッシュボードの Members の画面で見る。
 - トークンに読み取りだけのスコープは無い。API を使うなら、チームに絞り、期限を短くし、使い終わったら失効させる。
