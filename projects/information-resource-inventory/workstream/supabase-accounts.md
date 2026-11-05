@@ -71,6 +71,21 @@ MFA 強制:
 - `GET /v1/projects`: `ref`・`organization_id`・`name`・`status` などが返る。
 - トークンは、Organization Members と Organization Projects の Read を持つ scoped PAT にする。権限は本人のロールを超えない。メンバー一覧は全ロールで見られるので、Administrator で呼べるはず（未確認）。
 
+### SSO のためのプランの料金（2026-11-05 に確認）
+
+出典: [料金](https://supabase.com/pricing)・[Billing](https://supabase.com/docs/guides/platform/billing-on-supabase)・[Compute](https://supabase.com/docs/guides/platform/manage-your-usage/compute)・[SSO MAU](https://supabase.com/docs/guides/platform/manage-your-usage/monthly-active-users-sso)
+
+- プランは組織単位で、組織の全プロジェクトにかかる。料金表では、メンバーの人数による課金は無い（Unlimited）。
+- 基本料金は Pro が $25/月〜、Team が $599/月〜（差は **$574/月**）。Enterprise は個別見積もりで、料金は公開されていない。
+- compute の credit（$10/月 = Micro 1 台分）と、含まれる使用量（egress 250 GB・MAU 10 万など）は Pro と Team で同じ。compute はプロジェクトごとの時間課金で、プランによらず同じ単価（Micro 約 $10/月、Small 約 $15/月、Medium 約 $60/月、Large 約 $110/月）。
+- したがって、Team に上げて増えるのは基本料金の差だけ。例えば 6 件すべてが Micro なら、Pro 約 $75/月 → Team 約 $649/月になる。
+- Team で増えるもの: SSO、Read-only とプロジェクト単位のロール、組織の監査ログ、ログの保持（7 → 28 日）、バックアップ（7 → 14 日）、SOC2・ISO 27001 のレポート、メールサポートの SLA。稼働率の SLA は Enterprise だけ。
+- 未確認:
+  - 料金表の SSO の行は Team も「Contact Us」になっている。追加の料金や手続きが要るかは書かれていない。
+  - 「from $599」の条件、年払いの割引、プランを途中で変えたときの日割り。
+  - SSO の従量課金（50 MAU まで無料、超えると $0.015/MAU）の説明はアプリ側の SSO（`signInWithSSO`）のもので、ダッシュボードのログインにもかかるかは書かれていない。
+  - 各プロジェクトのいまの compute のサイズ（請求の実額は、Owner か Administrator が請求画面で確かめる）。
+
 ## 設計判断と理由
 
 - 一次情報（メンバー一覧など。メールアドレスを含む）は git で管理せず、`~/supabase/dhazyhuzuwitqasezcvr/` に置く。aws-resource-inventory と同じ扱い。
@@ -84,6 +99,7 @@ MFA 強制:
 - [ ] scoped PAT を作り、メンバー一覧（ロール・MFA）とプロジェクト一覧を API で取る
 - [ ] リポジトリのプロジェクトと組織のプロジェクトを突き合わせる（ほかの組織にあるものは無いか）
 - [ ] 退職者・不明なアカウント・強すぎる権限を掃除の候補にする
+- [x] SSO のためのプラン（Team）の料金を調べる（差額 $574/月。未確認の点は営業に問い合わせ）
 - [ ] MFA の強制の案をまとめ、Owner に頼む（予備の TOTP の周知、PAT の扱いも含む）
 - [ ] SSO 化の案（Team への格上げの要否・IdP・移行手順・影響）をまとめる
 
