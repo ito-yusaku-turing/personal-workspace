@@ -1,7 +1,7 @@
 # Vercel のアカウントの棚卸しと SSO 化の検討
 
 - 開始: 2026-11-05
-- 状態: **SSO・2FA・料金を調べた**（2026-11-05）。Pro なら SSO は +$300/月、2FA の必須化は追加の費用なし。次は伊藤からプラン・Owner・自分のロールを聞き、メンバー一覧を取る
+- 状態: **SSO・2FA・料金を調べた**（2026-11-05）。Pro なら SSO は +$300/月、2FA の必須化は追加の費用なし。Pro・Owner 4 名（伊藤を含む）・2FA は約半分と聞いた。次はメンバー一覧と 2FA の状況を取り、CI のトークンの持ち主を確かめる
 - 所属: project:information-resource-inventory
 
 Vercel のアカウント（組織・チームのメンバーと、その権限）を棚卸しし、社の IdP（Okta / Google Workspace）による SSO に寄せられるかを検討する。
@@ -22,7 +22,20 @@ Vercel のアカウント（組織・チームのメンバーと、その権限�
 - 参照されている `*.vercel.app`: jadd-studio2、studio2、drivers-app3、fleet-ops-sandy、fleet-management-blush、road-curvature-map、jadd-studio-ex。どれも `turing-inc` のチームにあるかは未確認。
 - JADD Studio の本番の project ID は `prj_ywCO4lG6pJIo5tdrnGaMz4AxVbAS`（jadd_studio3 の監査ログの workstream）。
 
-伊藤のアカウント・ロール、Owner、メンバーの数、2FA の状況はまだ聞いていない。
+伊藤から聞いた内容（2026-11-05）:
+
+- プランは **Pro**。
+- Owner は山本さん・海老澤さん・安本さん・伊藤の 4 名。伊藤が Owner なので、2FA の必須化・メンバーの削除・ロールの変更は伊藤ができる。
+- メンバーは 20 名弱で、2FA を設定しているのは約半分。
+
+CI で使っている Vercel のトークン（2FA を必須にすると、作った人が 2FA 未設定なら止まる）:
+
+| リポジトリ | ワークフロー | secrets | 用途 |
+|---|---|---|---|
+| jadd_studio3 | `.github/workflows/deploy.yml` | `VERCEL_TOKEN` | **本番のデプロイ**（main への push で `vercel pull` → `build` → `deploy --prod`） |
+| fleet-ops | `.github/workflows/vercel-preview.yml` | `VERCEL_TOKEN`・`VERCEL_ORG_ID`・`VERCEL_PROJECT_ID` | Preview と本番のデプロイ |
+
+誰のトークンかはリポジトリからは分からない（他人のトークンは API でも一覧できない）。jadd-studio-signage は GitHub Actions からデプロイしない（Vercel の Git 連携）。
 
 ## 公式ドキュメントで分かったこと（2026-11-05 に確認）
 
@@ -83,7 +96,8 @@ SSO:
 
 ## 次セッションへの引き継ぎ
 
-- 公式ドキュメントの調べは済んだ。次は伊藤に、プラン（Pro か Enterprise か）・Owner・伊藤のロールとログインの方法・2FA の状況を聞く。
+- 公式ドキュメントの調べと、現状の聞き取り（Pro・Owner 4 名・2FA は約半分）は済んだ。次はメンバー一覧と 2FA の状況を取り、名簿と突き合わせる。
+- **2FA を必須にする前に、jadd_studio3 と fleet-ops の CI の `VERCEL_TOKEN` を誰が作ったかを確かめる**。作った人が 2FA 未設定だと、必須にした時点で本番のデプロイが止まる。
 - メンバー一覧は API で取れるが、2FA の有無は API で取れない。ダッシュボードの Members の画面で見る。
 - トークンに読み取りだけのスコープは無い。API を使うなら、チームに絞り、期限を短くし、使い終わったら失効させる。
 - Supabase の結論（[documents/supabase-org-account-policy.md](../../documents/supabase-org-account-policy.md)）と比べると、Vercel の SSO は Pro の add-on（$300/月）で入れられる点が違う。
