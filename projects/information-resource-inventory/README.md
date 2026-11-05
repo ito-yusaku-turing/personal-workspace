@@ -1,6 +1,6 @@
 # project:information-resource-inventory 目録
 
-情報資源の棚卸し。持っている情報資源（クラウドのリソースなど）を洗い出し、使われていないもの・安全上のリスクがあるもの・変更しようとしたときに競合しかねないものを見つけて、掃除の候補にする案件。最初の対象は AWS アカウント tuscenes-prod（767397804933）。
+情報資源の棚卸し。持っている情報資源（クラウドのリソースなど）を洗い出し、使われていないもの・安全上のリスクがあるもの・変更しようとしたときに競合しかねないものを見つけて、掃除の候補にする案件。最初の対象は AWS アカウント tuscenes-prod（767397804933）。SaaS（Supabase・Vercel）のアカウントの棚卸しと SSO 化の検討もここで扱う。
 
 2026-10-28 に作った。ファイルを追加・移動・削除したら、この目録も同じコミットで更新する（ルールは personal-workspace の `AGENTS.md`「projects/（案件ごとの資料）」）。
 
@@ -14,6 +14,8 @@ AWS から取った一次情報は、その時点の写しなので git では�
   - [workstream/aws-resource-inventory/stage0-overview.md](./workstream/aws-resource-inventory/stage0-overview.md): 段階 0 の結果。リージョンごとの費用と形跡、種別ごとの件数（2026-10-28）
   - [workstream/aws-resource-inventory/collect/](./workstream/aws-resource-inventory/collect/README.md): 一次情報を取る道具（保存・ログ・伏せ字）と、段階 1 の取得のスクリプト
   - [workstream/aws-resource-inventory/analyze/](./workstream/aws-resource-inventory/analyze/README.md): 一次情報を集計するスクリプト（IAM・スタック・競合の判定）
+- [workstream/supabase-accounts.md](./workstream/supabase-accounts.md): **Supabase のアカウントの棚卸しと SSO 化の検討**。ダッシュボードに入る人のアカウントと権限を洗い出し、SSO に寄せられるかを検討する
+- [workstream/vercel-accounts.md](./workstream/vercel-accounts.md): **Vercel のアカウントの棚卸しと SSO 化の検討**。チームのメンバーと権限を洗い出し、SSO に寄せられるかを検討する
 
 ## 関連する資料（ほかの project）
 
