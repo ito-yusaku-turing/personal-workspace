@@ -1,7 +1,7 @@
 # Vercel のアカウントの棚卸しと SSO 化の検討
 
 - 開始: 2026-11-05
-- 状態: **着手した**（2026-11-05）。リポジトリからチーム `turing-inc` と使われ方を洗い出した。次は SSO・2FA・ロール・料金を公式ドキュメントで調べる
+- 状態: **SSO・2FA・料金を調べた**（2026-11-05）。Pro なら SSO は +$300/月、2FA の必須化は追加の費用なし。次は伊藤からプラン・Owner・自分のロールを聞き、メンバー一覧を取る
 - 所属: project:information-resource-inventory
 
 Vercel のアカウント（組織・チームのメンバーと、その権限）を棚卸しし、社の IdP（Okta / Google Workspace）による SSO に寄せられるかを検討する。
@@ -24,6 +24,51 @@ Vercel のアカウント（組織・チームのメンバーと、その権限�
 
 伊藤のアカウント・ロール、Owner、メンバーの数、2FA の状況はまだ聞いていない。
 
+## 公式ドキュメントで分かったこと（2026-11-05 に確認）
+
+ダッシュボードに入るアカウントの話。アプリの利用者の認証とは別。
+
+| 機能 | Pro | Enterprise | 出典 |
+|---|---|---|---|
+| SAML SSO（Okta・Google に対応。強制もできる） | **add-on で $300/月**（定額。2025-08 から） | 含まれる | [SAML](https://vercel.com/docs/saml)・[Pro plan](https://vercel.com/docs/plans/pro-plan)・[changelog](https://vercel.com/changelog/saml-sso-is-now-available-to-pro-teams) |
+| Directory Sync（SCIM。IdP で外すと自動で外れる） | 使えない | 含まれる | [Directory Sync](https://vercel.com/docs/directory-sync) |
+| 2FA の必須化（Two-Factor Authentication Enforcement） | 使える（と思われる。プランの明記なし） | 使える | [2FA enforcement](https://vercel.com/docs/two-factor-enforcement) |
+| 監査ログ（Audit Logs、90 日） | 使えない（Activity Log はある） | 含まれる | [Audit log](https://vercel.com/docs/audit-log)・[Activity log](https://vercel.com/docs/activity-log) |
+| プロジェクト単位のロール・Security・Contributor | 使えない | 含まれる | [Access roles](https://vercel.com/docs/rbac/access-roles) |
+
+料金（Pro）:
+
+- 基本料金 $20/月（有料の席 1 つと、使用量のクレジット $20 を含む）。有料の席は 1 つ増えるごとに $20/月。
+- **Viewer（Pro Viewer）の席は無料で、数の制限が無い**。Billing の席は 1 つまで無料。
+- Enterprise は個別見積もりで、料金は公開されていない。
+- SSO だけが目的なら、Pro に $300/月の add-on を足せば済む。
+
+SSO:
+
+- 設定と強制（Require Team Members to login with SAML）は Owner だけができる。強制すると、SAML でないセッションはチームの情報を見られない。
+- SAML だけでは、外すのもロールを変えるのも手作業。IdP で外したら自動で外れるようにするには、Directory Sync（Enterprise）が要る。
+- GitHub やメールでログインしている既存のアカウントが、SAML とどう紐づくかは書かれていない（未確認）。
+
+2FA の必須化:
+
+- Settings → Security & Privacy → Two-Factor Authentication Enforcement。設定できるのは、本人の 2FA を有効にしている Owner だけ。すぐに効く。
+- 2FA を設定していない人は、チームのダッシュボード・API・トークン・CLI・CI からのデプロイ・PR のビルドが止まる。チームには残るので、席は消費し続ける。
+- bot やサービス用のアカウントにも 2FA が要る。Integration のトークンは対象外。
+- 認証アプリ（TOTP）と passkey が使える。復旧用のコードもある。
+- **2026-12-31 に、Vercel の全ユーザーに認証アプリの登録が必須になる**（Enterprise は同じ日に 2FA の必須化が強制でオンになる）。
+
+ロール（Pro で使えるのは Owner・Member・Developer・Billing・Pro Viewer）:
+
+- **メンバーの招待・削除・ロールの変更は Owner だけ**。Supabase と違い、Owner でない人は人を外せない。
+- Member はプロジェクトとチームの設定のほとんどを扱える。Developer は Production の環境変数を変えられない。Pro Viewer は読み取りだけ。
+- 見るだけの人を Pro Viewer に移すと、有料の席が減る（推測）。
+
+棚卸しに使う API:
+
+- `GET /v3/teams/{teamId}/members`: ロール・メール・Git のアカウント・`joinedFrom`（SSO で入ったか）・`createdAt` が返る。**2FA の有無と最後のログインは返らない**（2FA はダッシュボードの Members で見る。disabled で絞り込める）。
+- `GET /v10/projects`: プロジェクトの一覧。
+- トークンはチームや 1 つのプロジェクトに絞れ、有効期限も付けられる。**読み取りだけのスコープは無い**（チームに絞ったトークンでも読み書きできる）。
+
 ## 設計判断と理由
 
 （まだ無い）
@@ -33,12 +78,15 @@ Vercel のアカウント（組織・チームのメンバーと、その権限�
 - [ ] 棚卸しの対象（組織・チーム・プロジェクト）を洗い出す
 - [ ] メンバーと権限（Owner・管理者など）の一覧を作る
 - [ ] 退職者・不明なアカウント・強すぎる権限を掃除の候補にする
-- [ ] Vercel の SSO の機能・必要なプラン・費用を調べる
+- [x] SSO・2FA の必須化・ロール・料金・API を調べる（Pro なら SSO は +$300/月、2FA の必須化は追加の費用なし）
 - [ ] SSO 化の案（IdP・移行手順・影響）をまとめる
 
 ## 次セッションへの引き継ぎ
 
-起票しただけ。調査は未着手。
+- 公式ドキュメントの調べは済んだ。次は伊藤に、プラン（Pro か Enterprise か）・Owner・伊藤のロールとログインの方法・2FA の状況を聞く。
+- メンバー一覧は API で取れるが、2FA の有無は API で取れない。ダッシュボードの Members の画面で見る。
+- トークンに読み取りだけのスコープは無い。API を使うなら、チームに絞り、期限を短くし、使い終わったら失効させる。
+- Supabase の結論（[documents/supabase-org-account-policy.md](../../documents/supabase-org-account-policy.md)）と比べると、Vercel の SSO は Pro の add-on（$300/月）で入れられる点が違う。
 
 ## 関連リンク
 
