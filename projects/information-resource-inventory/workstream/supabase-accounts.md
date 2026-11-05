@@ -1,7 +1,7 @@
 # Supabase のアカウントの棚卸しと SSO 化の検討
 
 - 開始: 2026-11-05
-- 状態: **現状の聞き取り、参照されているプロジェクト 6 件の洗い出し、SSO・MFA の提供条件の調査を終えた**（2026-11-05）。次は伊藤の scoped PAT でメンバー一覧（ロール・MFA）とプロジェクト一覧を取る
+- 状態: **API でメンバー 20 名（MFA 有効は 1 名）とプロジェクト 11 件を取り、リポジトリと突き合わせた**（2026-11-05）。次は在籍者の名簿との突き合わせと、MFA の強制の案
 - 所属: project:information-resource-inventory
 
 Supabase のアカウント（組織・チームのメンバーと、その権限）を棚卸しし、社の IdP（Okta / Google Workspace）による SSO に寄せられるかを検討する。
@@ -21,7 +21,7 @@ Supabase のアカウント（組織・チームのメンバーと、その権�
 - 伊藤: 会社の GitHub アカウントでログイン。ロールは Administrator
 - メンバーのほとんどは MFA が無効
 
-リポジトリに出てくるプロジェクト（2026-11-05 に `/usr/app/` 配下を grep。この組織に属するかは未確認）:
+リポジトリに出てくるプロジェクト（2026-11-05 に `/usr/app/` 配下を grep。組織との突き合わせは下の「API で取った組織の現状」）:
 
 | プロジェクト ref | 使っているところ | 見立て |
 |---|---|---|
@@ -86,6 +86,44 @@ MFA 強制:
   - SSO の従量課金（50 MAU まで無料、超えると $0.015/MAU）の説明はアプリ側の SSO（`signInWithSSO`）のもので、ダッシュボードのログインにもかかるかは書かれていない。
   - 各プロジェクトのいまの compute のサイズ（請求の実額は、Owner か Administrator が請求画面で確かめる）。
 
+## API で取った組織の現状（2026-11-05）
+
+scoped PAT（Organization Members・Organization Projects の Read）で取った。一次情報は `~/supabase/dhazyhuzuwitqasezcvr/2026-11-05/`（git 管理外）。範囲外の `GET /v1/projects` は 403 になり、権限が絞れていることも確かめた。
+
+メンバー（20 名。全員 turing-motors.com のメール）:
+
+| ロール | 人数 | MFA 有効 | 該当者 |
+|---|---|---|---|
+| Owner | 3 | 1 | 安本さん（MFA 無効）・山本修平さん（**MFA 有効**）・渡辺孝文さん（MFA 無効） |
+| Administrator | 4 | 0 | 伊藤・犬塚さん・塚本さん・徳地さん |
+| Developer | 13 | 0 | （一覧は一次情報を参照） |
+
+- MFA が有効なのは 20 名中 1 名だけ。SSO のユーザー（`is_sso_user`）は 0 名。プロジェクト単位のロールの人はいない（全員が組織全体のロール）。
+- `username` がメールでない人が 6 名いる（伊藤を含む）。GitHub でログインしている人と思われるが、API からログインの方式は分からない（推測）。
+- 退職者が残っているかは、API だけでは判断できない。在籍者の名簿との突き合わせが要る。
+- MFA の強制を有効にできるのは、Owner のうち MFA を設定済みの山本さんだけ（いまの状態では）。
+
+プロジェクト（11 件。すべて ACTIVE_HEALTHY）:
+
+| ref | 名前 | リージョン | compute | 作成日 |
+|---|---|---|---|---|
+| `fdgjfmuvmiwipxsfyecw` | jadd-studio-prod | us-west-1 | medium | 2025-01-08 |
+| `zlsxpcotdkwjrktfovqd` | drivers-app-dev | ap-northeast-1 | micro | 2025-04-03 |
+| `kuqqkzwvpmhkajpukgkm` | drivers-app-prod | ap-northeast-1 | medium | 2025-04-17 |
+| `ebdfwtvfpemzevdpxmek` | jadd-studio-dev | ap-northeast-1 | small | 2025-04-30 |
+| `mmlgcgropqvvkyhnaspq` | fleet-management-dev | ap-northeast-1 | micro | 2025-08-28 |
+| `tlhayuhveurzpbdiqrso` | fleet-management-prod | ap-northeast-1 | micro | 2025-09-16 |
+| `lvngtemehmcxemnurgwb` | backend-prod | us-west-1 | xlarge | 2025-10-21 |
+| `dxnqnvmqkckpcgbrjdkx` | backend-dev | ap-southeast-1 | micro | 2025-11-21 |
+| `qgnfaidhxcuqivmgubuy` | biz-fleet-ops | ap-northeast-1 | micro | 2026-03-24 |
+| `lzafrhdmhmvhqgclggbc` | corp-turing-seat-map | ap-northeast-1 | nano | 2026-03-27 |
+| `getreuxrgoowoenjghil` | web-ivi-storybook | ap-northeast-1 | micro | 2026-08-06 |
+
+リポジトリとの突き合わせ:
+
+- リポジトリで見つけた 6 件のうち 5 件はこの組織にある。`seacktbfnjusvroguhwc`（旧 tuscenes）はこの組織に無い。消したのか、ほかの組織にあるのかは未確認。
+- 組織にあってリポジトリで見つからなかったもの: drivers-app-prod・fleet-management-dev/prod・backend-dev・corp-turing-seat-map・web-ivi-storybook（マウントしていないリポジトリで使っている可能性がある）。
+
 ## 設計判断と理由
 
 - 一次情報（メンバー一覧など。メールアドレスを含む）は git で管理せず、`~/supabase/dhazyhuzuwitqasezcvr/` に置く。aws-resource-inventory と同じ扱い。
@@ -96,8 +134,10 @@ MFA 強制:
 - [x] 現状を聞き取る（Owner 3 名・Pro・MFA ほぼ無効）
 - [x] リポジトリから参照されているプロジェクトを洗い出す（6 件）
 - [x] SSO・MFA 強制・ロール・監査ログの提供条件を調べる
-- [ ] scoped PAT を作り、メンバー一覧（ロール・MFA）とプロジェクト一覧を API で取る
-- [ ] リポジトリのプロジェクトと組織のプロジェクトを突き合わせる（ほかの組織にあるものは無いか）
+- [x] scoped PAT を作り、メンバー一覧（ロール・MFA）とプロジェクト一覧を API で取る（20 名・11 件）
+- [x] リポジトリのプロジェクトと組織のプロジェクトを突き合わせる（旧 tuscenes がこの組織に無い）
+- [ ] 在籍者の名簿と突き合わせ、退職者・不要なアカウントを洗い出す
+- [ ] ロールの見直しの案（Administrator 4 名・Developer 13 名が妥当か）
 - [ ] 退職者・不明なアカウント・強すぎる権限を掃除の候補にする
 - [x] SSO のためのプラン（Team）の料金を調べる（差額 $574/月。未確認の点は営業に問い合わせ）
 - [ ] MFA の強制の案をまとめ、Owner に頼む（予備の TOTP の周知、PAT の扱いも含む）
@@ -105,8 +145,9 @@ MFA 強制:
 
 ## 次セッションへの引き継ぎ
 
-- 次は伊藤が scoped PAT を作る。権限は Organization Members（Read）と Organization Projects（Read）の 2 つだけにし、対象の組織は `dhazyhuzuwitqasezcvr` だけにする。使うのは `GET /v2/organizations/{slug}/members` と `GET /v2/organizations/{slug}/projects`（DB の `infra_compute_size` も返る）。Projects (account-wide) は組織で絞れないので付けない。Legacy（全権限）は使わない。調査が終わったら失効させる。エージェントはそのトークンで API からメンバー一覧とプロジェクト一覧を取る。トークンは画面に出さない形で渡してもらう（例: 権限 600 のファイルに置く）。
-- MFA の強制と SSO の設定は Owner にしかできない。伊藤の役割は、案を作って Owner に頼むこと。
+- メンバー一覧とプロジェクト一覧は取った。PAT（`~/.config/supabase/pat`）は、調査が終わったら伊藤が失効させる。
+- 次は、在籍者の名簿との突き合わせ（退職者が残っていないか）と、MFA の強制の案。強制は Owner の山本さん（唯一 MFA を設定済みの Owner）に頼むのが早い。
+- 旧 tuscenes（`seacktbfnjusvroguhwc`）がどこにあるかは未確認。
 
 ## 関連リンク
 
