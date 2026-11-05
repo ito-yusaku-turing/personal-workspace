@@ -1,7 +1,7 @@
 # S3 バケットのデータ保護 第二弾（権限設計のアップグレード）
 
 - 開始: 2026-10-20
-- 状態: **WORM のガバナンスモードでの導入は、設計を決め（対象 10 本・E1〜E4・承認の仕組み）、チーム共有用の資料 2 本の初版を書いた段**（2026-11-05。[notion-worm-governance-rollout.md](../documents/notion-worm-governance-rollout.md)・[notion-s3-object-lock-spec.md](../documents/notion-s3-object-lock-spec.md)。Notion は未）。次は Notion に上げてチームで話し合い、Go サインが出たら cdk-apps の実装。11-06 の昼以降に検証用のバケットの cleanup（伊藤）。権限の頂点の問題は別の案件（project:privileged-access）
+- 状態: **WORM のガバナンスモードでの導入は、設計を決め（対象 10 本・E1〜E4・承認の仕組み）、チーム共有用の資料 2 本の初版を書いた段**（2026-11-05。[notion-worm-governance-rollout.md](../documents/notion-worm-governance-rollout.md)・[notion-s3-object-lock-spec.md](../documents/notion-s3-object-lock-spec.md)。Notion に下書きで上げた）。次はチームで話し合い、Go サインが出たら cdk-apps の実装。11-06 の昼以降に検証用のバケットの cleanup（伊藤）。権限の頂点の問題は別の案件（project:privileged-access）
 - 所属: project:aws-data-protection（2026-10-26 に `~/docs/workstream/` から移した）
 - 前段（第一弾、完了）:
   - [走行データ消失リスクへの対応](done/raw-data-security.md)（バケットの種別と処遇、裁定の正本）
@@ -684,4 +684,8 @@
     4. 保持の値を明示する書き込みは `DenyLockChange` に拒まれる → 各段階の前の確かめに足した。
   - そのほか、要点の誤り（「すべてのバージョン」）、手順の抜け（有効化）、未検証の前提、言い回しの決まりへの違反を直した。6 章をなくす提案と、用語の大幅な追加は採らなかった。
   - Notion にはまだ上げていない（上げる前に伊藤の確認を取る）。
+- 2026-11-05: **共有用の資料 2 本を Notion に上げた**（MLOps 1チームの「ドキュメント置き場」。Status は下書き、Tags は aws）。
+  - ガバナンスモードでの導入: <https://app.notion.com/p/40fa93b3e6f2811bb51ffaef3cc970e9>（冒頭から参照用の資料のページへリンク）
+  - S3 Object Lock（WORM）の仕組み: <https://app.notion.com/p/40fa93b3e6f281999534fcd62c4ad220>
+  - 原本はローカル。直すときはローカルを直してから Notion を更新する。人の編集・コメントが付いたら、読んで取り込んでから更新する。
 
