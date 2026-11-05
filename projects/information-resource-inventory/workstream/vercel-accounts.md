@@ -46,7 +46,7 @@ CI で使っている Vercel のトークン（2FA を必須にすると、作�
 
 - 海老澤さん（Owner）は **2FA 未設定**。塚本さんは設定済み。
 - `jaddstudio3-deployment-4700` という **2FA 未設定のユーザー**がいる。名前から、jadd_studio3 のデプロイ用のアカウントと思われる。リポジトリと資料には出てこない。jadd_studio3 の `VERCEL_TOKEN` は作成の約 1 時間後（2026-04-20 14:22 JST）に更新されており、このとき海老澤さん個人のトークンから、このアカウントのトークンに差し替えた可能性がある（推測）。
-- どちらのトークンかは、JADD Studio の本番のデプロイの作成者（Deployments の一覧で、CLI からのデプロイはトークンの持ち主の名前が出る）を見れば分かる。
+- **確定（2026-11-05、伊藤が JADD Studio のデプロイログで確かめた）: jadd_studio3 の `VERCEL_TOKEN` は `jaddstudio3-deployment-4700` のトークン**。海老澤さん個人のトークンではない。
 - **どちらであっても、いまのままでは 2FA を必須にした時点で JADD Studio の本番のデプロイが止まる**。デプロイ用のアカウントにも 2FA（TOTP）が要る。Integration のトークンは対象外。jadd-studio-signage は GitHub Actions からデプロイしない（Vercel の Git 連携）。
 
 ## 公式ドキュメントで分かったこと（2026-11-05 に確認）
@@ -109,7 +109,7 @@ SSO:
 ## 次セッションへの引き継ぎ
 
 - 公式ドキュメントの調べと、現状の聞き取り（Pro・Owner 4 名・2FA は約半分）は済んだ。次はメンバー一覧と 2FA の状況を取り、名簿と突き合わせる。
-- **2FA を必須にする前に、CI の `VERCEL_TOKEN` を作った人が 2FA を設定しているか確かめる**。fleet-ops は塚本さん（2FA 設定済み）で問題ない。jadd_studio3 は海老澤さんか `jaddstudio3-deployment-4700` のどちらかで、どちらも 2FA 未設定。必須にする前に片づける。
+- **2FA を必須にする前に、CI の `VERCEL_TOKEN` を作った人が 2FA を設定しているか確かめる**。fleet-ops は塚本さん（2FA 設定済み）で問題ない。jadd_studio3 は `jaddstudio3-deployment-4700`（確定）で 2FA 未設定。必須にする前に、このアカウントに 2FA を設定する（ログインの情報と認証アプリを誰が持つかも決める。作ったのは海老澤さんと思われる）。海老澤さん（Owner）本人の 2FA も要る。
 - メンバー一覧は API で取れるが、2FA の有無は API で取れない。ダッシュボードの Members の画面で見る。
 - トークンに読み取りだけのスコープは無い。API を使うなら、チームに絞り、期限を短くし、使い終わったら失効させる。
 - Supabase の結論（[documents/supabase-org-account-policy.md](../../documents/supabase-org-account-policy.md)）と比べると、Vercel の SSO は Pro の add-on（$300/月）で入れられる点が違う。
