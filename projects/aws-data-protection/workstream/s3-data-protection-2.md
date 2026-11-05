@@ -689,3 +689,11 @@
   - S3 Object Lock（WORM）の仕組み: <https://app.notion.com/p/40fa93b3e6f281999534fcd62c4ad220>
   - 原本はローカル。直すときはローカルを直してから Notion を更新する。人の編集・コメントが付いたら、読んで取り込んでから更新する。
 
+- 2026-11-05: **権限を持つ人の一覧をドラフトにし、共有用の資料を直した**。
+  - [notion-tuscenes-prod-privilege-holders.md](../documents/notion-tuscenes-prod-privilege-holders.md): FullAccess・AWSAdministratorAccess の中身・経路・人の一覧。Notion は未作成（メンバーを伊藤が確かめてから上げる）。上げたら、共有用の資料の 3.2・7 章からリンクを張る案。
+  - 共有用の資料の 4.2 から「3 か月に 1 度あるかないか…MLOps チームで行います。」を消した（伊藤の指示。Notion も更新。表の幅などの手での調整は保った）。
+  - 参照用の資料の冒頭から、共有用の資料のページへリンクを張った（Notion も更新）。
+- 2026-11-05 のセッションの終わり。引き継ぎ:
+  - **次にやること**: チームで共有用の資料を話し合う。Go サインが出たら cdk-apps の実装（手順 A から）。
+  - **伊藤の作業**: 11-06 の 11:23 JST より後に、検証用のバケットの cleanup（[worm-probe-runbook.md](s3-data-protection-2/worm-probe-runbook.md)）。AWSAdministratorAccess のほかの 1〜2 名を確かめる。
+  - **待ち**: 権限を持つ人の一覧を Notion に上げる（メンバーの確定後）。
