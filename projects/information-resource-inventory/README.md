@@ -14,7 +14,7 @@ AWS から取った一次情報は、その時点の写しなので git では�
   - [workstream/aws-resource-inventory/stage0-overview.md](./workstream/aws-resource-inventory/stage0-overview.md): 段階 0 の結果。リージョンごとの費用と形跡、種別ごとの件数（2026-10-28）
   - [workstream/aws-resource-inventory/collect/](./workstream/aws-resource-inventory/collect/README.md): 一次情報を取る道具（保存・ログ・伏せ字）と、段階 1 の取得のスクリプト
   - [workstream/aws-resource-inventory/analyze/](./workstream/aws-resource-inventory/analyze/README.md): 一次情報を集計するスクリプト（IAM・スタック・競合の判定）
-- [workstream/vercel-accounts.md](./workstream/vercel-accounts.md): **Vercel のアカウントの棚卸しと SSO 化の検討**。チームのメンバーと権限を洗い出し、SSO に寄せられるかを検討する
+- [workstream/vercel-accounts.md](./workstream/vercel-accounts.md): **Vercel のアカウントの棚卸しと SSO 化の検討**。チーム turing-inc（Pro）。SSO・2FA・料金と、JADD Studio のデプロイ用の共有アカウントをなくす方法を調べた
 
 ## workstream/done/ — 完了した作業記録
 

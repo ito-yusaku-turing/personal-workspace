@@ -17,7 +17,7 @@
 - [m2m-auth/workstream/m2m-auth.md](./m2m-auth/workstream/m2m-auth.md):
 - [information-resource-inventory/workstream/aws-resource-inventory.md](./information-resource-inventory/workstream/aws-resource-inventory.md): tuscenes-prod の総ざらい
 - [idp-broker/workstream/idp-auth0-role-division.md](./idp-broker/workstream/idp-auth0-role-division.md):
-- [information-resource-inventory/workstream/vercel-accounts.md](./information-resource-inventory/workstream/vercel-accounts.md): 起票した。Vercel のアカウントの棚卸しと SSO 化の検討
+- [information-resource-inventory/workstream/vercel-accounts.md](./information-resource-inventory/workstream/vercel-accounts.md): Vercel。JADD Studio のデプロイ用の共有アカウントをなくす案の議論を次回に持ち越し
 
 ## 待ち・保留
 
