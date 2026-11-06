@@ -1,7 +1,7 @@
 # Vercel のアカウントの棚卸しと SSO 化の検討
 
 - 開始: 2026-11-05
-- 状態: **SSO・2FA・料金を調べた**（2026-11-05）。Pro なら SSO は +$300/月、2FA の必須化は追加の費用なし。Pro・Owner 4 名（伊藤を含む）・2FA は約半分と聞いた。次はメンバー一覧と 2FA の状況を取り、CI のトークンの持ち主を確かめる
+- 状態: **デプロイの経路を精査した**（2026-11-06）。CI から CLI でデプロイしているのは jadd_studio3 と fleet-ops の 2 つで、どちらもチームにいない人の merge を本番に出している。次は Vercel の動向から見て安全な運用を決める（Vercel には問い合わせない）
 - 所属: project:information-resource-inventory
 
 Vercel のアカウント（組織・チームのメンバーと、その権限）を棚卸しし、社の IdP（Okta / Google Workspace）による SSO に寄せられるかを検討する。
@@ -117,6 +117,50 @@ SSO:
 | D. 自作の Integration のトークン | △（未確認） | 2FA の必須化の対象外 | 用途外の使い方。導入者が抜けると無効。勧めない |
 | E. CLI の OIDC を待つ | ○（Pro に開かれれば） | 静的な秘密が無くなる | いまは使えない。時期が分からない |
 
+## デプロイの経路の精査（2026-11-06）
+
+調査用に伊藤の PAT（チーム `turing-inc` に限り、期限は 7 日）を作り、GET だけを投げた。取った一次情報は git の外の `~/vercel/turing-inc/2026-11-06/` にある（`projects.jsonl`・`deployments.jsonl`（プロジェクトごとに直近 100 件）・`members.json`）。
+
+プロジェクトは 12 件。デプロイの出どころ（API の `source`）で分けると次のとおり。
+
+| 経路 | プロジェクト | デプロイを作った Vercel のユーザー | コミットの作者はチームにいるか |
+|---|---|---|---|
+| **CI（GitHub Actions）から CLI** | jadd-studio3 | 共有アカウント `jaddstudio3-deployment-4700` | **いない人が多い**（下記） |
+| **CI（GitHub Actions）から CLI** | biz-fleet-ops（fleet-ops） | 塚本さん | **いない人が含まれる**（下記） |
+| 手元から CLI（Claude Code・Codex 経由） | office-map・corp-seat-map（旧名 seat-map） | 岩崎さん | 本人（チームにいる）。`gitDirty=1`（コミットしていないコードを出している） |
+| 手元から CLI（Claude Code・Codex 経由） | slack-driving-notify-test・turing-connect | 塚本さん | 本人（チームにいる） |
+| Git 連携 | drivers-app3・jadd-studio-signage・digital-signage・fleet-management・genius-cad-review・road-curvature-map・turing-connect | コミットの作者 | 席の要件どおり |
+
+GitHub の組織 `turingmotors` のコードを `VERCEL_TOKEN` で検索しても、CI から CLI でデプロイしているのはこの 2 つのリポジトリだけだった。
+
+### jadd_studio3（jadd-studio3）
+
+- Vercel のプロジェクトは Git 連携が無い（`link` が無い）。デプロイはすべて `.github/workflows/deploy.yml` から来ている（直近 100 件、2026-10-23〜11-05、すべて `source: cli`・production）。
+- 流れ: main への push → `vercel pull --environment=production` → `vercel build --prod` → `vercel deploy --prebuilt --prod`。CLI は 51.7.0 に固定。GitHub の Environment は使っていない（secrets はリポジトリの secrets）。
+- デプロイを作るのは共有アカウント `jaddstudio3-deployment-4700`（ロールは Member。2026-04-20 に参加。2FA は未設定）。
+- **デプロイのメタデータに、コミットの作者の名前とメールが載る**（`githubCommitAuthorName`・`githubCommitAuthorEmail`。CLI が checkout の Git の情報から自動で付ける）。直近 100 件の作者は 16 人。名前でチームのメンバーと照合すると、**約半分（46 件）がチームにいない人**のコミットだった（Yuto Nakamura・Miwa・Ibai Gorordo・devin-ai-integration[bot] など。照合は名前だけなので推定）。
+- つまり、**Vercel 側から「席の無い人のコミットが CLI で本番に出ている」ことが見える状態**にある。Vercel が CLI のデプロイにも作者の検査を広げれば、そのまま止まる。
+
+### fleet-ops（biz-fleet-ops）
+
+- Vercel のプロジェクトは GitHub に連携しているが、`vercel.json` の `git.deploymentEnabled: false` で Git 連携からのデプロイを止めている。デプロイはすべて `.github/workflows/vercel-preview.yml` から来ている（直近 100 件、すべて `source: cli`・production）。
+- 作った経緯: runbook（`docs/runbooks/deployment.md`）に「**Git 連携で作者の Vercel アカウント確認が通らない場合は**、承認付き Vercel Deploy で…手動実行できる」とある。2026-09-30 に PR [fleet-ops#246](https://github.com/turingmotors/fleet-ops/pull/246)〜[fleet-ops#248](https://github.com/turingmotors/fleet-ops/pull/248) で入った。**席の要件を避けることが目的として資料に書かれている**。
+- 流れ: SHA が main と一致するかを確かめる → **`git archive` で Git の作業ツリーの外へ出し、作業ツリーでないことを確かめてから** pull・build・deploy する。このため **CLI がコミットの作者を付けられず、メタデータに作者が載らない**。代わりに独自の `--meta`（`sourceCommit`・`workflowRun`・`requestedBy`＝GitHub のユーザー名）を付けている。runbook は SHA の固定のためと書いているが、結果として Vercel からは作者が見えない。
+- `requestedBy` には、チームにいない人（maikosuzuki-5・yamaz-aki・devin-ai-integration[bot]）が含まれる。
+- トークンは塚本さん個人のもので、範囲は**チームの All Projects**（runbook。プロジェクトに絞ると CLI 59.10.0 の `vercel pull` が失敗するため）。GitHub の Environment `vercel-production`（main に限る）に置いてある。**fleet-ops の CI から、チームのほかのプロジェクト（jadd-studio3 を含む）も触れる**。
+- `docs/runbooks/deployment.md` の表は「Web アプリは Vercel の GitHub 連携で push 時に自動」のままで、いまの実態と食い違っている。
+
+### Git 連携の席の要件は実際に効いている
+
+- fleet-management で、2026-10-27 にチームにいない作者（kanade-k-1228）のコミットが 2 件 **BLOCKED** になっていた（"The deployment was blocked because the commit author doesn't have permission to create deployments for this project."）。
+- 同じプロジェクトでも renovate[bot] のコミット（95 件）は通っている。bot は対象外らしい（推測）。
+
+### 見立て（まだ決めていない）
+
+- 危うさは fleet-ops のほうが大きい。席の要件を避けるためと資料に書いてあり、作者が Vercel に見えない形にしてある。Vercel から見れば「検査を避ける作り」と読まれうる。
+- jadd_studio3 は、作者が Vercel に見えるぶん素直だが、Vercel が CLI にも検査を広げれば止まる。共有アカウントの問題も重なる。
+- 手元からの CLI（岩崎さん・塚本さん）は、デプロイした人がチームにいるので、席の要件の点では問題ない。
+
 ## 設計判断と理由
 
 （まだ無い）
@@ -130,7 +174,10 @@ SSO:
 - [x] 共有アカウントを使わないデプロイの方法を調べる（案 A〜E）
 - [ ] 共有アカウントをなくす案を選ぶ（**次回の議論**）
 - [ ] 選んだ案に切り替え、共有アカウントを消す（2026-12-31 より前に）
-- [ ] Vercel に問い合わせる（CLI の OIDC が Pro でいつ使えるか、席を持たない人の merge で CLI からデプロイする運用が規約上問題ないか）
+- [x] 調査用の PAT を用意する（チームに絞り、期限は 7 日。GET だけ使う。終わったら無効にする）
+- [x] JADD Studio のデプロイの仕組みを精査する
+- [x] 同じ形（CI から CLI・トークンでデプロイ）のプロダクトがほかにないか調べる（fleet-ops だけ）
+- [ ] Vercel の動向から見て安全な運用方法を決める
 - [ ] メンバー一覧と 2FA の状況を取り、名簿（Okta）と突き合わせる
 - [ ] 外す人を決めて外す（伊藤は Owner なので自分でできる）
 - [ ] SSO を入れるか決める（Pro の add-on で +$300/月）
@@ -138,11 +185,13 @@ SSO:
 
 ## 次セッションへの引き継ぎ
 
-**次回持ち越しの議論（2026-11-05 に中断）: 共有アカウント `jaddstudio3-deployment-4700` をどうなくすか。**
+**次にやること（2026-11-06）: Vercel の動向から見て安全な運用を決める。** 対象は jadd_studio3 と fleet-ops の 2 つ（「デプロイの経路の精査」）。調査用の PAT は 2026-11-13 ごろに切れる。終わったら無効にし、`~/.config/vercel/token` を消す。
+
+**前回からの議論: 共有アカウント `jaddstudio3-deployment-4700` をどうなくすか。**
 
 - 前提: jadd_studio3 は GitHub Actions + Vercel CLI でデプロイしている。目的は、Vercel のアカウントが無い人にも main への merge でデプロイを開くこと（伊藤の認識）。トークンは共有アカウントのもので、2FA 未設定。
 - 制約: 人に紐づかないトークンも、GitHub Actions からの OIDC も、まだ無い。Pro の Git 連携はコミットの作者ごとに有料の席が要る。いまの形は席の要件の回避にあたるおそれがある。2026-12-31 から全ユーザーに認証アプリが必須になる。詳しくは「共有アカウントを使わないデプロイの方法」。
-- エージェントの推奨（まだ決めていない）: 2026-12-31 までに **案 A**（Owner の伊藤か海老澤さんの、プロジェクトに絞った期限付きのトークンに替え、共有アカウントを消す）。あわせて Vercel に問い合わせ、答えによっては **案 B**（Git 連携に戻し、席の費用を払う）に移るかを決める。
+- エージェントの推奨（まだ決めていない）: 2026-12-31 までに **案 A**（Owner の伊藤か海老澤さんの、プロジェクトに絞った期限付きのトークンに替え、共有アカウントを消す）。**Vercel には問い合わせない**（2026-11-06、伊藤の判断。藪蛇になるため）。代わりに、Vercel の動向から見て安全な運用方法を先に考える。
 - 決まったら、切り替えの手順（トークンの作成 → GitHub の secrets の入れ替え → デプロイの確認 → 共有アカウントの削除）を作る。A の場合、トークンを GitHub の Environment（main だけに限る）に置くかも決める。
 
 そのほか:

@@ -4,7 +4,7 @@
 
 2026-10-28 に作った。ファイルを追加・移動・削除したら、この目録も同じコミットで更新する（ルールは personal-workspace の `AGENTS.md`「projects/（案件ごとの資料）」）。
 
-AWS から取った一次情報は、その時点の写しなので git では管理せず、`~/aws/tuscenes-prod/` に置く。この project には、分析の結果と決めたことを置く。
+AWS から取った一次情報は、その時点の写しなので git では管理せず、`~/aws/tuscenes-prod/` に置く。Vercel の一次情報は `~/vercel/turing-inc/<日付>/` に置く。この project には、分析の結果と決めたことを置く。
 
 ## workstream/ — 進行中の作業記録
 
@@ -14,7 +14,7 @@ AWS から取った一次情報は、その時点の写しなので git では�
   - [workstream/aws-resource-inventory/stage0-overview.md](./workstream/aws-resource-inventory/stage0-overview.md): 段階 0 の結果。リージョンごとの費用と形跡、種別ごとの件数（2026-10-28）
   - [workstream/aws-resource-inventory/collect/](./workstream/aws-resource-inventory/collect/README.md): 一次情報を取る道具（保存・ログ・伏せ字）と、段階 1 の取得のスクリプト
   - [workstream/aws-resource-inventory/analyze/](./workstream/aws-resource-inventory/analyze/README.md): 一次情報を集計するスクリプト（IAM・スタック・競合の判定）
-- [workstream/vercel-accounts.md](./workstream/vercel-accounts.md): **Vercel のアカウントの棚卸しと SSO 化の検討**。チーム turing-inc（Pro）。SSO・2FA・料金と、JADD Studio のデプロイ用の共有アカウントをなくす方法を調べた
+- [workstream/vercel-accounts.md](./workstream/vercel-accounts.md): **Vercel のアカウントの棚卸しと SSO 化の検討**。チーム turing-inc（Pro）。SSO・2FA・料金、共有アカウントをなくす方法、全プロジェクトのデプロイの経路を調べた
 
 ## workstream/done/ — 完了した作業記録
 
