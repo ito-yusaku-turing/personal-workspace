@@ -80,7 +80,7 @@ SSO:
 - 2FA を設定していない人は、チームのダッシュボード・API・トークン・CLI・CI からのデプロイ・PR のビルドが止まる。チームには残るので、席は消費し続ける。
 - bot やサービス用のアカウントにも 2FA が要る。Integration のトークンは対象外。
 - 認証アプリ（TOTP）と passkey が使える。復旧用のコードもある。
-- **2026-12-31 に、Vercel の全ユーザーに認証アプリの登録が必須になる**（Enterprise は同じ日に 2FA の必須化が強制でオンになる）。
+- **2027-01-20 に、Vercel の全ユーザーに認証アプリの登録が必須になる**（2026-11-06 に確かめたドキュメント（2026-08-28 更新）の日付。11-05 には 2026-12-31 と書いていたが、いまの記述は "All Vercel users must set up an authenticator app by January 20, 2027"）（Enterprise は同じ日に 2FA の必須化が強制でオンになる）。
 
 ロール（Pro で使えるのは Owner・Member・Developer・Billing・Pro Viewer）:
 
@@ -105,7 +105,7 @@ SSO:
 - **Pro の Git 連携では、非公開リポジトリのコミットの作者がチームのメンバー（有料の席）でないとデプロイされない**（[Git](https://vercel.com/docs/git#deploying-private-git-repositories)・[Collaboration](https://vercel.com/docs/accounts#collaboration-settings)）。Viewer（無料）ではデプロイできない。
 - Vercel はこの席の要件を回避する抜け道を最近ふさいだと書いている（[kb、2026-10-16 更新](https://vercel.com/kb/guide/why-aren-t-commits-triggering-deployments-on-vercel)）。Vercel の社員はコミュニティで「Deploy Hook や CLI で席の要件を回避していた人に影響する」と書いた（[community、2026-05-07](https://community.vercel.com/t/deploy-hooks-now-blocked-if-commit-author-not-in-vercel-team/41348)。公式のドキュメントではない）。**いまの「アカウントの無い人も CLI でデプロイできる」形は、Vercel から見ると席の要件の回避にあたるおそれがある**（推測。CLI のデプロイが作者を検査するかは公式に書かれていない。いまは動いている）。
 - Integration のトークンは 2FA の必須化の対象外だが、導入した人が抜けると無効になる。CLI の prebuilt で使えるかも未確認。
-- **2026-12-31 から、Vercel の全ユーザーに認証アプリが必須になる**。共有アカウントを続けるなら、TOTP の秘密も共有することになる。
+- **2027-01-20 から、Vercel の全ユーザーに認証アプリが必須になる**。共有アカウントを続けるなら、TOTP の秘密も共有することになる。
 
 選択肢:
 
@@ -180,6 +180,16 @@ GitHub の組織 `turingmotors` のコードを `VERCEL_TOKEN` で検索して�
 - 「最後にデプロイを作った日」は、プロジェクトごとの直近 100 件の中での最新。`-` は使っていないという意味ではない。
 - sangotaro と colum2131 は gmail のアドレスで入っている。外す人を決めるときに確かめる。
 
+## ログインの方法と MFA の効き目（2026-11-06）
+
+公式ドキュメントとログインの画面で確かめたこと:
+
+- **Vercel**: ログインはメール（6 桁の使い捨てのコード）・GitHub・GitLab・Bitbucket・passkey・SAML（チーム）。**パスワードでのログインは無い。Google でのログインも無い**（[Accounts](https://vercel.com/docs/accounts)）。GitHub をつないでいないメンバー（kento-1989・takuyayamashita-5395・yuyaiwasaki-8105・共有アカウント）は、メールのコードで入っていると思われる。
+- **Supabase**: ログインの画面は GitHub・ChatGPT・SSO と、**メールとパスワード**。Google は無い（[sign-in](https://supabase.com/dashboard/sign-in)）。
+- どちらも、GitHub などでログインしたときにもサービスの 2FA を求めるかは、ドキュメントに書かれていない。伊藤（両方で設定済み）が GitHub でログインし直して確かめられる。
+- Supabase の API（`GET /v2/organizations/{slug}/members`）は、ログインの方法を返さない。`username` が GitHub のユーザー名の人（5 名）と、メールアドレスの人（10 名）がいる。後者はメールとパスワードで登録した可能性がある（推測。確かめるには本人に聞く）。
+- GitHub の組織 `turingmotors` が 2FA を必須にしているかは、伊藤の権限では見えない（`two_factor_requirement_enabled` が null。組織の Owner なら見える）。
+
 ## 移行の設計（2026-11-06）
 
 方針（伊藤）: **main への merge で本番に出る便利さは残す。代わりに、席の無い人の merge でデプロイが失敗する（BLOCKED）ことは受け入れる。** つまり、両方とも Vercel の Git 連携に戻す。CI のトークンと共有アカウントは無くす。
@@ -188,7 +198,7 @@ GitHub の組織 `turingmotors` のコードを `VERCEL_TOKEN` で検索して�
 
 1. **今すぐ**: 要らない人を外す → 海老澤さんに 2FA を個別に依頼 → 全員に MFA の有効化をアナウンス（共有アカウントは対象外） → fleet-ops の `vercel-preview` のトークンを止める
 2. **12 月中旬まで**: jadd_studio3・fleet-ops を Git 連携に移す（担当の人と合意を取ってから） → 共有アカウントを消す
-3. **2026-12-31 の前後**: MFA を強制する
+3. **2027-01-20 の前後**: MFA を強制する
 
 ### Vercel が見る「作者」
 
@@ -270,7 +280,7 @@ fleet-ops（Git 連携はつながっている）:
 - [x] CI のトークンの持ち主を確かめる（fleet-ops は塚本さんで 2FA 済み。jadd_studio3 は共有アカウント `jaddstudio3-deployment-4700` で 2FA 未設定）
 - [x] 共有アカウントを使わないデプロイの方法を調べる（案 A〜E）
 - [ ] 共有アカウントをなくす案を選ぶ（**次回の議論**）
-- [ ] 選んだ案に切り替え、共有アカウントを消す（2026-12-31 より前に）
+- [ ] 選んだ案に切り替え、共有アカウントを消す（2027-01-20 より前に）
 - [x] 調査用の PAT を用意する（チームに絞り、期限は 7 日。GET だけ使う。終わったら無効にする）
 - [x] JADD Studio のデプロイの仕組みを精査する
 - [x] 同じ形（CI から CLI・トークンでデプロイ）のプロダクトがほかにないか調べる（fleet-ops だけ）
@@ -290,8 +300,8 @@ fleet-ops（Git 連携はつながっている）:
 **前回からの議論: 共有アカウント `jaddstudio3-deployment-4700` をどうなくすか。**
 
 - 前提: jadd_studio3 は GitHub Actions + Vercel CLI でデプロイしている。目的は、Vercel のアカウントが無い人にも main への merge でデプロイを開くこと（伊藤の認識）。トークンは共有アカウントのもので、2FA 未設定。
-- 制約: 人に紐づかないトークンも、GitHub Actions からの OIDC も、まだ無い。Pro の Git 連携はコミットの作者ごとに有料の席が要る。いまの形は席の要件の回避にあたるおそれがある。2026-12-31 から全ユーザーに認証アプリが必須になる。詳しくは「共有アカウントを使わないデプロイの方法」。
-- エージェントの推奨（まだ決めていない）: 2026-12-31 までに **案 A**（Owner の伊藤か海老澤さんの、プロジェクトに絞った期限付きのトークンに替え、共有アカウントを消す）。**Vercel には問い合わせない**（2026-11-06、伊藤の判断。藪蛇になるため）。代わりに、Vercel の動向から見て安全な運用方法を先に考える。
+- 制約: 人に紐づかないトークンも、GitHub Actions からの OIDC も、まだ無い。Pro の Git 連携はコミットの作者ごとに有料の席が要る。いまの形は席の要件の回避にあたるおそれがある。2027-01-20 から全ユーザーに認証アプリが必須になる。詳しくは「共有アカウントを使わないデプロイの方法」。
+- エージェントの推奨（まだ決めていない）: 2027-01-20 までに **案 A**（Owner の伊藤か海老澤さんの、プロジェクトに絞った期限付きのトークンに替え、共有アカウントを消す）。**Vercel には問い合わせない**（2026-11-06、伊藤の判断。藪蛇になるため）。代わりに、Vercel の動向から見て安全な運用方法を先に考える。
 - 決まったら、切り替えの手順（トークンの作成 → GitHub の secrets の入れ替え → デプロイの確認 → 共有アカウントの削除）を作る。A の場合、トークンを GitHub の Environment（main だけに限る）に置くかも決める。
 
 そのほか:
