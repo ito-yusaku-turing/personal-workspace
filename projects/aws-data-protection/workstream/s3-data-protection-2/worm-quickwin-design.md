@@ -2,7 +2,7 @@
 
 - 作成: 2026-11-04 ／ 伊藤（エージェントが起草）
 - 親: [worm-quickwin-plan.md](worm-quickwin-plan.md)（作業 1・2・3・8 の設計）
-- 状態: **案**（2026-11-04、11-05 に 2 章・2.1・4 章を直した）。伊藤のレビュー待ち。決めてほしいことは 7 章
+- 状態: **案**（2026-11-04、11-05 に 2 章・2.1・4 章を直した。11-06 にチームの共有ミーティングの意見で 2.1・4 章を直した）。決めてほしいことは 7 章
 
 Quick Win の作業のうち、バケットポリシーの文（作業 1・2）、すぐの通知（作業 3）、入れる順番（作業 8）の設計案。2026-11-02〜04 の試し（[worm-probe-runbook.md](worm-probe-runbook.md) の結果の表）と、書き手の確かめ（プランの 9 章）を前提にする。
 
@@ -52,7 +52,15 @@ cdk-apps の `packages/original-bucket-guard`（ステージ 1 の共通部）�
   - CloudFormation の `ObjectLockEnabled` を既存のバケットで変えると、置き換え（作り直し）にならないかを確かめていない。原本バケットで試すのは危ないので、CDK では持たない。
   - 代わりに、CDK の側のバケットには「鍵の既定は CLI で入れた」とコメントを残す。ドリフトの検出には出る。
 
-### 2.1 掃除と承認の仕組み（2026-11-05）
+### 2.1 掃除と承認の仕組み（2026-11-05。11-06 に掃除の流れを先送り）
+
+> **2026-11-06（チームの共有ミーティング、[worm-decisions.md](worm-decisions.md) の D13・D14）:** 削除の運用（下の「流れ」）は今は詰めず、消す必要が出たときに決める。導入で作るのは次の 3 つだけにする。
+>
+> - ジョブのロール `central/original-bucket-lock-batch`。最初に既存のバージョンへイベントホールドを付けるジョブと、対象を誤ったときの解除のジョブに使う。
+> - SCP `DenyPassLockBatchRole`。ロールを渡せるのを AWSAdministratorAccess（緊急用の権限）だけにする。FullAccess を外す（D14）には要る。
+> - ジョブのレポートの置き場。FullAccess が書く `manifests/` は作らない。
+>
+> 承認する人（緊急用の権限）を専用に新しく作るか（G1）と、SCP で守る範囲（G2）は検討中。以下の「流れ」は、消す必要が出たときの出発点として残す。
 
 方針（伊藤、11-05。[worm-decisions.md](worm-decisions.md) の「検討中」）: 対象を決めるところまでは FullAccess でもできる。実行は AWSAdministratorAccess が承認し、執行はジョブに任せる。対象は prefix や正規表現。頻度は 3 か月に 1 度あるかないかで、MLOps チームが決める。緊急の削除はしない（「完全に消すには最低 30 日かかる」）。
 
@@ -207,7 +215,7 @@ cdk-apps の `packages/original-bucket-guard`（ステージ 1 の共通部）�
 
 | 手順 | 中身 | 誰が・どう | 待ち |
 |---|---|---|---|
-| **A. PR-1** | 迂回の Deny（2 章の `DenyGovernanceBypass`）と、通知（3 章）、ジョブのロールとマニフェストの置き場（2.1）を cdk-apps で入れる | PR（マージは伊藤、deploy は Actions） | 通知がカナリアで鳴ることを確かめる |
+| **A. PR-1** | 迂回の Deny（2 章の `DenyGovernanceBypass`）と、通知（3 章）、ジョブのロールとレポートの置き場（2.1）を cdk-apps で入れる | PR（マージは伊藤、deploy は Actions） | 通知がカナリアで鳴ることを確かめる |
 | **B. カナリアで予行** | カナリア `original-bucket-canary-767397804933` に、後から Object Lock を有効にする。既定はガバナンス・イベントホールド 1 日。カナリアの exerciser を回す | 伊藤（FullAccess・CLI。手順書を用意する） | 1 章の「まだ試していないこと」3 つ。戻し方（`Rule` を外すと書けるか） |
 | **C. 波ごとに鍵をかける** | 各バケットで、(1) 鍵の既定を入れる（ガバナンス・イベントホールド 30 日）、(2) 1 日ほど書き手のエラーを見る、(3) Batch Operations で今の版にホールドをかける、(4) 件数を確かめる | 伊藤（FullAccess・CLI と Batch Operations。ジョブの設定は 2 人で確かめる） | 波ごとに数日 |
 | **D. PR-3** | 鍵の操作の Deny（2 章の `DenyLockChange`）、FullAccess を例外から外す（2 章の既存の 2 文）、SCP `DenyPassLockBatchRole`（2.1） | PR | 全部の波のジョブが終わってから |
@@ -262,3 +270,5 @@ cdk-apps の `packages/original-bucket-guard`（ステージ 1 の共通部）�
 3. 最初の受け手（3.5）。メールの宛先を誰にするか。
 4. 波の分け方と順番（4.2）。
 5. 鍵の操作の Deny（`DenyLockChange`）を最後に回す（2 章）か、ジョブのロールを条件つきで例外に足して先に入れるか。
+6. （11-06）緊急用の権限を専用に新しく作るか（[worm-decisions.md](worm-decisions.md) の G1）。作るなら、PR-3 の例外と SCP `DenyPassLockBatchRole` の例外を、AWSAdministratorAccess からそれに差し替える。
+7. （11-06）SCP・RCP で守る範囲（G2）。PR-3 に何を足すかが変わる。

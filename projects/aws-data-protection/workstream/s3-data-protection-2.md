@@ -1,7 +1,7 @@
 # S3 バケットのデータ保護 第二弾（権限設計のアップグレード）
 
 - 開始: 2026-10-20
-- 状態: **WORM のガバナンスモードでの導入を、チームの共有ミーティングで話し合った段**（2026-11-06）。削除の運用は先送り、FullAccess を例外から外すのは了承、緊急用の権限を新しく作るかと SCP で守る範囲を検討する。決定の資料への反映はこれから。権限の頂点の問題は別の案件（project:privileged-access）
+- 状態: **WORM のガバナンスモードでの導入は、共有ミーティングの意見（削除の運用の先送り・FullAccess を外すことの了承・緊急用の権限と SCP の検討）を資料に反映し、アクションリストを作った段**（2026-11-06。[worm-action-list.md](s3-data-protection-2/worm-action-list.md)）。次は共有用の資料の Notion への反映と Go サイン、並行して緊急用の権限（G1）と SCP の範囲（G2）。権限の頂点の問題は別の案件（project:privileged-access）
 - 所属: project:aws-data-protection（2026-10-26 に `~/docs/workstream/` から移した）
 - 前段（第一弾、完了）:
   - [走行データ消失リスクへの対応](done/raw-data-security.md)（バケットの種別と処遇、裁定の正本）
@@ -708,3 +708,9 @@
 - 2026-11-06 のセッションの終わり。引き継ぎ:
   - **次にやること**: ミーティングの意見 1〜3 を資料に反映する。2 は緊急用の権限の案（BreakGlass の再検討。[option-reassessment.md](s3-data-protection-2/option-reassessment.md) の撤回の方向と見比べる）、3 は SCP で守る範囲の洗い出し。
   - **伊藤の作業**: 検証用のバケットの cleanup（11-06 の 11:23 JST より後）。AWSAdministratorAccess のほかの 1〜2 名を確かめる。denso-raw の出どころを安本さんに確かめる。
+- 2026-11-06（続き）: **ミーティングの意見を資料に反映し、アクションリストを作った**（伊藤の依頼）。
+  - 決めたこと: D13（削除の運用は先送り）、D14（FullAccess を例外から外す。チームが了承）。検討中: G1（緊急用の権限を専用に新しく作るか）、G2（SCP・RCP で守る範囲）。[worm-decisions.md](s3-data-protection-2/worm-decisions.md) の「2026-11-06」の節。
+  - 導入で作るものを、ジョブのロール・SCP `DenyPassLockBatchRole`・ジョブのレポートの置き場に絞った（`manifests/` は作らない）。G1・G2 で変わるのは手順 D だけなので、手順 A〜C は並行して進められる。
+  - 直した資料: 共有用の資料（要点・3.2・3.4・3.6・4.2 を短くした・4.4・5.1・5.3・5.4・7 章）、設計案（2.1・4.1・7 章）。共有用の資料では、保護を外せる AWSAdministratorAccess を「緊急用の権限」と呼ぶことにした。
+  - Notion には未反映（伊藤の許可待ち。アクション 1-1）。
+  - アクションリスト: [worm-action-list.md](s3-data-protection-2/worm-action-list.md)。これより前の引き継ぎの「次にやること」は、このリストを正とする。
