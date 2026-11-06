@@ -17,7 +17,7 @@
 - [m2m-auth/workstream/m2m-auth.md](./m2m-auth/workstream/m2m-auth.md):
 - [information-resource-inventory/workstream/aws-resource-inventory.md](./information-resource-inventory/workstream/aws-resource-inventory.md): tuscenes-prod の総ざらい
 - [idp-broker/workstream/idp-auth0-role-division.md](./idp-broker/workstream/idp-auth0-role-division.md):
-- [information-resource-inventory/workstream/vercel-accounts.md](./information-resource-inventory/workstream/vercel-accounts.md): Vercel。jadd_studio3・fleet-ops を Git 連携に戻す設計を詰めた。次は作者の検査の挙動を試す
+- [information-resource-inventory/workstream/vercel-accounts.md](./information-resource-inventory/workstream/vercel-accounts.md): Vercel。MFA の再アナウンスを週明けに。その後 jadd_studio3・fleet-ops を Git 連携に移す
 
 ## 待ち・保留
 

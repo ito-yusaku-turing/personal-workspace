@@ -1,7 +1,7 @@
 # Vercel のアカウントの棚卸しと SSO 化の検討
 
 - 開始: 2026-11-05
-- 状態: **移行の設計を詰めた**（2026-11-06）。jadd_studio3・fleet-ops とも Vercel の Git 連携に戻し、席の無い人の merge は BLOCKED を受け入れる案。次は小さなプロジェクトで作者の検査の挙動を試し、計画の 1（MFA のアナウンス）に入る
+- 状態: **計画の 1（MFA のアナウンス）の途中**（2026-11-06）。人のアカウントの未設定は犬塚さん 1 名だけ。週明けに再アナウンスする。その後、小さなプロジェクトで作者の検査の挙動を試し、jadd_studio3・fleet-ops を Git 連携に移す
 - 所属: project:information-resource-inventory
 
 Vercel のアカウント（組織・チームのメンバーと、その権限）を棚卸しし、社の IdP（Okta / Google Workspace）による SSO に寄せられるかを検討する。
@@ -296,6 +296,20 @@ fleet-ops（Git 連携はつながっている）:
 - [ ] 2FA を必須にする（海老澤さんの 2FA と、CI のトークンの持ち主の 2FA が済んでから）
 
 ## 次セッションへの引き継ぎ
+
+**2026-11-06 の締め（伊藤）**: 全体に MFA の有効化をアナウンスした。18:39 の時点で Vercel は 19 名中 17 名が設定済み（未設定は shintaroinuzuka-9342 と共有アカウント）。Supabase は 15 名中 13 名（未設定は安本さん（Owner）と shunsuke-1222。記録は `done/supabase-accounts.md`）。**残りは週明けに伊藤が再アナウンスする**。
+
+週明けにやること:
+
+1. 再アナウンスの後に、両方のメンバーを API で取り直す（Vercel は `GET /v3/teams/{teamId}/members` の `mfaEnabled`、Supabase は `GET /v2/organizations/dhazyhuzuwitqasezcvr/members` の `mfa_enabled`）。**毎回取り直す。前に取ったファイルを使い回さない**。
+2. 計画の 1 の残り: 要らない人を外す（名簿と突き合わせる）。fleet-ops の Environment `vercel-preview` のトークンを止める。
+3. 計画の 2: 小さなプロジェクトで「試して確かめること」を試す → 塚本さんたちと合意を取る → 移行する。
+
+調査用のトークン:
+
+- Vercel の PAT（`~/.config/vercel/token`。伊藤のもの、チーム `turing-inc` に限る）は 2026-11-13 ごろに切れる。GET だけを送るラッパーは、そのセッションの作業用ディレクトリに置いた使い捨てのもの。作り直すなら、`curl -X GET` に `teamId=team_pI0XxaMASApEgMjswpsMuOLJ` を付ける。
+- Supabase の PAT（`~/.config/supabase/pat`）は 2026-11-12 ごろに切れる。
+- 調査が終わったら、どちらも無効にしてファイルを消す。
 
 **次にやること（2026-11-06）: 方針は「Git 連携に戻し、席の無い人の merge は BLOCKED を受け入れる」に決めた（「移行の設計」）。次は小さなプロジェクトで作者の検査の挙動を試すことと、計画の 1（要らない人を外す → MFA のアナウンス）。** 対象は jadd_studio3 と fleet-ops の 2 つ（「デプロイの経路の精査」）。調査用の PAT は 2026-11-13 ごろに切れる。終わったら無効にし、`~/.config/vercel/token` を消す。
 
