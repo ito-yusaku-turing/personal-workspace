@@ -1,7 +1,7 @@
 # S3 バケットのデータ保護 第二弾（権限設計のアップグレード）
 
 - 開始: 2026-10-20
-- 状態: **WORM のガバナンスモードでの導入は、設計を決め（対象 10 本・E1〜E4・承認の仕組み）、チーム共有用の資料 2 本の初版を書いた段**（2026-11-05。[notion-worm-governance-rollout.md](../documents/notion-worm-governance-rollout.md)・[notion-s3-object-lock-spec.md](../documents/notion-s3-object-lock-spec.md)。Notion に下書きで上げた）。次はチームで話し合い、Go サインが出たら cdk-apps の実装。11-06 の昼以降に検証用のバケットの cleanup（伊藤）。権限の頂点の問題は別の案件（project:privileged-access）
+- 状態: **WORM のガバナンスモードでの導入を、チームの共有ミーティングで話し合った段**（2026-11-06）。削除の運用は先送り、FullAccess を例外から外すのは了承、緊急用の権限を新しく作るかと SCP で守る範囲を検討する。決定の資料への反映はこれから。権限の頂点の問題は別の案件（project:privileged-access）
 - 所属: project:aws-data-protection（2026-10-26 に `~/docs/workstream/` から移した）
 - 前段（第一弾、完了）:
   - [走行データ消失リスクへの対応](done/raw-data-security.md)（バケットの種別と処遇、裁定の正本）
@@ -697,3 +697,14 @@
   - **次にやること**: チームで共有用の資料を話し合う。Go サインが出たら cdk-apps の実装（手順 A から）。
   - **伊藤の作業**: 11-06 の 11:23 JST より後に、検証用のバケットの cleanup（[worm-probe-runbook.md](s3-data-protection-2/worm-probe-runbook.md)）。AWSAdministratorAccess のほかの 1〜2 名を確かめる。
   - **待ち**: 権限を持つ人の一覧を Notion に上げる（メンバーの確定後）。
+- 2026-11-06: **チームの共有ミーティングで、共有用の資料（ガバナンスモードでの導入）について意見をもらった**（伊藤から聞いた）。
+  1. 削除の運用（E2〜E4・設計案の 2.1 のジョブによる意図した削除）は、今詳しく詰めなくてよい。緊急時に使える権限はもうあるので、削除が要るときに考えれば間に合う。
+  2. FullAccess の権限を削ること（例外から外す）は OK。緊急用の特権は、専用のものを新しく作ってもよいかもしれないので、検討する。
+  3. SCP で守る範囲は、もう少し調べて検討した方がよい。
+  - まだ資料に反映していない: worm-decisions.md（E2〜E4 を先送りにする）、worm-quickwin-design.md の 2.1、共有用の資料の 4 章と 7 章。
+- 2026-11-06: **「denso-raw は何のバケットか」を調べた**（ミーティングで出た質問。伊藤の許可を得て AWS を ReadOnly で読んだ）。結果は [denso-raw-survey.md](s3-data-protection-2/denso-raw-survey.md)。
+  - 2024-12 の 5 日間に車両 `dn01` で集めた走行データ（カメラ 7 台・LiDAR・GNSS・CAN）の原本。2025-05 から休眠している。写しはほかに無い。
+  - 「DENSO 納品」は確かめられていない。アーカイブの名前は `turing_*.7z`。だれが集めたか、権利はどこにあるかは安本さんに聞く。
+- 2026-11-06 のセッションの終わり。引き継ぎ:
+  - **次にやること**: ミーティングの意見 1〜3 を資料に反映する。2 は緊急用の権限の案（BreakGlass の再検討。[option-reassessment.md](s3-data-protection-2/option-reassessment.md) の撤回の方向と見比べる）、3 は SCP で守る範囲の洗い出し。
+  - **伊藤の作業**: 検証用のバケットの cleanup（11-06 の 11:23 JST より後）。AWSAdministratorAccess のほかの 1〜2 名を確かめる。denso-raw の出どころを安本さんに確かめる。
