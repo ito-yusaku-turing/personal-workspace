@@ -1,7 +1,7 @@
 # S3 バケットのデータ保護 第二弾（権限設計のアップグレード）
 
 - 開始: 2026-10-20
-- 状態: **WORM の導入の権限を、SCP・RCP を含めて整理している段**（2026-11-06。[permission-model.md](s3-data-protection-2/permission-model.md) のたたき台）。7 章の 1〜5 を伊藤と決め、共有用の資料に反映してから Notion へ。全体のアクションは [worm-action-list.md](s3-data-protection-2/worm-action-list.md)。権限の頂点の問題は別の案件（project:privileged-access）
+- 状態: **WORM の導入の権限の整理のたたき台を報告し、伊藤の返事待ち**（2026-11-06。[permission-model.md](s3-data-protection-2/permission-model.md) の 7 章の 1〜5）。決まったら共有用の資料に反映してから Notion へ。全体のアクションは [worm-action-list.md](s3-data-protection-2/worm-action-list.md)。権限の頂点の問題は別の案件（project:privileged-access）
 - 所属: project:aws-data-protection（2026-10-26 に `~/docs/workstream/` から移した）
 - 前段（第一弾、完了）:
   - [走行データ消失リスクへの対応](done/raw-data-security.md)（バケットの種別と処遇、裁定の正本）
@@ -720,3 +720,14 @@
   - 組織で有効なのは SCP だけで、RCP は有効でない（`describe-organization`）。
   - エージェントの案: SCP・RCP は案 B（S1・S2・S3 に、迂回の禁止の RCP を足す）。完全削除用の権限は案 c（専用の権限セットを、使うときだけ PR で割り当てる）。
   - 注: 調べるときに cdk-apps の作業コピーで `git pull --ff-only` をした（`main` を origin に合わせただけ。手元の変更は無かった）。
+- 2026-11-06（続き 2）のセッションの終わり（伊藤が退勤）。引き継ぎ:
+  - **現在地**: [permission-model.md](s3-data-protection-2/permission-model.md) のたたき台を伊藤に報告した。**7 章の 1〜5 はまだ伊藤の返事待ち**（議論はまだ始まっていない）。次のセッションは、ここから伊藤と詰める（アクション 0-1）。
+    1. 経路の見立て（R2: deploy のロールの引き受け、R3: `cdk-hnb659fds-cfn-exec-role-*` の名前のロールを作る）が合っているか。
+    2. SCP・RCP の組み合わせ A〜C（エージェントの案は B）。
+    3. S1 で手元の `cdk diff` が止まるなら、diff を GitHub Actions に寄せてよいか（止まるかは未確認）。
+    4. 完全削除用の権限の案 a〜c（エージェントの案は c）。
+    5. RCP を有効にするか（管理アカウントの作業。CorpIT と organization-policy の CODEOWNERS に相談が要る）。
+  - **返事を待つ間にエージェントだけで進められること**: permission-model.md の 8 章の確かめ（ReadOnly）。とくに S1 の前提の、deploy のロールの `AssumeRole` を CloudTrail で 90 日分引くことと、`CDKToolkit` のスタックのイベント（S2）。RCP の仕様をドキュメントで確かめる（アクション 3-3）。大量の読み取りになるものは、伊藤に断ってから。
+  - **決まったら**: 共有用の資料（[notion-worm-governance-rollout.md](../documents/notion-worm-governance-rollout.md)）の 3.2・3.6・5.1・7 章に反映 → Notion のコメント・編集を読んで取り込む → 伊藤の許可を得て Notion を更新（アクション 1-1）→ チームの Go サイン（1-2）。
+  - **伊藤の作業（変わらず）**: 検証用のバケットの cleanup（5-1）、AWSAdministratorAccess のほかの 1〜2 名の確認（2-1）、denso-raw の出どころを安本さんに確認（5-2）。
+  - **注意**: Notion のページ（<https://app.notion.com/p/40fa93b3e6f2811bb51ffaef3cc970e9>）は、11-06 のミーティングの意見も呼び方の統一もまだ入っていない古い版。ローカルが先に進んでいる。
