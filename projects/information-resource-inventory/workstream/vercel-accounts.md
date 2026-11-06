@@ -44,7 +44,7 @@ CI で使っている Vercel のトークン（2FA を必須にすると、作�
 
 伊藤がダッシュボードで確かめた（2026-11-05）:
 
-- 海老澤さん（Owner）は **2FA 未設定**。塚本さんは設定済み。
+- 海老澤さん（Owner）は **2FA 未設定**（2026-11-06 に設定済み）。塚本さんは設定済み。
 - `jaddstudio3-deployment-4700` という **2FA 未設定のユーザー**がいる。名前から、jadd_studio3 のデプロイ用のアカウントと思われる。リポジトリと資料には出てこない。jadd_studio3 の `VERCEL_TOKEN` は作成の約 1 時間後（2026-04-20 14:22 JST）に更新されており、このとき海老澤さん個人のトークンから、このアカウントのトークンに差し替えた可能性がある（推測）。
 - **確定（2026-11-05、伊藤が JADD Studio のデプロイログで確かめた）: jadd_studio3 の `VERCEL_TOKEN` は `jaddstudio3-deployment-4700` のトークン**。海老澤さん個人のトークンではない。
 - **どちらであっても、いまのままでは 2FA を必須にした時点で JADD Studio の本番のデプロイが止まる**。デプロイ用のアカウントにも 2FA（TOTP）が要る。Integration のトークンは対象外。jadd-studio-signage は GitHub Actions からデプロイしない（Vercel の Git 連携）。
@@ -161,13 +161,12 @@ GitHub の組織 `turingmotors` のコードを `VERCEL_TOKEN` で検索して�
 - jadd_studio3 は、作者が Vercel に見えるぶん素直だが、Vercel が CLI にも検査を広げれば止まる。共有アカウントの問題も重なる。
 - 手元からの CLI（岩崎さん・塚本さん）は、デプロイした人がチームにいるので、席の要件の点では問題ない。
 
-## 2FA の状況（2026-11-06、API の `mfaEnabled`）
+## 2FA の状況（2026-11-06 15:24 に取得、API の `mfaEnabled`）
 
-19 名中、未設定は 8 名。計画の 1 のアナウンスでは、共有アカウントを除く 7 名に設定してもらう。人のアカウントは、本人が 2FA を設定してもデプロイの経路に影響しない（止まるのは必須化したときだけ。CI のトークンを持つ塚本さんは設定済み）。
+19 名中、未設定は 7 名。計画の 1 のアナウンスでは、共有アカウントを除く 6 名に設定してもらう。海老澤さん（Owner）は 2026-11-06 に設定した（09:50 の取得では未設定、15:24 の取得で設定済み）。人のアカウントは、本人が 2FA を設定してもデプロイの経路に影響しない（止まるのは必須化したときだけ。CI のトークンを持つ塚本さんは設定済み）。
 
 | ロール | ユーザー | GitHub | 最後にデプロイを作った日 |
 |---|---|---|---|
-| **Owner** | hayataebisawa-2001 | ebiebix | 2026-11-02 |
 | Member | atsushiabe-7916 | piste-jp | 2026-10-29 |
 | Member | bonaizawa | BonAizawa | 2026-11-06 |
 | Member | shintaroinuzuka-9342 | graph226 | - |
@@ -176,7 +175,7 @@ GitHub の組織 `turingmotors` のコードを `VERCEL_TOKEN` で検索して�
 | Member | yuyaiwasaki-8105 | - | 2026-08-28 |
 | （共有アカウント。アナウンスの対象外） | jaddstudio3-deployment-4700 | - | 2026-11-05 |
 
-設定済み（11 名）: ito-yusaku-turing・masahiroyasumoto-3938・yamashu-turing（以上 Owner）、daikishiotsuka-5671・kento-1989・sangotaro・shokamekawa-7414・shuheitsukamoto-5730・shunsukeshibata-8695・takuyayamashita-5395・colum2131（Developer）。
+設定済み（12 名）: ito-yusaku-turing・hayataebisawa-2001・masahiroyasumoto-3938・yamashu-turing（以上 Owner）、daikishiotsuka-5671・kento-1989・sangotaro・shokamekawa-7414・shuheitsukamoto-5730・shunsukeshibata-8695・takuyayamashita-5395・colum2131（Developer）。
 
 - 「最後にデプロイを作った日」は、プロジェクトごとの直近 100 件の中での最新。`-` は使っていないという意味ではない。
 - sangotaro と colum2131 は gmail のアドレスで入っている。外す人を決めるときに確かめる。
@@ -298,7 +297,7 @@ fleet-ops（Git 連携はつながっている）:
 そのほか:
 
 - 2FA を必須にする前に、海老澤さん（Owner）本人と、CI のトークンの持ち主の 2FA を済ませる。fleet-ops のトークン（塚本さん）は 2FA 済みで問題ない。fleet-ops の Environment `vercel-preview` のトークン（2026-11-02 作成）は持ち主が分からない（CI からは使わないとされている）。
-- メンバー一覧と 2FA の有無は API（`GET /v3/teams/{teamId}/members` の `mfaEnabled`）で取れる。2026-11-06 時点で 19 名中 8 名が未設定（「2FA の状況」）。
+- メンバー一覧と 2FA の有無は API（`GET /v3/teams/{teamId}/members` の `mfaEnabled`）で取れる。2026-11-06 15:24 時点で 19 名中 7 名が未設定（「2FA の状況」）。
 - Supabase の結論（[documents/supabase-org-account-policy.md](../../documents/supabase-org-account-policy.md)）と比べると、Vercel の SSO は Pro の add-on（$300/月）で入れられる点が違う。SSO を入れるかはまだ決めていない。
 
 ## 関連リンク
