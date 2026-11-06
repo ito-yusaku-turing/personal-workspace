@@ -1,7 +1,7 @@
 # S3 バケットのデータ保護 第二弾（権限設計のアップグレード）
 
 - 開始: 2026-10-20
-- 状態: **WORM のガバナンスモードでの導入は、共有ミーティングの意見（削除の運用の先送り・FullAccess を外すことの了承・緊急用の権限と SCP の検討）を資料に反映し、アクションリストを作った段**（2026-11-06。[worm-action-list.md](s3-data-protection-2/worm-action-list.md)）。次は共有用の資料の Notion への反映と Go サイン、並行して緊急用の権限（G1）と SCP の範囲（G2）。権限の頂点の問題は別の案件（project:privileged-access）
+- 状態: **WORM の導入の権限を、SCP・RCP を含めて整理している段**（2026-11-06。[permission-model.md](s3-data-protection-2/permission-model.md) のたたき台）。7 章の 1〜5 を伊藤と決め、共有用の資料に反映してから Notion へ。全体のアクションは [worm-action-list.md](s3-data-protection-2/worm-action-list.md)。権限の頂点の問題は別の案件（project:privileged-access）
 - 所属: project:aws-data-protection（2026-10-26 に `~/docs/workstream/` から移した）
 - 前段（第一弾、完了）:
   - [走行データ消失リスクへの対応](done/raw-data-security.md)（バケットの種別と処遇、裁定の正本）
@@ -706,11 +706,17 @@
   - 2024-12 の 5 日間に車両 `dn01` で集めた走行データ（カメラ 7 台・LiDAR・GNSS・CAN）の原本。2025-05 から休眠している。写しはほかに無い。
   - 「DENSO 納品」は確かめられていない。アーカイブの名前は `turing_*.7z`。だれが集めたか、権利はどこにあるかは安本さんに聞く。
 - 2026-11-06 のセッションの終わり。引き継ぎ:
-  - **次にやること**: ミーティングの意見 1〜3 を資料に反映する。2 は緊急用の権限の案（BreakGlass の再検討。[option-reassessment.md](s3-data-protection-2/option-reassessment.md) の撤回の方向と見比べる）、3 は SCP で守る範囲の洗い出し。
+  - **次にやること**: ミーティングの意見 1〜3 を資料に反映する。2 は完全削除用の権限の案（BreakGlass の再検討。[option-reassessment.md](s3-data-protection-2/option-reassessment.md) の撤回の方向と見比べる）、3 は SCP で守る範囲の洗い出し。
   - **伊藤の作業**: 検証用のバケットの cleanup（11-06 の 11:23 JST より後）。AWSAdministratorAccess のほかの 1〜2 名を確かめる。denso-raw の出どころを安本さんに確かめる。
 - 2026-11-06（続き）: **ミーティングの意見を資料に反映し、アクションリストを作った**（伊藤の依頼）。
-  - 決めたこと: D13（削除の運用は先送り）、D14（FullAccess を例外から外す。チームが了承）。検討中: G1（緊急用の権限を専用に新しく作るか）、G2（SCP・RCP で守る範囲）。[worm-decisions.md](s3-data-protection-2/worm-decisions.md) の「2026-11-06」の節。
+  - 決めたこと: D13（削除の運用は先送り）、D14（FullAccess を例外から外す。チームが了承）。検討中: G1（完全削除用の権限を専用に新しく作るか）、G2（SCP・RCP で守る範囲）。[worm-decisions.md](s3-data-protection-2/worm-decisions.md) の「2026-11-06」の節。
   - 導入で作るものを、ジョブのロール・SCP `DenyPassLockBatchRole`・ジョブのレポートの置き場に絞った（`manifests/` は作らない）。G1・G2 で変わるのは手順 D だけなので、手順 A〜C は並行して進められる。
-  - 直した資料: 共有用の資料（要点・3.2・3.4・3.6・4.2 を短くした・4.4・5.1・5.3・5.4・7 章）、設計案（2.1・4.1・7 章）。共有用の資料では、保護を外せる AWSAdministratorAccess を「緊急用の権限」と呼ぶことにした。
+  - 直した資料: 共有用の資料（要点・3.2・3.4・3.6・4.2 を短くした・4.4・5.1・5.3・5.4・7 章）、設計案（2.1・4.1・7 章）。共有用の資料では、保護を外せる AWSAdministratorAccess を「完全削除用の権限」と呼ぶことにした。
   - Notion には未反映（伊藤の許可待ち。アクション 1-1）。
   - アクションリスト: [worm-action-list.md](s3-data-protection-2/worm-action-list.md)。これより前の引き継ぎの「次にやること」は、このリストを正とする。
+- 2026-11-06（続き 2）: **呼び方を「完全削除用の権限」に統一した**（伊藤。ミーティングの「緊急ハッチ」「緊急用の権限」は、実態が完全削除のための権限なので）。共有用の資料・決定の一覧・設計案・アクションリスト・用語集を直した。
+- 2026-11-06（続き 2）: **Notion の前に、SCP を含めて権限を整理した**（伊藤の依頼）。[permission-model.md](s3-data-protection-2/permission-model.md)（たたき台）。
+  - 分かったこと: FullAccess の中身は `AdministratorAccess`。deploy のロールの信頼は `767397804933:root` で、`cdk-hnb659fds-*` のロールを守る SCP は無い。**FullAccess を例外から外しても、deploy のロールを引き受けるか、cfn-exec-role という名前のロールを作れば、間接にバケットポリシーを書き換えられる**（R2・R3）。D14 を効かせるには SCP の S1・S2 が要る。
+  - 組織で有効なのは SCP だけで、RCP は有効でない（`describe-organization`）。
+  - エージェントの案: SCP・RCP は案 B（S1・S2・S3 に、迂回の禁止の RCP を足す）。完全削除用の権限は案 c（専用の権限セットを、使うときだけ PR で割り当てる）。
+  - 注: 調べるときに cdk-apps の作業コピーで `git pull --ff-only` をした（`main` を origin に合わせただけ。手元の変更は無かった）。

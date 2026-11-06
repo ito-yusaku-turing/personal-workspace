@@ -57,10 +57,10 @@ cdk-apps の `packages/original-bucket-guard`（ステージ 1 の共通部）�
 > **2026-11-06（チームの共有ミーティング、[worm-decisions.md](worm-decisions.md) の D13・D14）:** 削除の運用（下の「流れ」）は今は詰めず、消す必要が出たときに決める。導入で作るのは次の 3 つだけにする。
 >
 > - ジョブのロール `central/original-bucket-lock-batch`。最初に既存のバージョンへイベントホールドを付けるジョブと、対象を誤ったときの解除のジョブに使う。
-> - SCP `DenyPassLockBatchRole`。ロールを渡せるのを AWSAdministratorAccess（緊急用の権限）だけにする。FullAccess を外す（D14）には要る。
+> - SCP `DenyPassLockBatchRole`。ロールを渡せるのを AWSAdministratorAccess（完全削除用の権限）だけにする。FullAccess を外す（D14）には要る。
 > - ジョブのレポートの置き場。FullAccess が書く `manifests/` は作らない。
 >
-> 承認する人（緊急用の権限）を専用に新しく作るか（G1）と、SCP で守る範囲（G2）は検討中。以下の「流れ」は、消す必要が出たときの出発点として残す。
+> 承認する人（完全削除用の権限）を専用に新しく作るか（G1）と、SCP で守る範囲（G2）は検討中。以下の「流れ」は、消す必要が出たときの出発点として残す。
 
 方針（伊藤、11-05。[worm-decisions.md](worm-decisions.md) の「検討中」）: 対象を決めるところまでは FullAccess でもできる。実行は AWSAdministratorAccess が承認し、執行はジョブに任せる。対象は prefix や正規表現。頻度は 3 か月に 1 度あるかないかで、MLOps チームが決める。緊急の削除はしない（「完全に消すには最低 30 日かかる」）。
 
@@ -270,5 +270,5 @@ cdk-apps の `packages/original-bucket-guard`（ステージ 1 の共通部）�
 3. 最初の受け手（3.5）。メールの宛先を誰にするか。
 4. 波の分け方と順番（4.2）。
 5. 鍵の操作の Deny（`DenyLockChange`）を最後に回す（2 章）か、ジョブのロールを条件つきで例外に足して先に入れるか。
-6. （11-06）緊急用の権限を専用に新しく作るか（[worm-decisions.md](worm-decisions.md) の G1）。作るなら、PR-3 の例外と SCP `DenyPassLockBatchRole` の例外を、AWSAdministratorAccess からそれに差し替える。
+6. （11-06）完全削除用の権限を専用に新しく作るか（[worm-decisions.md](worm-decisions.md) の G1）。作るなら、PR-3 の例外と SCP `DenyPassLockBatchRole` の例外を、AWSAdministratorAccess からそれに差し替える。
 7. （11-06）SCP・RCP で守る範囲（G2）。PR-3 に何を足すかが変わる。

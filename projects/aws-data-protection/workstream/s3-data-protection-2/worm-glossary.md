@@ -46,6 +46,7 @@
 | ふつうの削除 | **通常の削除**（バージョンを指定しない `DeleteObject`。削除マーカーを置く） | 共有資料では「通常の削除」と書く（2026-11-05、伊藤） |
 | 削除マーカー | 削除マーカー（delete marker） | Object Lock では守られない |
 | 掃除・意図した掃除 | 費用を減らすための、意図した一括削除（マニフェスト → 承認 → ジョブで解除とタグ付け → 30 日 → タグで絞ったライフサイクル） | 設計案の 2.1 |
+| 緊急用の権限・緊急ハッチ | **完全削除用の権限**（保護されたバージョンを最終的に消すために、保護を外せる権限。今は SSO の `AWSAdministratorAccess`） | 2026-11-06 に伊藤が呼び方を統一した。実態は削除のための権限なので「緊急」と呼ばない |
 | 承認 | AWSAdministratorAccess がジョブを作ること | ジョブのロールを渡せる（`iam:PassRole`）のは AWSAdministratorAccess だけ |
 | ジョブのロール | S3 Batch Operations のジョブが使う IAM ロール `central/original-bucket-lock-batch` | `DenyLockChange` の唯一の例外 |
 | AWSAdministratorAccess | **SSO の権限セット**（Control Tower が作ったもの。`AWSReservedSSO_AWSAdministratorAccess_*` のロール）。今は 1 名 | AWS 管理ポリシーの `AdministratorAccess` とは別物。後者を付けたロール（cfn-exec-role など）は「上位の権限」に含めない |
