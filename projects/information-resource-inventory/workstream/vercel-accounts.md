@@ -1,7 +1,7 @@
 # Vercel のアカウントの棚卸しと SSO 化の検討
 
 - 開始: 2026-11-05
-- 状態: **デプロイの経路を精査した**（2026-11-06）。CI から CLI でデプロイしているのは jadd_studio3 と fleet-ops の 2 つで、どちらもチームにいない人の merge を本番に出している。次は Vercel の動向から見て安全な運用を決める（Vercel には問い合わせない）
+- 状態: **移行の設計を詰めた**（2026-11-06）。jadd_studio3・fleet-ops とも Vercel の Git 連携に戻し、席の無い人の merge は BLOCKED を受け入れる案。次は小さなプロジェクトで作者の検査の挙動を試し、計画の 1（MFA のアナウンス）に入る
 - 所属: project:information-resource-inventory
 
 Vercel のアカウント（組織・チームのメンバーと、その権限）を棚卸しし、社の IdP（Okta / Google Workspace）による SSO に寄せられるかを検討する。
@@ -161,6 +161,84 @@ GitHub の組織 `turingmotors` のコードを `VERCEL_TOKEN` で検索して�
 - jadd_studio3 は、作者が Vercel に見えるぶん素直だが、Vercel が CLI にも検査を広げれば止まる。共有アカウントの問題も重なる。
 - 手元からの CLI（岩崎さん・塚本さん）は、デプロイした人がチームにいるので、席の要件の点では問題ない。
 
+## 移行の設計（2026-11-06）
+
+方針（伊藤）: **main への merge で本番に出る便利さは残す。代わりに、席の無い人の merge でデプロイが失敗する（BLOCKED）ことは受け入れる。** つまり、両方とも Vercel の Git 連携に戻す。CI のトークンと共有アカウントは無くす。
+
+全体の計画（伊藤の案に補足を入れたもの。2026-11-06）:
+
+1. **今すぐ**: 要らない人を外す → 海老澤さんに 2FA を個別に依頼 → 全員に MFA の有効化をアナウンス（共有アカウントは対象外） → fleet-ops の `vercel-preview` のトークンを止める
+2. **12 月中旬まで**: jadd_studio3・fleet-ops を Git 連携に移す（担当の人と合意を取ってから） → 共有アカウントを消す
+3. **2026-12-31 の前後**: MFA を強制する
+
+### Vercel が見る「作者」
+
+- 両リポジトリとも **squash merge と rebase merge だけ**を許している（merge commit は不可）。squash の main のコミットは、**作者が PR を作った人**で、committer が GitHub になる。**merge ボタンを押した人ではない**。
+- Git 連携が検査するのは「コミットの作者」（[Git](https://vercel.com/docs/git#deploying-private-git-repositories)）。したがって、**席のある人が merge しても、PR の作者が席の無い人なら BLOCKED になる**。
+- ブロックされた変更は消えない。次に席のある人の PR が merge されると、その時点の main がまるごと出るので、一緒に本番に出る。ただし、本人の知らないうちに他人の変更が一緒に出ることになる。
+- 作者の照合は、Vercel のアカウントにつないだ GitHub のアカウントで行う（推定）。チームのメンバーでも GitHub をつないでいない人（kento-1989・takuyayamashita・yuyaiwasaki-8105）は、作者として通らないおそれがある。
+- fleet-management で 2026-10-27 にブロックされた 2 件は、チームにいない人（kanade-k-1228）が renovate のブランチに push したもの。renovate[bot] のコミットは通っている。
+
+main の直近 100 コミットの作者を GitHub のユーザー名で照合した結果（2026-11-06。前回の名前での照合は、colum2131＝Kohei Iwamasa さんを誤ってチーム外に数えていた）:
+
+| リポジトリ | チームにいる人 | チームにいない人 | devin-ai-integration[bot] |
+|---|---|---|---|
+| jadd_studio3 | 59 件 | 35 件（yutyan0119 17・ensan-hcl 8・ibaiGorordo 6・koukyo1994 3・Masakichi210 2・Rozk12 1） | 6 件 |
+| fleet-ops | 77 件 | 4 件（yamaz-aki 2・maikosuzuki-5 2） | 19 件 |
+
+devin のコミットが通るかは分からない（renovate[bot] は通る）。fleet-ops では 2 割近くを占めるので、試す必要がある。
+
+### GitHub Actions でしかしていないこと（精査の結果）
+
+jadd_studio3（`deploy.yml`）:
+
+| していること | Git 連携に移したとき | 手当て |
+|---|---|---|
+| main の push で `node_modules` のキャッシュを保存し、**PR の CI（`ci.yml`）のキャッシュの供給元を兼ねている** | `deploy.yml` を消すと、PR の CI のキャッシュが当たらなくなる | `ci.yml` に、main の push でキャッシュだけを作るジョブを足す |
+| Node を `.nvmrc` の 24.22.1 に固定してビルド | Vercel は 24.x の最新で組む（パッチまでは固定できない） | 受け入れる。ネイティブの依存（lz4・roaring・sharp）は、実行する環境と同じ所で組むぶん、むしろ素直になる |
+| `SKIP_NPM_CI=1` で `npm ci` を飛ばす | 使わなくなる | `vercel.json` の `installCommand` を `npm ci` に戻す（`npm ci` のあと postinstall で `prisma generate` と `assets:place` が走る） |
+| デプロイの前のテストは無い（テストは PR の `ci.yml`） | 変わらない | なし |
+| GitHub の secrets は `VERCEL_*` だけ。ビルドの環境変数は Vercel の Production から `vercel pull` で取る | Vercel が直接使う | secrets を消す |
+
+fleet-ops（`vercel-preview.yml`）:
+
+| していること | Git 連携に移したとき | 手当て |
+|---|---|---|
+| **本番に出す前のテスト**（`test:scheduler`・`test:auth-callback`・`tsc --noEmit`） | 何もしないとテストを通らずに出る | Vercel の Build Command を `npm run test:scheduler && npm run test:auth-callback && npx tsc --noEmit && next build` にする（Vercel の上で走るので、落ちればデプロイされない） |
+| main の先頭と SHA が一致するかを、ビルドの前後で確かめる（古いコミットを出さない） | Git 連携はコミットごとに組む | 古いデプロイが新しいものを上書きしないかは未確認。試す |
+| CLI を 59.10.0 に固定し、`tar` を上書きする | CLI を使わなくなる | なし |
+| GitHub の Environment `vercel-production`（main だけ）にトークンを置く | トークンが要らなくなる | Environment `vercel-production`・`vercel-preview` とトークンを消す。塚本さんのトークンは失効してもらう |
+| 独自の `--meta`（`sourceCommit`・`requestedBy`）で追跡する | Git 連携が作者と SHA を付ける | なし |
+
+ほかのワークフロー（`db-check`・`feature-boundaries`・`vehicle-registry`・`vehicle-registry-sync`）はデプロイと関係ない。`vehicle-registry-sync` は Vercel 上のアプリの API を呼ぶだけで、トークンは使わない。
+
+### どこで何を操作するか
+
+jadd_studio3:
+
+1. **GitHub**（組織の管理者）: Vercel の GitHub App が `turingmotors/jadd_studio3` を読めるか確かめる。読めなければ、対象のリポジトリに足す。
+2. **リポジトリ**（PR。作者は席のある人）: `vercel.json` の `installCommand` を戻し、本番以外を組まない設定（`git.deploymentEnabled` か `ignoreCommand`）を入れる。`deploy.yml` を消し、`ci.yml` にキャッシュを作るジョブを足す。`docs/general/deployment.md` を直す。
+3. **Vercel**（Owner）: jadd-studio3 → Settings → Git で `turingmotors/jadd_studio3` をつなぐ。Production Branch は `main`。
+4. 3 の直後に 2 の PR を merge する。push のときは、push したコミットにあるワークフローが動くので、`deploy.yml` を消したコミットでは Actions が動かず、Git 連携だけがデプロイする。3 と 4 の間にほかの merge が入ると二重にデプロイされるので、続けて行う。
+5. デプロイと本番の画面を確かめる。
+6. **GitHub**: secrets の `VERCEL_TOKEN`・`VERCEL_ORG_ID`・`VERCEL_PROJECT_ID` を消す。
+7. **Vercel**（Owner）: 共有アカウント `jaddstudio3-deployment-4700` をチームから外し、アカウントも消す。
+
+fleet-ops（Git 連携はつながっている）:
+
+1. **リポジトリ**（PR。作者は席のある人。塚本さんと合意してから）: `vercel.json` の `git.deploymentEnabled: false` を外し、本番以外を組まない設定にする。Build Command にテストを入れる。`vercel-preview.yml` と `scripts/vercel-preview*` を消し、runbook（`deployment.md`・`vercel-preview.md`）を直す。
+2. merge して、Git 連携でデプロイされたことを確かめる。
+3. **GitHub**: Environment `vercel-production`・`vercel-preview` を消す。**Vercel**: 塚本さんにトークンを失効してもらう。
+
+### 試して確かめること（小さなプロジェクトで）
+
+- [ ] 席の無い人の PR を席のある人が squash merge したとき、BLOCKED になるか
+- [ ] devin-ai-integration[bot] が作者のコミットが通るか
+- [ ] BLOCKED になったあと、席のある人が出し直せるか（ダッシュボードの Redeploy、または Git の参照からのデプロイ）
+- [ ] 本番以外を組まない設定の書き方（`git.deploymentEnabled` で main だけを有効にできるか。だめなら `ignoreCommand`）
+- [ ] 古いコミットのデプロイが、あとから終わって新しいものを上書きしないか
+- [ ] ダッシュボードのチームの設定で、チームにいない作者を自動でメンバーに足す、または承認を求める動きになっていないか（足されると有料の席が増える。API では見えなかった）
+
 ## 設計判断と理由
 
 （まだ無い）
@@ -177,7 +255,10 @@ GitHub の組織 `turingmotors` のコードを `VERCEL_TOKEN` で検索して�
 - [x] 調査用の PAT を用意する（チームに絞り、期限は 7 日。GET だけ使う。終わったら無効にする）
 - [x] JADD Studio のデプロイの仕組みを精査する
 - [x] 同じ形（CI から CLI・トークンでデプロイ）のプロダクトがほかにないか調べる（fleet-ops だけ）
-- [ ] Vercel の動向から見て安全な運用方法を決める
+- [x] Vercel の動向から見て安全な運用方法を決める（Git 連携に戻し、席の無い人の merge は BLOCKED を受け入れる。2026-11-06）
+- [ ] 小さなプロジェクトで作者の検査の挙動を試す（「移行の設計」の「試して確かめること」）
+- [ ] jadd_studio3 を Git 連携に移す
+- [ ] fleet-ops を Git 連携に移す（塚本さんと合意してから）
 - [ ] メンバー一覧と 2FA の状況を取り、名簿（Okta）と突き合わせる
 - [ ] 外す人を決めて外す（伊藤は Owner なので自分でできる）
 - [ ] SSO を入れるか決める（Pro の add-on で +$300/月）
@@ -185,7 +266,7 @@ GitHub の組織 `turingmotors` のコードを `VERCEL_TOKEN` で検索して�
 
 ## 次セッションへの引き継ぎ
 
-**次にやること（2026-11-06）: Vercel の動向から見て安全な運用を決める。** 対象は jadd_studio3 と fleet-ops の 2 つ（「デプロイの経路の精査」）。調査用の PAT は 2026-11-13 ごろに切れる。終わったら無効にし、`~/.config/vercel/token` を消す。
+**次にやること（2026-11-06）: 方針は「Git 連携に戻し、席の無い人の merge は BLOCKED を受け入れる」に決めた（「移行の設計」）。次は小さなプロジェクトで作者の検査の挙動を試すことと、計画の 1（要らない人を外す → MFA のアナウンス）。** 対象は jadd_studio3 と fleet-ops の 2 つ（「デプロイの経路の精査」）。調査用の PAT は 2026-11-13 ごろに切れる。終わったら無効にし、`~/.config/vercel/token` を消す。
 
 **前回からの議論: 共有アカウント `jaddstudio3-deployment-4700` をどうなくすか。**
 
