@@ -203,6 +203,7 @@ API で取り直した結果（一次情報は `~/supabase/dhazyhuzuwitqasezcvr/
 - 再発防止（退職したときに組織から外す仕組み）
 - 旧 tuscenes（`seacktbfnjusvroguhwc`）の所在
 - **2026-11-06 15:33 に確かめた結果**: メンバーは 15 名で、MFA を設定済みなのは 10 名。未設定は 5 名（Owner の安本さん、Administrator の shintaro.inuzuka、Developer の miwakeita・shunsuke.shibata・yuya.iwasaki）。一次情報は `~/supabase/dhazyhuzuwitqasezcvr/2026-11-06/`。
+- **16:24 に取り直した結果**: 15 名中 13 名が設定済み。未設定は 2 名（Owner の安本さん（MasahiroYasumoto）、Developer の shunsuke-1222）。
 - 後日、全員が MFA を設定したかを確かめる（伊藤が依頼する）。調査用の PAT（`~/.config/supabase/pat`）は 7 日間有効（2026-11-05 作成なので 2026-11-12 ごろまで）。`GET /v2/organizations/dhazyhuzuwitqasezcvr/members` をページ送りで取り、`mfa_enabled` が false の人と、B の 3 名が外れたかを見る。期限が切れていたら、同じ権限（Organization Members と Organization Projects の Read）で作り直す
 - 確かめたら、PAT を失効させ、ファイルを消す（伊藤）
 
