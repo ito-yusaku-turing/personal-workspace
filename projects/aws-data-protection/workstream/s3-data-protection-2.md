@@ -1,7 +1,7 @@
 # S3 バケットのデータ保護 第二弾（権限設計のアップグレード）
 
 - 開始: 2026-10-20
-- 状態: **WORM の導入の権限を決め、共有用の資料に反映した**（2026-11-09。D15〜D18）。次は Notion のコメント・編集を読んで取り込み、伊藤の許可を得て Notion を更新（アクション 1-1）→ チームの Go サイン（1-2）。全体のアクションは [worm-action-list.md](s3-data-protection-2/worm-action-list.md)。権限の頂点の問題は別の案件（project:privileged-access）
+- 状態: **第 1 段階（手順 A）の PR をレビュー中**（[cdk-apps#2500](https://github.com/turingmotors/cdk-apps/pull/2500)、2026-11-09）。次回は Copilot のレビューの確認から。Copilot の指摘が出なくなったら人間のレビューに回す → マージ・deploy → deploy の後の確かめ。並行して Notion の更新（1-1、伊藤の許可を得て）→ チームの Go サイン（1-2）。段階の正本は [worm-rollout-stages.md](s3-data-protection-2/worm-rollout-stages.md)。全体のアクションは [worm-action-list.md](s3-data-protection-2/worm-action-list.md)。権限の頂点の問題は別の案件（project:privileged-access）
 - 所属: project:aws-data-protection（2026-10-26 に `~/docs/workstream/` から移した）
 - 前段（第一弾、完了）:
   - [走行データ消失リスクへの対応](done/raw-data-security.md)（バケットの種別と処遇、裁定の正本）
@@ -745,3 +745,28 @@
   - D18: 導入の途中の消失のリスクは重視しない。共有用の資料には、作業を終えた時点の姿として書く。
   - 反映: 共有用の資料（[notion-worm-governance-rollout.md](../documents/notion-worm-governance-rollout.md)）の 3.2・3.4（deploy の経路を守る組織のポリシー）・3.6・4.4・5.1・7 章（決めることを 6 つに）、permission-model.md の 6 章、アクションリスト（2-2・2-4・3-3 は不要、3-2・3-4 は済み、3-5 を追加）。
   - **次**: アクション 1-1（Notion の側のコメント・編集を読んで取り込む → 伊藤の許可を得て Notion を更新）。手順 D の PR の前に、アクション 3-5 の確かめ（ReadOnly）。
+- 2026-11-09（続き 2）: Notion の前に、WORM の実装（手順 A〜D）の決めごとを詰めた。7 つの論点に別のエージェントのセカンドオピニオンをもらい、伊藤が D19〜D23 を決めた（[worm-decisions.md](s3-data-protection-2/worm-decisions.md) の「2026-11-09（続き）」）。
+  - 見落としていた抜け道: X4（既存のスタックの更新。スタックに付いた cfn-exec-role で動くので PassRole が要らない）と X5（GitHub Actions の deploy のロールの信頼の書き換え）。D19: X5 は SCP で塞ぐ。D20: X4 は把握した抜け道として残し、次回以降。
+  - D21: ジョブのロールは original-bucket-audit に置き、変更は SCP の新しい文で禁じる。D22: 迂回の権限は要るときに足す。D23: カナリアに Object Lock を入れ、以後は訓練用。
+  - 訂正: 大きいバケット（td1-raw・tuscenes-raw・denso-taxi-video）には、最新版の S3 Inventory がすでにある。tuscenes-raw の `eventBridgeEnabled: false // cleaning 処理に必要` は、10-27 に古いスタックのルールを止めて対応済み（TODO 25）で、コメントだけが古い。
+  - 反映: permission-model.md（3.2 に X4・X5、4 章の H5、6 章の 5〜8）、共有用の資料の 3.2・3.4・3.6・4.4・5.1、設計案の 2.1・4 章、アクションリスト（4-1・4-2・4-8、4b を追加）。
+  - **次**: I1〜I6（アクション 4b-1）を決める。
+- 2026-11-09（続き 3）: I1・I2 は「あとでもよいものはあとに」（I2 は手順 D。I1 はカナリアにだけ先に入れる案を出して未決）、I5 は足す（伊藤）。通知は手順 A から外して後日の PR にしてもよい、と伊藤。手順 A の残りの決めごとは、ジョブのロールの対象のバケットと権限の範囲だけ（共有用の資料などへの反映は、伊藤の了承待ち）。
+  - I3: ManifestGenerator の版の扱いは AWS のドキュメントに書かれていない（フィルタに版の項目は無い）。カナリアで試す手順書 [manifest-generator-probe-runbook.md](s3-data-protection-2/manifest-generator-probe-runbook.md) を書いた（M1〜M5）。スクリプトは `~/runbook/manifest-probe/manifest-probe.sh`（git の管理外。setup → job → run → cleanup）。カナリアは今、最新版 6 件だけ（古い版・削除マーカー無し）。10-30 の試験のロールは消してある。
+  - I6: 日数の確かめは 1 件で足りる（1,000 件は、失敗が 5 割を超えると自動で止まる仕組みの件数で、日数の誤りは止まらない）。キーの癖はカナリアで確かめる（M4）。
+  - 実行した（17:13〜17:19 JST、伊藤）。**ジョブに作らせる一覧は、最新版だけを版の ID つきで作る**（古い版・最新が削除マーカーのキーは入らない）。癖のあるキーも正しく扱い、確認待ちで止まる。手順 C の一覧は S3 Inventory 無しで作れる見込み。結果は手順書の「結果」の表。
+  - cleanup も済んだ（17:24 JST）。ロールは消え、残るジョブは無い（ReadOnly で確かめた）。
+  - **次**: I3 の残り（8 億件での時間と費用、件数の突き合わせ、バケットを足す・外す手順）。
+- 2026-11-09（続き 4）: D24（手順 A は迂回の禁止・ジョブのロール・レポートの置き場だけ。通知は別の PR にして手順 D の前に入れる）を伊藤が決めた。反映: 共有用の資料の 3.4（ジョブのロールが一覧を作る）・5.1（通知の行を足す）・5.2（一覧はジョブに作らせ、確認待ちで確かめる）・5.3・7 章の 6、設計案の 2.1・4.1、アクションリスト（4-1・4-5、4-9 を追加）。
+  - **次**: 手順 A のジョブのロールの対象（10 本とカナリア）と権限（保持の変更・一覧を作る・レポートの書き込み。タグ付けは入れない）を伊藤が確認 → 手順 A の PR の起草。
+- 2026-11-09（続き 5）: 手順 A の仕様を伊藤が了承（ジョブのロールの対象は 10 本とカナリア、権限は保持の変更・読み取り・一覧を作る・レポートの書き込み、レポートの置き場は `original-bucket-lock-batch-reports-767397804933`）。`DenyLockChange` は手順 A に入れない（例外に当たることは手順 D のときにカナリアで確かめる）。
+  - cdk-apps: ブランチ `feat/original-bucket-worm-step-a`（`38b26cd0`）を push した。PR は作らない（伊藤の指示）。中身: `original-bucket-guard` に `DenyGovernanceBypass` と `LOCK_BATCH_ROLE_NAME`、`original-bucket-audit` に `OriginalBucketLockBatch`（ロール・レポートの置き場）と `LOCK_TARGET_BUCKETS`、テスト（17 件）と README、datalake のテスト。
+  - 確かめ: jest（original-bucket-audit 17・datalake 25・gaming 5）、tsc（5 アプリ）、ReadOnly の `cdk diff`（バケットポリシーに 1 文が加わるだけ。denso-taxi・denso-nx は docker が無く取れない。denso-taxi の jest も同じ理由で未実行。PR の CI で確かめる）。
+  - 段階の正本 [worm-rollout-stages.md](s3-data-protection-2/worm-rollout-stages.md) を作り、そこから共有用の資料の 5.1（3 段階の表）・5.3 と、PR の本文 [pr-step-a.md](s3-data-protection-2/pr-step-a.md) を作った。
+  - **次**: 伊藤が PR の本文を確かめて PR を作る。Notion の更新（1-1）は伊藤の許可を得てから。
+- 2026-11-09（続き 6）: PR の前に、ブランチと本文の下書きを別のエージェントにレビューさせた。止める問題は無し。直したもの: レポートの置き場に守りの文を入れる（伊藤が (a) を選んだ）、ロールの権限を文ごと固定するテスト、バケットの一覧を名前で書いたテスト、README の迂回の書き方（ロールへの追加と `DenyGovernanceBypass` を外す変更を同じ PR で）、古いコメントと workflow の手順の名前。`c8c8d394` を push した。本文には、このロールの形（対象を読む権限なし）では手順 B で初めて流すこと、`tuscenes-calibration-767397804933` が SSE-KMS であること、original-bucket-audit のテストは CI で走らないことを書き足した。コスト配分のタグは、original-bucket-audit のほかのスタックにも無いので付けなかった。
+  - PR を作った（伊藤の指示で、エージェントが `gh pr create`）: [cdk-apps#2500](https://github.com/turingmotors/cdk-apps/pull/2500)。
+  - CI はすべて通った（format-diff・test・5 アプリの prd-diff）。手元で取れなかった denso-taxi・denso-nx の diff も、バケットポリシーに 1 文が加わるだけ。denso-taxi の jest も CI の test で通った。
+  - 別のセッション（pw-1109-rev）がレビューした。重い指摘 1 つ: ロールの保持の変更に条件が無く、ジョブの指定を誤るとコンプライアンスモードの保持を付けられた。`s3:object-lock-mode` が COMPLIANCE の要求を拒む文をロールのポリシーに足した（許す側の条件にすると、モードを持たない要求まで拒まれるおそれがあるので、拒む側にした。伊藤が了承）。あわせて、レポートの置き場の守りのテストを丸ごと比べる形にし、README を直した。`d019123d` を push し、PR の本文も直した。レポートの置き場をトレイルに足すことと、テストを CI で走らせることは、後の PR に回した（伊藤）。`aws:SourceArn` は足さない（効果が小さく、渡されるか分からない）。
+  - セッションの終わり（2026-11-09）: `d019123d` の CI は format-diff と 5 アプリの prd-diff が通り、test は実行中だった。Copilot のレビューはまだ付いていない。
+  - **次回**: Copilot のレビューを確かめて直す（`gh api repos/turingmotors/cdk-apps/pulls/2500/reviews` と `.../comments`）。指摘が出なくなったら人間のレビューに回す（伊藤）。直したら、手元の本文 [pr-step-a.md](s3-data-protection-2/pr-step-a.md) を先に直し、`gh pr edit --body-file` で上げる。cdk-apps の手元の checkout は `feat/original-bucket-worm-step-a` のまま。

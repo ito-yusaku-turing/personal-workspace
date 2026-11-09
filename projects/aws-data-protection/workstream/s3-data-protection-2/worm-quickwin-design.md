@@ -84,7 +84,7 @@ cdk-apps の `packages/original-bucket-guard`（ステージ 1 の共通部）�
 
 | 部品 | 置き場所 | 中身 |
 |---|---|---|
-| ジョブのロール `original-bucket-lock-batch`（パス `/central/`） | `apps/organization-policy` の中央管理のロール（central-iam-roles.ts） | 信頼: `batchoperations.s3.amazonaws.com`（`aws:SourceAccount` を tuscenes-prod に固定）。権限: 10 本の `bucket/*` への `s3:PutObjectRetention`・`s3:PutObjectTagging`・`s3:PutObjectVersionTagging`（と Get）、置き場の `manifests/*` の読み取り、`reports/*` への書き込み、`sts:AssumeRole` の Deny。`/central/` の下なので、FullAccess は変更できない（SCP `DenyCentralRoleChanges`） |
+| ジョブのロール `original-bucket-lock-batch`（11-09 に置き場を変えた。D21） | ~~`apps/organization-policy` の中央管理のロール（central-iam-roles.ts）~~ → `apps/original-bucket-audit`。変更は SCP の新しい文 `DenyLockBatchRoleChanges` で禁じる（例外は cfn-exec-role と `AWSControlTowerExecution`）。迂回の権限は入れない（D22） | 信頼: `batchoperations.s3.amazonaws.com`（`aws:SourceAccount` を tuscenes-prod に固定）。権限: 10 本の `bucket/*` への `s3:PutObjectRetention`（と Get）、~~`s3:PutObjectTagging`・`s3:PutObjectVersionTagging`~~（11-09: 削除の運用を先送りにしたので入れない）、対象の一覧を作る権限（バケットの `s3:ListBucket`・`s3:PutInventoryConfiguration`。11-09 にカナリアで ManifestGenerator を試した）、置き場の一覧と `reports/*` への書き込み、`sts:AssumeRole` の Deny。`/central/` の下なので、FullAccess は変更できない（SCP `DenyCentralRoleChanges`） |
 | SCP の文 `DenyPassLockBatchRole` | `apps/organization-policy` の iam-guardrails.ts | `iam:PassRole`（このロール）を、SSO の AWSAdministratorAccess 以外に Deny |
 | マニフェストとレポートの置き場 `original-bucket-cleanup-<アカウント>` | `apps/original-bucket-audit` | `manifests/`（FullAccess が書く）、`reports/`（ジョブが書く）。バージョニング |
 | バケットポリシーの直し | `packages/original-bucket-guard` | 2 章の表 |
@@ -215,7 +215,8 @@ cdk-apps の `packages/original-bucket-guard`（ステージ 1 の共通部）�
 
 | 手順 | 中身 | 誰が・どう | 待ち |
 |---|---|---|---|
-| **A. PR-1** | 迂回の Deny（2 章の `DenyGovernanceBypass`）と、通知（3 章）、ジョブのロールとレポートの置き場（2.1）を cdk-apps で入れる | PR（マージは伊藤、deploy は Actions） | 通知がカナリアで鳴ることを確かめる |
+| **A. PR-1** | 迂回の Deny（2 章の `DenyGovernanceBypass`）と、ジョブのロールとレポートの置き場（2.1）を cdk-apps で入れる。~~通知（3 章）~~ → 11-09 に別の PR に分けた（D24） | PR（マージは伊藤、deploy は Actions） | deploy が済む |
+| **通知の PR** | 通知（3 章）。I5 でジョブの作成と状態の変更（`CreateJob`・`UpdateJobStatus`）をルール B に足す。A〜C と並行し、D の前に入れる | PR | 通知がカナリアで鳴ることを確かめる |
 | **B. カナリアで予行** | カナリア `original-bucket-canary-767397804933` に、後から Object Lock を有効にする。既定はガバナンス・イベントホールド 1 日。カナリアの exerciser を回す | 伊藤（FullAccess・CLI。手順書を用意する） | 1 章の「まだ試していないこと」3 つ。戻し方（`Rule` を外すと書けるか） |
 | **C. 波ごとに鍵をかける** | 各バケットで、(1) 鍵の既定を入れる（ガバナンス・イベントホールド 30 日）、(2) 1 日ほど書き手のエラーを見る、(3) Batch Operations で今の版にホールドをかける、(4) 件数を確かめる | 伊藤（FullAccess・CLI と Batch Operations。ジョブの設定は 2 人で確かめる） | 波ごとに数日 |
 | **D. PR-3** | 鍵の操作の Deny（2 章の `DenyLockChange`）、FullAccess を例外から外す（2 章の既存の 2 文）、SCP `DenyPassLockBatchRole`（2.1） | PR | 全部の波のジョブが終わってから |
@@ -240,7 +241,7 @@ cdk-apps の `packages/original-bucket-guard`（ステージ 1 の共通部）�
 |---|---|---|
 | 書き手が止まった | そのバケットの鍵の既定（`Rule`）を外す（PR-3 までは FullAccess、その後は AWSAdministratorAccess・CLI）。Object Lock 自体は外せないが、既定が無ければ新しい版に鍵はかからない | 手順 B で「`Rule` を外すとチェックサムなしで書けるか」を確かめる |
 | Batch Operations で対象を誤った | 解除のジョブを流せる（PR-3 の後は AWSAdministratorAccess がジョブのロールで。迂回の Deny は解除を止めない。Q3）。解除のあとは 30 日待つ | — |
-| Batch Operations で日数を誤った | **解除のジョブでは直せない**（解除すると保持期限が「解除した時刻＋誤った日数」で固まる）。迂回の Deny をいったん外し、迂回の権限を持つロールで保持を付け直すジョブを流す。直したら迂回の Deny を戻す（2026-11-05 の整合性チェック） | 誤りやすいのは日数。ジョブの設定は 2 人で確かめる |
+| Batch Operations で日数を誤った | **解除のジョブでは直せない**（解除すると保持期限が「解除した時刻＋誤った日数」で固まる）。PR でジョブのロールに迂回の権限を足し、迂回の Deny をいったん外して、保持を付け直すジョブを流す。直したら両方を戻す（2026-11-05 の整合性チェック、11-09 の D22） | 誤りやすいのは日数。ジョブの設定は 2 人で確かめる |
 | 通知がうるさい | ルール B のイベント名を絞る（PR） | — |
 
 ### 4.4 費用
