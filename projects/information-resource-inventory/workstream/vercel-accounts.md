@@ -154,6 +154,17 @@ GitHub の組織 `turingmotors` のコードを `VERCEL_TOKEN` で検索して�
 - 組織の secrets に `VERCEL_*` があるかは、伊藤の権限では見えない（403）。
 - トークンの範囲（チーム全体かプロジェクトだけか）は分からない。共有アカウントで作ったトークンなので、伊藤の API からは見えない。
 
+#### トークンが漏れたときの影響（2026-11-09。まだ漏れた事実は無い。想定）
+
+トークンの持ち主は共有アカウント `jaddstudio3-deployment-4700`（ロールは Member、2FA 未設定）。範囲は不明なので、最小で jadd-studio3、最大でチームの全 12 プロジェクトが対象。
+
+- Member はプロジェクトの管理者を兼ねるので、本番へのデプロイ・プロジェクトの設定の変更・本番の環境変数の管理ができる（[Access roles](https://vercel.com/docs/rbac/access-roles)）。
+- 環境変数は、Config（`encrypted`）は読める。Secret（`sensitive`）は読み返せないが、本番の環境変数が渡るデプロイを作れるので、実質は守られない。
+- jadd-studio3 の本番の環境変数には、外部の資格情報が集まっている（名前と種類だけ取得。値は取らない）。Secret 扱いは 30 件。重いものだけ: Supabase の `SUPABASE_*_SERVICE_ROLE_KEY`（RLS を迂回）・`SUPABASE_JADD_STUDIO_DATABASE_URL`（DB の接続文字列。[supabase-db-access.md](./supabase-db-access.md) の穴と直結）、`AWS_ACCESS_KEY_ID`/`SECRET`、`DATABRICKS_CLIENT_ID`/`SECRET`、`JWT_SECRET`、`MFA_ENCRYPTION_KEY`、各 CDN の秘密鍵、外部 API（Mapbox・Notion・Safie・NAVITIME・Teslemetry・Devin ほか）。
+- **被害は Vercel に閉じない**。本番の環境変数を介して、Supabase の DB・AWS・Databricks などの外部の資格情報まで及ぶ。
+
+対応（優先順）: ① トークンを失効（`DELETE /v3/user/tokens/{tokenId}` かアカウントの Tokens 画面）。② Git 連携に移してトークンを無くす（既定の方針）。つなぎなら、トークンを Environment `Production` に移して main 限定にし、PR に承認を必須化する。③ 漏れた前提での環境変数のローテーション（Supabase の service_role・AWS・Databricks・JWT/MFA の鍵。jadd_studio3 側の担当と相談）。
+
 ### fleet-ops（biz-fleet-ops）
 
 - Vercel のプロジェクトは GitHub に連携しているが、`vercel.json` の `git.deploymentEnabled: false` で Git 連携からのデプロイを止めている。デプロイはすべて `.github/workflows/vercel-preview.yml` から来ている（直近 100 件、すべて `source: cli`・production）。
