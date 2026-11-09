@@ -29,7 +29,7 @@ personal-workspace/
 │   ├── privileged-access/        # project:privileged-access。組織の権限の頂点の把握と管理
 │   ├── tern-ios-auth/            # project:tern-ios-auth。Tern iOS アプリの認証
 │   └── what-did-i-do/            # project:what-did-i-do。自分の操作の通知と、人でない主体の見張り
-├── .claude/commands/   # /commit /push /pr /now /list-workstream
+├── .claude/commands/   # /commit /push /pr /now /list-workstream /review-pr
 └── ai-agents/   # 旧構成の残り（git 管理外の作業ファイルだけ）
 ```
 
