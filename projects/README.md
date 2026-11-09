@@ -18,6 +18,7 @@
 - [information-resource-inventory/workstream/aws-resource-inventory.md](./information-resource-inventory/workstream/aws-resource-inventory.md): tuscenes-prod の総ざらい
 - [idp-broker/workstream/idp-auth0-role-division.md](./idp-broker/workstream/idp-auth0-role-division.md):
 - [information-resource-inventory/workstream/vercel-accounts.md](./information-resource-inventory/workstream/vercel-accounts.md): Vercel。MFA の再アナウンスを週明けに。その後 jadd_studio3・fleet-ops を Git 連携に移す
+- [information-resource-inventory/workstream/supabase-db-access.md](./information-resource-inventory/workstream/supabase-db-access.md): Supabase の DB への直接の接続経路。起票した（vercel-accounts からの派生）
 
 ## 待ち・保留
 
