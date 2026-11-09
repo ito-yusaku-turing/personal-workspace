@@ -221,6 +221,28 @@ main の直近 100 コミットの作者を GitHub のユーザー名で照合�
 
 devin のコミットが通るかは分からない（renovate[bot] は通る）。fleet-ops では 2 割近くを占めるので、試す必要がある。
 
+### 席の数と費用の試算（2026-11-09）
+
+jadd_studio3 で、直近 3 か月（2026-08-09〜11-09）に merge された PR を GitHub の API で集計した。合計 648 件で、作者は人が 20 名、ほかに devin-ai-integration[bot] が 97 件。Git 連携が見る作者は squash の main のコミットの作者で、PR の作者と同じなので、PR の作者で数えた。
+
+- チームにいる 9 名: ebiebix 128・ito-yusaku-turing 58・shuhei-tsukamoto 34・graph226 34・rary21 19・colum2131 12・Daiki-Shiotsuka 11・MasahiroYasumoto 8・yamashush 5
+- チームにいない 11 名（PR は合わせて 179 件）: ensan-hcl 50・yutyan0119 44・ibaiGorordo 23・Masakichi210 16・koukyo1994 10・inuex35 5・abemii2 2・keishihara 1・katsuster 1・hakubishin3 1・Rozk12 1
+
+課金対象は Owner・Member・Developer の席（Viewer は無料）。基本料金 $20 に 1 席が含まれるので、月額は $20 × 席の数。
+
+| 場合 | 席の数 | 月額 |
+|---|---|---|
+| いま（Owner 4・Member 14・共有アカウント 1。Viewer はいない） | 19 | $380 |
+| 共有アカウントを消す | 18 | $360 |
+| ＋ jadd_studio3 の PR が 5 件以上の 6 名を足す | 24 | $480 |
+| ＋ jadd_studio3 のチームにいない 11 名を全員足す | 29 | $580 |
+| ＋ fleet-ops のチームにいない 2 名（yamaz-aki・maikosuzuki-5）も足す | 31 | $620 |
+| 11/6 の方針のまま（席を足さず、BLOCKED を受け入れる） | 18 | $360。直近 3 か月の PR の約 3 割（179 / 648 件）が BLOCKED になる |
+
+- 確かめていないこと: devin-ai-integration[bot] が作者のコミットが通るか（「試して確かめること」）。チームにいる 18 名の中に、デプロイしない人（Viewer に移せる人）がいるか。調べるには、Git 連携でデプロイしているほかのプロジェクトの作者も見る必要がある。
+- GitHub のアカウントの持ち主の推定（ensan-hcl＝三輪さん、koukyo1994＝荒井さん、inuex35＝井上さん、abemii2＝阿部さん、Masakichi210＝川村さんなど）は、コミットの名前とメールから推した。hakubishin3 が誰かは分からない。
+- 席を足すか、BLOCKED を受け入れるかは、まだ決めていない。
+
 ### GitHub Actions でしかしていないこと（精査の結果）
 
 jadd_studio3（`deploy.yml`）:
