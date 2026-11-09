@@ -1,143 +1,135 @@
-# 原本バケットの権限の整理（WORM の導入後の姿と、SCP・RCP で守る範囲）
+# 原本バケットの保護の層と抜け穴（WORM の導入後の姿）
 
-- 作成: 2026-11-06 ／ 伊藤（エージェントが起草）
+- 作成: 2026-11-06 ／ 伊藤（エージェントが起草）。2026-11-09 に、伊藤と合意した捉え方（1 章）で組み直した
 - 親: [S3 バケットのデータ保護 第二弾](../s3-data-protection-2.md)
-- 状態: **たたき台**。Notion に上げる前に、伊藤と整理するための作業資料。決めてほしいことは 7 章
-- 前提: [worm-decisions.md](worm-decisions.md) の D13（削除の運用は先送り）・D14（FullAccess を例外から外す）、G1（完全削除用の権限）・G2（SCP の範囲）。現状は [current-state.md](current-state.md) の 3 章
+- 状態: **たたき台**。Notion に上げる前に、伊藤と整理するための作業資料。決めてほしいことは 6 章
+- 前提: [worm-decisions.md](worm-decisions.md) の D7（古い版には保持をかけない）・D13（削除の運用は先送り）・D14（FullAccess を例外から外す）、G1（完全削除用の権限）・G2（SCP の範囲）。導入後の姿は共有用の資料 [notion-worm-governance-rollout.md](../../documents/notion-worm-governance-rollout.md) の 3 章。現状は [current-state.md](current-state.md) の 3 章
 
 **要点**
 
-- 原本バケットの守りは、**5 つの層**（IAM のポリシー・バケットポリシー・Object Lock・SCP・RCP）でできている。層ごとに「誰に効くか」と「誰が書き換えられるか」が違う。強さは「書き換えられる人がどこにいるか」で決まる（1 章）。
-- 今の設計（手順 D まで）の守りは、ほぼ**バケットポリシー 1 枚**に乗っている。バケットポリシーは tuscenes-prod の中から書き換えられるので、書き換えられる主体が実質の上限になる。
-- **FullAccess を例外から外しても、FullAccess は間接にバケットポリシーを書き換えられる。** FullAccess の中身は AWS 管理ポリシーの `AdministratorAccess` で、IAM を自由に操作できる。deploy のロールを引き受ける（信頼が `767397804933:root`）か、`cdk-hnb659fds-cfn-exec-role-*` という名前のロールを作れば、バケットポリシーの例外を名乗れる（3 章の R2・R3）。**D14 を効かせるには、この 2 つの経路を SCP で塞ぐ必要がある。**
-- 組織のポリシーで有効なのは SCP だけで、**RCP は有効になっていない**（`describe-organization`、2026-11-06）。RCP は、主な禁止を tuscenes-prod の中から外せない層へ移せる。ただし、管理アカウントでポリシーの種類を有効にするところから始める（5 章）。
+- 原本バケットの保護を、**データ → バージョニング → バケットポリシー → Object Lock** の層で捉える。各層の抜け穴は、上の層が塞ぐ（2 章）。
+- **どの層の抜け穴も、最後はバケットポリシー（層 2）に集まる。** 層 2 には上の層が無いので、層 2 の抜け穴（例外の主体・ポリシーを書き換えられる主体・例外を名乗る道）が、管理の対象になる（3 章）。Object Lock（層 3）の抜け穴も、層 2 の文で縛るので、層 2 に戻る（4 章）。
+- 層 2 の抜け穴の多くは、意図して残す**緊急ハッチ**（deploy の経路・完全削除用の権限・root）。塞ぐのではなく、だれが使えて、使ったら気づけるかを管理する。
+- 想定外の**抜け穴**は、**正規でない主体が、ハッチの cfn-exec-role を名乗る道**（X1〜X3）だけ。乗っ取られた主体（要件 7）が、PR もレビューも無しに、deploy の経路と同じ力を得る。これを塞ぐかが、いちばん大きな論点（6 章の 1）。
 
-## 1. 守りの層
+## 1. 捉え方（2026-11-09、伊藤と合意）
 
-| 層 | どこにあるか | 誰に効くか | 効かない相手 | 誰が書き換えられるか |
+1. **保護の抜け穴は、緊急ハッチでもある。** 締め出されたときの戻し道や、意図して消すときの経路は、抜け穴と同じ形をしている。ハッチ（意図して残す）と抜け穴（想定外）を分けて扱う。
+2. **大事なのは、抜け穴が無いことではなく、抜け穴を把握・管理できていること。** 要件（[requirements.md](requirements.md) の 3 章）も、検知（要件 3・9・10・13）と判断の記録（要件 12）を軸にしている。
+3. **抜け穴の抜け穴を辿ると、範囲が際限なく広がる。** S3 バケットの保護を中心に層で捉え、どこまでを範囲にするかを先に決める（5 章）。組織全体の権限の階層は、ここでは扱わない（project:privileged-access）。
+
+ハッチは、次の 4 点で管理する。
+
+| 物差し | 根拠 |
+|---|---|
+| だれが使えるか（名簿があるか） | — |
+| 使ったら即時に通知されるか | 要件 9・10・13 |
+| 判断の記録と、2 人目の確認があるか | 要件 12 |
+| 使うと**すぐ消せる**のか、**30 日の猶予が始まるだけ**か | すぐ消せるハッチほど、強い管理が要る |
+
+## 2. 層と抜け穴
+
+| 層 | 状態 | 守るもの | この層の抜け穴 | 塞ぐ層 |
 |---|---|---|---|---|
-| ① IAM のポリシー（権限セット・ロールのポリシー） | 権限セットは管理アカウント（cdk-apps の `apps/organization-policy`）。ロールは tuscenes-prod | その主体だけ | ほかの主体 | 権限セット: 管理アカウントの deploy（CODEOWNERS の 2 名の承認）。**SSO のロールのポリシー**: tuscenes-prod で IAM を操作できる主体（FullAccess を含む。`DenyReservedPathRoles` は信頼の変更だけを止め、ポリシーの変更は止めない） |
-| ② バケットポリシー | tuscenes-prod の各バケット（cdk-apps の `packages/original-bucket-guard`） | tuscenes-prod の中の全員と、ほかのアカウント | 例外にした主体。root と管理アカウントの `S3UnlockBucketPolicy` には、ポリシーの削除を止められない（AWS の仕様） | 例外の主体（`DenyProtectionRemoval` の例外）、deploy のロール（CloudFormation）、root、管理アカウント |
-| ③ Object Lock（バージョンの保持） | 各バージョン | 全員（root も） | ガバナンスモードでは、迂回の権限を持つ主体 | 保持の変更の権限（`s3:PutObjectRetention`）と迂回の権限を持つ主体。②で絞る |
-| ④ SCP | 管理アカウント（`apps/organization-policy` の `iam-guardrails` など） | tuscenes-prod の主体（root を含む） | 管理アカウントの主体、サービスにリンクされたロール、ほかのアカウントの主体 | 管理アカウントの管理者、organization-policy の deploy |
-| ⑤ RCP（未導入） | 管理アカウント | tuscenes-prod のリソース（S3 など）へのリクエスト。ほかのアカウントの主体からのものも含む（ドキュメントによる） | サービスにリンクされたロール（ドキュメントによる・要確認） | ④と同じ |
+| 0. データ | — | — | 通常の削除・上書き | 層 1（古い版が残るので戻せる） |
+| 1. バージョニング | 導入済み（2026-10-20） | 上書き・削除されても、古い版が残る | ① 古い版の削除（`s3:DeleteObjectVersion`）、② ライフサイクルで古い版を失効させる、③ バージョニングの停止、④ バケットの削除 | 層 2（①④ は `DenyIrreversibleDelete`、②③ は `DenyProtectionRemoval`） |
+| 2. バケットポリシー | 導入済み（2026-10-26） | 層 1 の抜け穴を、例外の主体以外に禁じる | ⑤ 例外の主体、⑥ ポリシーを書き換えられる主体、⑦ 例外を名乗る道 | **無い（最上位）**。3 章で管理する |
+| 3. Object Lock | これから（手順 A〜D） | 最新の版を、イベントホールドを解除して 30 日たつまで消せなくする | ⑧ 迂回、⑨ イベントホールドの解除、⑩ 既定の保持設定の変更 | 層 2（⑧ は `DenyGovernanceBypass`、⑨ は `DenyLockChange`、⑩ は `DenyIrreversibleDelete`）。4 章 |
 
-- ①②は tuscenes-prod の中から書き換えられる。④⑤は管理アカウントからしか書き換えられない。**守りを④⑤に移すほど、tuscenes-prod の中の強い主体（FullAccess・deploy のロール・root）が乗っ取られても外せなくなる。** 代わりに、書き換えの力が管理アカウントに集まる（project:privileged-access の頂点の群）。
-- 管理アカウントの organization-policy の deploy は、CODEOWNERS（2 名のどちらか）の承認が要り、deploy のロールは `main` の専用の workflow からしか引き受けられない（`apps/organization-policy/README.md`）。今ある経路のうち、2 人目の確認がいちばん強くかかっている。
+- Object Lock は、層 2 が保たれている間は「解除してから 30 日」の猶予を足す。層 2 を書き換えられる主体に対しては、独立した守りにならない（迂回の禁止を外せば迂回できる）。
+- 古い版（最新でない版）には保持をかけない（D7）。古い版は層 2 だけで守る。
 
-## 2. 主体
+## 3. 層 2 の抜け穴の台帳
 
-| 主体 | 中身 | 人・入り方 |
-|---|---|---|
-| 書き込み元のシステム・一般の利用者 | 各アプリのロール、`TeamE2E` などの権限セット | 多数（current-state.md の 3.3・3.4） |
-| FullAccess | 権限セット。AWS 管理ポリシー `AdministratorAccess`＋td1-raw・tuscenes-raw の `s3:DeleteObject*` の Deny（インライン） | 14 名（Group 3・Group 4 の正社員） |
-| **完全削除用の権限** | 保護されたバージョンを最終的に消すために、保護を外せる権限。今は SSO の `AWSAdministratorAccess`（Control Tower の既定の権限セット） | 山本 修平（`Engineers`）。ほかに 1〜2 名の見込み |
-| ジョブのロール `central/original-bucket-lock-batch`（予定） | S3 Batch Operations だけが引き受ける。保持の変更ができる | 人は入れない。ロールを渡せるのは完全削除用の権限だけ（予定） |
-| deploy のロール | `cdk-hnb659fds-deploy-role-*`（信頼は `767397804933:root`。アカウントの中のだれでも引き受けを試せる）→ CloudFormation → `cdk-hnb659fds-cfn-exec-role-*`（`AdministratorAccess`） | 正規の経路は GitHub Actions（cdk-apps の `main` へのマージ）。ほかに FullAccess・AWSAdministratorAccess・Databricks のロール 1 本・Amplify のロール 6 本などが引き受けられる（current-state.md の 3.2） |
-| tuscenes-prod の root | パスワードあり・MFA なし | CorpIT に削除を依頼中（[aws-root-credentials.md](../aws-root-credentials.md)） |
-| 管理アカウントの管理者 | SCP・RCP・権限セットを変えられる。`AWSControlTowerExecution` で tuscenes-prod に入れる。root の一元管理の `S3UnlockBucketPolicy` | project:privileged-access の頂点の群 |
+### 3.1 緊急ハッチ（意図して残す）
 
-## 3. 原本バケットを壊す経路と、今の設計での塞がり方
+手順 D まで終えた姿。⑤（例外の主体）と ⑥（ポリシーを書き換えられる主体）は、ここではまとめて扱う。
 
-「今の設計」は、共有用の資料の手順 D まで終えた姿（バケットポリシーの 4 文・ジョブのロール・SCP `DenyPassLockBatchRole`）。
-
-| # | 経路 | だれが | 今の設計で | 塞ぐ層の候補 |
-|---|---|---|---|---|
-| R1 | 自分の権限で、古いバージョンを消す・保持を外す・バケットの設定を変える | FullAccess ほか | **塞がる**（② の 4 文） | — |
-| R2 | deploy のロールを引き受け、CloudFormation でバケットポリシーを書き換える（迂回の禁止を外す → 迂回して消す） | FullAccess、Databricks・Amplify のロールなど、deploy のロールを引き受けられる主体 | **開いている**。変更は通知される | ④ deploy のロールの引き受けを、GitHub Actions のロール以外に禁じる（S1） |
-| R3 | `cdk-hnb659fds-cfn-exec-role-*` という名前のロールを作る、または今のロールの信頼を書き換えて、自分で引き受ける。② の例外を名乗れる | IAM を操作できる主体（FullAccess など） | **開いている** | ④ `cdk-hnb659fds-*` のロールの作成・削除・信頼の変更を禁じる（S2。TODO 24） |
-| R4 | `cdk-apps` の `main` に、バケットポリシーを書き換える変更をマージする | マージできる人 | **開いている**。PR のレビューと通知で気づく | 運用（レビュー）。⑤に移せば、②を書き換えても守りは外れない（S4〜S6） |
-| R5 | 自分でロールを作り、Batch Operations で保持を外す | FullAccess ほか | **塞がる**（② の `DenyLockChange` は主体の ARN で照合） | — |
-| R6 | ジョブのロールを渡して、保持を外すジョブを作る | FullAccess ほか | **塞がる**（④ `DenyPassLockBatchRole`。予定） | — |
-| R7 | ジョブのロールの中身を書き換える | FullAccess ほか | **塞がる**（④ 既存の `DenyCentralRoleChanges`） | — |
-| R8 | 完全削除用の権限で、バケットポリシーから迂回の禁止を外し、迂回して消す（30 日を待たずに） | 完全削除用の権限 | **開いている**。変更は通知される | ⑤ 迂回を RCP で全員に禁じる（S4） |
-| R9 | 完全削除用の権限で、ジョブで保持を外し、30 日待って消す | 完全削除用の権限 | **想定どおりの経路**。解除は通知される | — |
-| R10 | 通知の部品（EventBridge のルール・アラーム・SNS）を外してから、R2〜R4 を行う | FullAccess、deploy のロール | **開いている**。部品の変更も通知するが、最後に残った部品を外す操作は通知されない | ④ 通知の部品の変更を、deploy のロール以外に禁じる（S7）。ただし R2・R3 が開いていると効かない |
-| R11 | root で、バケットポリシーを消す | tuscenes-prod の root | **開いている**。root の認証情報の削除を依頼中 | root の認証情報を消す（別の案件）。④ で root の S3 の操作を禁じる（S8） |
-| R12 | 管理アカウントから、SCP・RCP を外す、`S3UnlockBucketPolicy` でポリシーを消す、`AWSControlTowerExecution` で入る | 管理アカウントの管理者 | **開いている**（tuscenes-prod の中の層では止められない） | 範囲の外。project:privileged-access で扱う |
-| R13 | 自分の SSO のロール（`AWSReservedSSO_FullAccess_*`）のポリシーから、td1-raw・tuscenes-raw の Deny を外す | FullAccess | **開いている**。ただし ② が残るので、古いバージョンは消せない（通常の削除ができるようになるだけ） | ④ SSO のロールのポリシーの変更を禁じる（S9） |
-
-- **D14（FullAccess を例外から外す）で塞がるのは R1 だけ。** FullAccess は R2・R3 で、間接にバケットポリシーを書き換えられる。FullAccess を外す効果を出すには、少なくとも S1・S2 が要る。
-- R2・R3 は、FullAccess のほか、乗っ取られた Databricks のロールや Amplify のロールにも開いている（current-state.md の 3.2）。
-
-## 4. 目標の姿: だれが何をできるか
-
-手順 D に S1・S2 を足した姿を案とする（S4 以降は 7 章で決める）。
-
-| 操作 | 書き込み元・一般の利用者 | FullAccess | 完全削除用の権限 | ジョブのロール | deploy のロール（GitHub Actions） | 守る層 |
+| # | ハッチ | できること | だれが | 通知 | 判断の記録・2 人目 | 使うと |
 |---|---|---|---|---|---|---|
-| 読み取り・書き込み・上書き・通常の削除 | 今の権限のまま | できる（td1-raw・tuscenes-raw の通常の削除を除く） | できる | — | — | ① |
-| イベントホールドの解除・付け直し | できない | できない | ジョブを作れば、ジョブのロールが行う | **できる** | できない | ②（`DenyLockChange`）・④（`DenyPassLockBatchRole`） |
-| 迂回して消す | できない | できない | できない（※） | できない | できない（※） | ②（`DenyGovernanceBypass`）。S4 で ⑤ |
-| 保護されていないバージョンを指定した削除 | できない | できない | **できる** | — | できない | ②（`DenyIrreversibleDelete`） |
-| 既定の保持設定の変更 | できない | できない | できる | — | できない | ② |
-| バケットの設定の変更（ポリシー・ライフサイクル・バージョニング） | できない | できない（S1・S2 で間接の経路も塞ぐ） | できる | — | できる | ②・④（S1・S2） |
-| deploy のロールの引き受け | — | できない（S1） | できない（S1）※要検討 | — | できる | ④（S1） |
+| H1 | **deploy の経路**（cfn-exec-role。`DenyProtectionRemoval` の例外） | バケットの設定の変更（ポリシー・ライフサイクル・バージョニング） | cdk-apps の `main` にマージできる人（GitHub Actions の deploy） | される（バケットの設定の変更。拒まれた試みも） | PR とレビュー | 迂回の禁止を外せば、**すぐ消せる** |
+| H2 | **完全削除用の権限**（今は AWSAdministratorAccess。`DenyIrreversibleDelete`・`DenyProtectionRemoval` の例外、ジョブのロールを渡せる） | 保護されていない版の削除、既定の保持設定の変更、バケットの設定の変更、ジョブでのイベントホールドの解除（H5） | 山本 修平さんほか 1〜2 名の見込み（アクション 2-1） | される | **無い**（削除の運用は先送り。D13） | 解除なら 30 日の猶予。迂回の禁止を外せば、**すぐ消せる**（共有用の資料の 4.4 の急ぎの戻し方も、この道） |
+| H3 | **FullAccess**（暫定の例外） | H2 と同じ（td1-raw・tuscenes-raw の古い版の削除を除く） | 14 名 | される | 無い | **手順 D（D14）で例外から外す**。外すまでは H2 と同じ |
+| H4 | **root・管理アカウント**（AWS の仕様で、バケットポリシーで止められない） | バケットポリシーの削除（root の `DeleteBucketPolicy`、管理アカウントの `S3UnlockBucketPolicy`） | tuscenes-prod の root の鍵を持つ人、管理アカウントの管理者 | される（バケットの設定の変更） | 無い | 締め出されたときの戻し道。ポリシーを消せば、**すぐ消せる**。tuscenes-prod の root は認証情報の削除を依頼中（[aws-root-credentials.md](../aws-root-credentials.md)） |
 
-- ※ バケットポリシーを書き換えられる主体（完全削除用の権限と deploy のロール）は、迂回の禁止を外せば迂回できる（R4・R8）。S4（RCP）を入れれば、tuscenes-prod の中からはだれもできなくなる。
-- 完全削除用の権限が「保護されたバージョンを消す」には、ジョブで解除 → 30 日待つ → バージョンを指定して消す（またはライフサイクル）、の順になる（R9）。
-- S1 で、手元からの `cdk diff` に影響が出るおそれがある。`cdk diff` は deploy 済みのテンプレートを deploy のロールで読む。新しい版の CDK は、引き受けられないと lookup のロールに切り替えるとされるが、確かめていない（8 章）。止まるなら、diff は GitHub Actions で取る運用にする。
+### 3.2 想定外の抜け穴: ⑦ 例外を名乗る道
 
-## 5. SCP・RCP の候補
+バケットポリシーの例外は、主体の ARN で照合している。deploy の経路の例外は `arn:aws:iam::767397804933:role/cdk-hnb659fds-cfn-exec-role-767397804933-*`（[bucket-policy/statements.json](bucket-policy/statements.json)）。この ARN を、正規の経路（GitHub Actions）以外から名乗れる道が 3 つある。
 
-| # | 層 | 中身 | 塞ぐ経路 | 止まるもの・注意 | 例外 |
+| # | 道 | だれが | 通知 | 塞ぐ手段の案（SCP） | 止まるもの |
 |---|---|---|---|---|---|
-| S1 | ④ SCP | deploy のロール（`cdk-hnb659fds-deploy-role-*`）の引き受け（`sts:AssumeRole`）を禁じる | R2 | 手元での `cdk diff`・`cdk deploy`（deploy は Actions だけの運用なので影響は diff だけ）。Databricks・Amplify のロールの抜け道もまとめて塞がる。CDK の lookup のロール・file-publishing のロールは別に考える | GitHub Actions の deploy のロール、`AWSControlTowerExecution` |
-| S2 | ④ SCP | `cdk-hnb659fds-*` のロールの作成・削除・信頼の変更・ポリシーの変更を禁じる（`DenyReservedPathRoles` と同じ形） | R3 | `cdk bootstrap` のやり直し（bootstrap のスタックの更新）。だれがどう行うかを決める | `AWSControlTowerExecution`。bootstrap を行う主体 |
-| S3 | ④ SCP | ジョブのロールを渡す操作（`iam:PassRole`）を禁じる（**設計済み**の `DenyPassLockBatchRole`） | R6 | — | 完全削除用の権限 |
-| S4 | ⑤ RCP | 原本バケットでの迂回（`s3:BypassGovernanceRetention`）を全員に禁じる | R4・R8 | 日数を誤ったときに直すには、管理アカウントで RCP を外す必要がある（共有用の資料の 4.4） | なし |
-| S5 | ⑤ RCP | 原本バケットでの保持の変更（`s3:PutObjectRetention`・`s3:PutObjectLegalHold`）を、ジョブのロール以外に禁じる | R4・R5（② の `DenyLockChange` を外しても効く） | ② と二重になる。ジョブのロールの ARN の照合を RCP でも確かめる | ジョブのロール |
-| S6 | ⑤ RCP | 原本バケットでの、バージョンを指定した削除・バケットの削除・既定の保持設定の変更を、完全削除用の権限以外に禁じる | R4（② の `DenyIrreversibleDelete` を外しても効く） | ② と二重になる | 完全削除用の権限 |
-| S7 | ④ SCP | 通知の部品（ルール・アラーム・SNS のトピック・ロググループ）の変更・削除を禁じる | R10 | 部品を変える deploy。S1・S2 が無いと、deploy のロールを通して外せる | deploy のロール |
-| S8 | ④ SCP | tuscenes-prod の root の、S3 のバケットの設定の変更を禁じる | R11 | root の一元管理と、root の認証情報の削除（別の案件）と重なる。Control Tower の root の制限で代えられるかを見る | — |
-| S9 | ④ SCP | SSO のロール（`/aws-reserved/`）のポリシーの変更を禁じる（今の `DenyReservedPathRoles` に足す） | R13 | Identity Center は service-linked role で変えるので止まらない（README の記述） | `AWSControlTowerExecution` |
+| X1 | deploy のロール（`cdk-hnb659fds-deploy-role-*`）を引き受け、CloudFormation でバケットポリシーを書き換える。信頼が `767397804933:root` なので、アカウントの中でだれでも引き受けを試せる | FullAccess・AWSAdministratorAccess・Databricks のロール 1 本・Amplify のロール 6 本など（current-state.md の 3.2） | 引き受けは通知されない。最後のバケットポリシーの変更は通知される | deploy のロールの引き受け（`sts:AssumeRole`）を、GitHub Actions の deploy のロールと `AWSControlTowerExecution` 以外に禁じる | 手元からの `cdk diff`（止まるかは未確認。7 章） |
+| X2 | cfn-exec-role を自分で CloudFormation に渡し（`iam:PassRole`）、スタックでバケットポリシーを書き換える。deploy のロールを通らない | `iam:PassRole` とスタックの作成を持つ主体（FullAccess・AWSAdministratorAccess など。全主体の判定は [iam-scan/escalation.py](iam-scan/escalation.py)） | 同上 | cfn-exec-role を渡す操作を、deploy のロールと `AWSControlTowerExecution` 以外に禁じる | 無い見込み（正規の deploy では deploy のロールが渡す。7 章で確かめる） |
+| X3 | `cdk-hnb659fds-cfn-exec-role-767397804933-*` という名前のロールを作る、または今の cfn-exec-role の信頼を書き換えて、自分で引き受ける。今の SCP `iam-guardrails` が守るのは `/aws-reserved/` のパスのロールだけで、パスが `/` のこのロールは守られていない | IAM を操作できる主体（FullAccess・AWSAdministratorAccess など） | 同上（ロールの作成・信頼の変更は、要件 9 では通知の対象。今の設計では拾っていない） | `cdk-hnb659fds-*` のロールの作成・削除・信頼の変更・ポリシーの変更を禁じる（TODO 24。`DenyReservedPathRoles` と同じ形） | `cdk bootstrap` のやり直し。だれがどう行うかを決める |
 
-**RCP について（ドキュメントによる。3-3 で確かめる）**
+- X1〜X3 は、H1 と同じ力（バケットの設定の変更 → 迂回の禁止を外してすぐ消す）を、**PR もレビューも無しに**得る道。脅威の範囲（要件 7）の「乗っ取られた主体」が、ここを使える。
+- D14（FullAccess を例外から外す）で塞がるのは、FullAccess が H3 として直接書き換える道だけ。X1〜X3 が開いている間は、FullAccess は間接に書き換えられる。**D14 の効果を出すには、X1〜X3 を同時か先に塞ぐ必要がある。**
 
-- 組織で RCP のポリシーの種類を有効にする必要がある（今は SCP だけ。2026-11-06 に `describe-organization` で確かめた）。
-- RCP は、メンバーアカウントのリソース（S3 を含む）へのリクエストに効き、ほかのアカウントの主体や root からのリクエストも制限できる。サービスにリンクされたロールには効かない。管理アカウントのリソースには効かない。
-- RCP は「上限」なので、許可は与えない。Deny の書き方は SCP と同じで、`aws:PrincipalArn` の条件で例外を書ける。
-- AWS のサービスの主体（CloudTrail・Inventory の書き込み先など）からのリクエストにも効くので、原本バケットに限った Deny にし、`aws:PrincipalIsAWSService` などで巻き込みを避ける。
+## 4. 層 3 の抜け穴の台帳
 
-**組み合わせの案**
-
-| 案 | 中身 | 残る経路 | 手間 |
+| 抜け穴 | 層 2 の文 | ハッチ | そのほかの道と塞がり方 |
 |---|---|---|---|
-| A. 最小 | 今の設計（S3）＋ S1・S2 | R4・R8・R10〜R12 | SCP の文を 2 つ足すだけ。S1 の diff の運用の変更 |
-| B. 中 | A ＋ S4（迂回だけ RCP） | R4（ポリシーの書き換えで保持の変更・削除の禁止は外せるが、迂回はできない）・R10〜R12 | RCP の有効化。日数の誤りを直す手順が管理アカウントの作業になる |
-| C. 大 | B ＋ S5・S6・S7・S9 | R11・R12 | 二重の管理。例外の主体（ジョブのロール・完全削除用の権限）の ARN を、② と ⑤ の 2 か所で揃える |
+| ⑧ 迂回（`s3:BypassGovernanceRetention`） | `DenyGovernanceBypass`（例外なし） | 無い | 層 2 を書き換えられる主体（H1・H2・H4、X1〜X3）は、文を外して迂回できる。層 2 に戻る |
+| ⑨ イベントホールドの解除（`s3:PutObjectRetention`・`s3:PutObjectLegalHold`） | `DenyLockChange`（例外はジョブのロールだけ） | **H5: ジョブのロール**（`/central/original-bucket-lock-batch`）。ロールを渡せるのは H2 だけ（SCP `DenyPassLockBatchRole`、予定）。解除の後 30 日の猶予。解除は通知される | 自分で作ったロールでジョブを流す → 例外の ARN でないので拒まれる。ジョブのロールの中身を変える → SCP `DenyCentralRoleChanges`（既存）で拒まれる。**導入の途中（手順 B〜D）は、FullAccess なども解除できる**（共有用の資料の 5.1） |
+| ⑩ 既定の保持設定の変更（`s3:PutBucketObjectLockConfiguration`） | `DenyIrreversibleDelete`（例外は H2） | H2 | 層 2 に戻る |
 
-- **エージェントの案は B。** A は D14 を効かせるための最低限で、B で「バケットポリシーを書き換えても 30 日を待たずに消す道」が tuscenes-prod の中から無くなる。C は、完全削除用の権限を専用に新しく作るか（6 章）が決まってから考えるのがよい（例外の ARN が変わるため）。
+- H5 の鍵（ジョブのロールを渡せること）は、SCP で H2 に絞る。SCP を書き換えられる主体は範囲の外（5 章）。
 
-## 6. 完全削除用の権限
+## 5. 範囲
 
-| 案 | 中身 | よい点 | 気になる点 |
-|---|---|---|---|
-| a. `AWSAdministratorAccess` のまま | Control Tower の既定の権限セット。今の 1〜3 名 | 新しく作るものが無い | 持つ人が、ほかの用途でも日常的に使う（山本さんは 10-30・11-02 に読み取りで使った）。持つ人が頂点の群の人（GitHub の owner・GCP）と重なる。管理画面で直接した割り当てが見えていない |
-| b. 専用の権限セットを新しく作る | 例: 完全削除に要る権限（ジョブのロールを渡す・Batch Operations のジョブの作成・バージョンを指定した削除）だけを持つ。ふだんから割り当てる | 権限が狭い。② ④ の例外を、これ 1 つに向けられる。使われたら必ず完全削除の作業とわかるので、サインインを通知にできる | 新しい権限セットと名簿の管理が要る（organization-policy の承認） |
-| c. b を、使うときだけ割り当てる | ふだんはだれにも割り当てず、要るときに organization-policy の PR で割り当てる | PR が判断の記録と 2 人目の確認になる（要件 12） | 割り当ての PR の承認者（CODEOWNERS の 2 名）が、実質の承認者になる |
+| 区分 | 中身 |
+|---|---|
+| **範囲内** | 層 1〜3 の抜け穴。層 2 のハッチ（H1〜H4）と、ハッチの鍵をだれが持つか（H5 を含む）。⑦ 例外を名乗る道（X1〜X3） |
+| **書き留めて打ち切る** | 通知の仕組み（ルール・アラーム・SNS）を外してから層 2 を書き換える道。通知の仕組みの変更も通知するが、最後の 1 つを外す操作は通知されない（共有用の資料の 3.6）。これ以上は追わない |
+| **範囲外** | X1〜X3 を塞ぐ手段（SCP など）を、さらにだれが書き換えられるか。管理アカウント・IdP・GitHub の権限（project:privileged-access）。FullAccess が自分の SSO のロールから td1-raw・tuscenes-raw の Deny を外す道（層 0 の話で、層 1 が守る） |
 
-- 10-30 に撤回の方向にした BreakGlass（D1）は「許可を待たずに使える昇格」で、要件 12（2 人目の確認）とぶつかった。完全削除は急がない（30 日かかる）ので、c はこのぶつかりが無い。
-- **エージェントの案は c（少なくとも b）。** 案 c なら、完全削除用の権限を「名簿」ではなく「PR」で管理できる。
+## 6. 決めてほしいこと
 
-## 7. 決めてほしいこと
+1. **X1〜X3 を塞ぐか、受け入れて通知で管理するか。** エージェントの案は**塞ぐ**（3 つとも SCP）。乗っ取られた主体が、レビュー無しに H1 と同じ力を得る道で、D14 の前提でもあるため。塞ぐなら、D14 と同じ手順 D に入れる。
+2. **H1・H2 の「すぐ消せる」を受け入れるか。** 迂回の禁止を RCP にも重ねる（バケットポリシーを書き換えても迂回できなくする）と、H1・H2 は「30 日の猶予」だけのハッチになる。代わりに、急ぎの戻し方（共有用の資料の 4.4）が、管理アカウントで RCP を外す作業になり、ハッチが範囲の外へ移る。RCP は組織で有効になっていない（2026-11-06 に `describe-organization` で確認）ので、有効にするところから始まる（CorpIT・organization-policy の CODEOWNERS と相談）。エージェントの案は、**手順 D では受け入れて通知で管理し、RCP は別の手順 E として後で決める**。
+3. **H2（完全削除用の権限）の形**（G1）。
+   - a. AWSAdministratorAccess のまま: 新しく作るものが無い。持つ人がほかの用途でも日常的に使い、名簿も見えていない。
+   - b. 専用の権限セットを作り、ふだんから割り当てる: 権限が狭く、層 2 の例外をこれ 1 つに向けられる。使われたら完全削除の作業と分かる。
+   - c. b を、使うときだけ organization-policy の PR で割り当てる: PR が判断の記録と 2 人目の確認になる（要件 12）。H2 の「記録・2 人目が無い」が埋まる。
+   - エージェントの案は **c**（少なくとも b）。完全削除は急がない（30 日かかる）ので、割り当てを待っても困らない。
+4. **H3（FullAccess）を外すまでの扱い。** 手順 B・C の作業は FullAccess で行うので、外すのは手順 D（D14）。それまでは、FullAccess（14 名）が H2 と同じハッチで、イベントホールドも解除できる。この期間は通知が主な守りになることを、共有用の資料に書く。
 
-1. 3 章の経路の見立て（とくに R2・R3 で、FullAccess を例外から外しても間接に書き換えられること）が合っているか。
-2. SCP・RCP の組み合わせ（5 章の A〜C）。手順 D に入れるもの。
-3. S1 を入れるなら、手元での `cdk diff` をやめ、GitHub Actions の diff にしてよいか。
-4. 完全削除用の権限の案（6 章の a〜c）。
-5. RCP を有効にするか（管理アカウントの作業。CorpIT・organization-policy の CODEOWNERS と相談）。
+## 7. 確かめること
 
-## 8. 確かめること
-
-- [ ] S1: CDK の deploy の経路で、GitHub Actions 以外に deploy のロールを使うもの（lookup のロール・file-publishing のロール・image-publishing のロールの扱い、ほかのリポジトリからの deploy）。CloudTrail の `AssumeRole` を、deploy のロールについて 90 日分引く。
-- [ ] S2: `cdk bootstrap` を最後にだれがいつ行ったか（`CDKToolkit` のスタックのイベント）。
-- [ ] RCP の仕様（root・サービスにリンクされたロール・AWS のサービスの主体への効き方、大きさの上限、`aws:PrincipalArn` での例外の書き方）。
+- [ ] X1: deploy のロールを、GitHub Actions 以外から引き受けているもの（ほかのリポジトリからの deploy、lookup のロール・file-publishing のロール・image-publishing のロールの扱い）。CloudTrail の `AssumeRole` を 90 日分引く。手元の `cdk diff` が止まるか。
+- [ ] X2: 正規の deploy で、cfn-exec-role を渡しているのが deploy のロールだけか（CloudTrail の `CreateChangeSet`・`PassRole`）。
+- [ ] X3: `cdk bootstrap` を最後にだれがいつ行ったか（`CDKToolkit` のスタックのイベント）。
+- [ ] X3: ロールの作成・信頼の変更を、通知で拾えているか（要件 9）。
+- [ ] H2: AWSAdministratorAccess を持つほかの 1〜2 名（アクション 2-1）。案 b・c なら、Batch Operations のジョブの作成に要る権限の最小の組。
 - [ ] tuscenes-prod に付いている SCP の全体（管理アカウントの権限が要る。Control Tower のガードレールを含む）。
-- [ ] 完全削除用の権限の案 b・c で、Batch Operations のジョブの作成に要る権限の最小の組。
+- [ ] RCP の仕様（6 章の 2 を検討するとき。root・サービスにリンクされたロール・AWS のサービスの主体への効き方、`aws:PrincipalArn` での例外の書き方）。
+
+## 付録: 2026-11-06 版の番号との対応
+
+11-06 版は、経路を R1〜R13、塞ぐ手段を S1〜S9 で呼んでいた。workstream の 11-06 の記録はこの番号を使っている。
+
+| 11-06 版 | この版 |
+|---|---|
+| R1（自分の権限で古い版を消す・設定を変える） | H3（D14 で外す） |
+| R2（deploy のロールを引き受ける） | X1 |
+| —（11-09 に見つけた。cfn-exec-role を自分で渡す） | X2 |
+| R3（cfn-exec-role の名前のロールを作る・信頼を変える） | X3 |
+| R4（cdk-apps の `main` にマージする） | H1 |
+| R5〜R7（自分のロール・ジョブのロールを渡す・ジョブのロールを変える） | 4 章の ⑨（塞がる） |
+| R8（完全削除用の権限で迂回の禁止を外す） | H2 の「すぐ消せる」 |
+| R9（完全削除用の権限で解除して 30 日待つ） | H2・H5（正規の経路） |
+| R10（通知の部品を外す） | 5 章の「書き留めて打ち切る」 |
+| R11（root） | H4 |
+| R12（管理アカウント） | H4（`S3UnlockBucketPolicy`）と、範囲外 |
+| R13（SSO のロールのポリシーを変える） | 範囲外（層 1 が守る） |
+| S1・S2 | X1・X3 を塞ぐ手段 |
+| S3（`DenyPassLockBatchRole`） | H5 の鍵 |
+| S4（迂回の禁止を RCP にも） | 6 章の 2 |
+| S5・S6（層 2 の文を RCP にも重ねる）、S7（通知の部品）、S8（root）、S9（SSO のロール） | 外した。S5・S6 は層 2 の二重化、S7〜S9 は範囲の外か、打ち切ったもの |
 
 ## 出典
 
-- cdk-apps（2026-11-06 の `main`）: `apps/organization-policy/lib/iam-guardrails.ts`（SCP `iam-guardrails` の 8 文）、`lib/permission-sets.ts`（FullAccess の中身）、`README.md`（deploy の承認と、SCP の効かない範囲）
+- cdk-apps（2026-11-06 の `main`、`bf609590`）: `apps/organization-policy/lib/iam-guardrails.ts`（SCP `iam-guardrails`。`/aws-reserved/` のロールを守る文）、`lib/permission-sets.ts`（FullAccess の中身は `AdministratorAccess`）、`README.md`（deploy の承認と、SCP の効かない範囲）
+- [bucket-policy/statements.json](bucket-policy/statements.json)（層 2 の 2 文と例外の ARN）
 - tuscenes-prod の ReadOnly（2026-11-06）: deploy のロールと cfn-exec-role の信頼と付いているポリシー、`organizations describe-organization`（有効なポリシーの種類は SCP だけ）
-- [current-state.md](current-state.md) の 3 章（例外を名乗れる主体）、[worm-quickwin-design.md](worm-quickwin-design.md) の 2 章・2.1
+- [current-state.md](current-state.md) の 3 章（例外を名乗れる主体）、共有用の資料の 3 章・5.1

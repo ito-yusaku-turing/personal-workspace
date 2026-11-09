@@ -1,7 +1,7 @@
 # S3 バケットのデータ保護 第二弾（権限設計のアップグレード）
 
 - 開始: 2026-10-20
-- 状態: **WORM の導入の権限の整理のたたき台を報告し、伊藤の返事待ち**（2026-11-06。[permission-model.md](s3-data-protection-2/permission-model.md) の 7 章の 1〜5）。決まったら共有用の資料に反映してから Notion へ。全体のアクションは [worm-action-list.md](s3-data-protection-2/worm-action-list.md)。権限の頂点の問題は別の案件（project:privileged-access）
+- 状態: **WORM の導入の権限を、バケットの保護の層とハッチ・抜け穴で整理し直した。6 章の決めることの返事待ち**（2026-11-09。[permission-model.md](s3-data-protection-2/permission-model.md)）。決まったら共有用の資料に反映してから Notion へ。全体のアクションは [worm-action-list.md](s3-data-protection-2/worm-action-list.md)。権限の頂点の問題は別の案件（project:privileged-access）
 - 所属: project:aws-data-protection（2026-10-26 に `~/docs/workstream/` から移した）
 - 前段（第一弾、完了）:
   - [走行データ消失リスクへの対応](done/raw-data-security.md)（バケットの種別と処遇、裁定の正本）
@@ -731,3 +731,10 @@
   - **決まったら**: 共有用の資料（[notion-worm-governance-rollout.md](../documents/notion-worm-governance-rollout.md)）の 3.2・3.6・5.1・7 章に反映 → Notion のコメント・編集を読んで取り込む → 伊藤の許可を得て Notion を更新（アクション 1-1）→ チームの Go サイン（1-2）。
   - **伊藤の作業（変わらず）**: 検証用のバケットの cleanup（5-1）、AWSAdministratorAccess のほかの 1〜2 名の確認（2-1）、denso-raw の出どころを安本さんに確認（5-2）。
   - **注意**: Notion のページ（<https://app.notion.com/p/40fa93b3e6f2811bb51ffaef3cc970e9>）は、11-06 のミーティングの意見も呼び方の統一もまだ入っていない古い版。ローカルが先に進んでいる。
+- 2026-11-09: 権限の整理の進め方を、伊藤と見直した。
+  - **捉え方（伊藤が決めた）**: 保護の抜け穴は緊急ハッチでもあるので分けて扱う。大事なのは抜け穴が無いことではなく、把握・管理できていること。抜け穴の抜け穴を辿ると範囲が際限なく広がるので、S3 バケットの保護を中心に層（データ → バージョニング → バケットポリシー → Object Lock）で捉えて範囲を決める。組織全体の権限の階層はいったん扱わない。
+  - **整理の結果**: [permission-model.md](s3-data-protection-2/permission-model.md) を全面的に組み直した。どの層の抜け穴も、最後はバケットポリシー（層 2）に集まる。層 2 のハッチは H1（deploy の経路）・H2（完全削除用の権限）・H3（FullAccess、暫定）・H4（root・管理アカウント）、層 3 のハッチは H5（ジョブのロール）。想定外の抜け穴は、正規でない主体が cfn-exec-role を名乗る道 X1〜X3 だけ。11-06 版の R・S の番号との対応は付録。
+  - 新しく見つけた道: **X2（cfn-exec-role を自分で CloudFormation に渡す）**。deploy のロールを通らないので、deploy のロールの引き受けを禁じても塞がらない。10-30 の判定（escalation.py）では見ていたが、11-06 版の表から漏れていた。
+  - 進め方の反省（エージェント）: 要件は検知と記録が軸なのに、11-06 版は経路を「塞がる / 開いている」の二値で書き、ハッチと抜け穴を分けなかった（RCP で迂回を禁じる案が、急ぎの戻し方のハッチを潰すことを書いていなかった）。範囲を決めずに経路を辿り、塞ぐ手段を S1〜S9 まで増やした。手段から入る形は、BreakGlass の提案と撤回（10-29〜30）と同じ。
+  - 導入の順: 先に WORM 化（手順 A〜C）して、あとから抜け穴を塞ぐ順で問題ないことを確かめた。ただし D14 は X1〜X3 を塞ぐのと同時か後にする。後から変えると付け直しになる解除後の日数・モードは、手順 C の前に決める。
+  - **現在地**: permission-model.md の 6 章の 1〜4 が伊藤の返事待ち（X1〜X3 を塞ぐか、H1・H2 の「すぐ消せる」を受け入れるか、H2 の形、H3 を外すまでの扱い）。決まったら、共有用の資料の 3.2・3.6・5.1・7 章に反映する（手順 D に X1〜X3 の SCP、RCP は手順 E、導入の途中の限界）。返事を待つ間にできるのは、7 章の確かめ（ReadOnly。CloudTrail を大量に引くものは伊藤に断ってから）。
