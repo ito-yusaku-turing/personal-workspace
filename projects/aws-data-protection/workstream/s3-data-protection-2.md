@@ -1,7 +1,7 @@
 # S3 バケットのデータ保護 第二弾（権限設計のアップグレード）
 
 - 開始: 2026-10-20
-- 状態: **WORM の導入の権限を、バケットの保護の層とハッチ・抜け穴で整理し直した。6 章の決めることの返事待ち**（2026-11-09。[permission-model.md](s3-data-protection-2/permission-model.md)）。決まったら共有用の資料に反映してから Notion へ。全体のアクションは [worm-action-list.md](s3-data-protection-2/worm-action-list.md)。権限の頂点の問題は別の案件（project:privileged-access）
+- 状態: **WORM の導入の権限を決め、共有用の資料に反映した**（2026-11-09。D15〜D18）。次は Notion のコメント・編集を読んで取り込み、伊藤の許可を得て Notion を更新（アクション 1-1）→ チームの Go サイン（1-2）。全体のアクションは [worm-action-list.md](s3-data-protection-2/worm-action-list.md)。権限の頂点の問題は別の案件（project:privileged-access）
 - 所属: project:aws-data-protection（2026-10-26 に `~/docs/workstream/` から移した）
 - 前段（第一弾、完了）:
   - [走行データ消失リスクへの対応](done/raw-data-security.md)（バケットの種別と処遇、裁定の正本）
@@ -738,3 +738,10 @@
   - 進め方の反省（エージェント）: 要件は検知と記録が軸なのに、11-06 版は経路を「塞がる / 開いている」の二値で書き、ハッチと抜け穴を分けなかった（RCP で迂回を禁じる案が、急ぎの戻し方のハッチを潰すことを書いていなかった）。範囲を決めずに経路を辿り、塞ぐ手段を S1〜S9 まで増やした。手段から入る形は、BreakGlass の提案と撤回（10-29〜30）と同じ。
   - 導入の順: 先に WORM 化（手順 A〜C）して、あとから抜け穴を塞ぐ順で問題ないことを確かめた。ただし D14 は X1〜X3 を塞ぐのと同時か後にする。後から変えると付け直しになる解除後の日数・モードは、手順 C の前に決める。
   - **現在地**: permission-model.md の 6 章の 1〜4 が伊藤の返事待ち（X1〜X3 を塞ぐか、H1・H2 の「すぐ消せる」を受け入れるか、H2 の形、H3 を外すまでの扱い）。決まったら、共有用の資料の 3.2・3.6・5.1・7 章に反映する（手順 D に X1〜X3 の SCP、RCP は手順 E、導入の途中の限界）。返事を待つ間にできるのは、7 章の確かめ（ReadOnly。CloudTrail を大量に引くものは伊藤に断ってから）。
+- 2026-11-09（続き）: permission-model.md の 6 章を伊藤が決めた（[worm-decisions.md](s3-data-protection-2/worm-decisions.md) の D15〜D18。G1・G2 を閉じた）。
+  - D15: X1〜X3 は SCP で塞ぐ。FullAccess も例外にしない（手順 D の PR に 3 文を入れる）。
+  - D16: H1・H2 の「すぐ消せる」は受け入れ、通知で気づく。RCP は入れない。
+  - D17: 完全削除用の権限は暫定で AWSAdministratorAccess のまま。専用の権限の作成は範囲の外。
+  - D18: 導入の途中の消失のリスクは重視しない。共有用の資料には、作業を終えた時点の姿として書く。
+  - 反映: 共有用の資料（[notion-worm-governance-rollout.md](../documents/notion-worm-governance-rollout.md)）の 3.2・3.4（deploy の経路を守る組織のポリシー）・3.6・4.4・5.1・7 章（決めることを 6 つに）、permission-model.md の 6 章、アクションリスト（2-2・2-4・3-3 は不要、3-2・3-4 は済み、3-5 を追加）。
+  - **次**: アクション 1-1（Notion の側のコメント・編集を読んで取り込む → 伊藤の許可を得て Notion を更新）。手順 D の PR の前に、アクション 3-5 の確かめ（ReadOnly）。
