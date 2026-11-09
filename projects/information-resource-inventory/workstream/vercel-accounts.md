@@ -141,6 +141,19 @@ GitHub の組織 `turingmotors` のコードを `VERCEL_TOKEN` で検索して�
 - **デプロイのメタデータに、コミットの作者の名前とメールが載る**（`githubCommitAuthorName`・`githubCommitAuthorEmail`。CLI が checkout の Git の情報から自動で付ける）。直近 100 件の作者は 16 人。名前でチームのメンバーと照合すると、**約半分（46 件）がチームにいない人**のコミットだった（Yuto Nakamura・Miwa・Ibai Gorordo・devin-ai-integration[bot] など。照合は名前だけなので推定）。
 - つまり、**Vercel 側から「席の無い人のコミットが CLI で本番に出ている」ことが見える状態**にある。Vercel が CLI のデプロイにも作者の検査を広げれば、そのまま止まる。
 
+#### GitHub でのトークンの置き方と、取り出せる人（2026-11-09 に GitHub の API で確かめた。GET だけ）
+
+- `VERCEL_TOKEN`・`VERCEL_ORG_ID`・`VERCEL_PROJECT_ID` は、**リポジトリの Actions の secrets**（2026-04-20 に登録。`VERCEL_TOKEN` は同じ日に 1 回更新）。Environment（`copilot`・`Preview`・`Production`）はあるが、どれにも secrets は無く、保護の規則も無い。
+- 値を**画面や API で見ることはできない**。secrets は書き込みだけで、リポジトリの admin でも名前と日時しか見えない。
+- ただし、**リポジトリの secrets はブランチを問わず、どのワークフローからも使える**。書き込み権限のある人がブランチにワークフローを置いて push するか、そのブランチで PR を作れば、secrets を使うジョブが動く。ログでは値が伏せ字になるが、伏せ字は取り出しを止める仕組みではない。**つまり、書き込み権限のある人なら誰でも、値を取り出せる**。
+  - 実際に、main に無いワークフローがブランチの PR から動いた例がある（`experiment-next-cache.yml`（graph226、2026-08-27）・`lint.yml`・`supply-chain.yml`（devin-ai-integration[bot]）。どれも `VERCEL_*` は参照していない）。直近 1,000 件の実行（2026-10-05 以降）には、`ci.yml`・`deploy.yml`・Copilot のレビュー以外の実行は無かった。それより前の実行は全部は見ていない。
+- 書き込み権限（write 以上）を持つ人: **56 名**（admin 13・write 43）。チーム 12（`team-leaders`・`team-mlops-1-admin` は admin、ほかは push）と、外部のコラボレーター 2 名（sadnessOjisan・uedahotaka、write）を経由する。ほかに、ブランチに push できる bot（devin-ai-integration）がいる。
+- main の ruleset（`protect main branch`）は、削除・force push の禁止、PR を必須にすること、ステータスチェック（`test`・`typecheck`・`build`）の 3 つ。**承認の数は 0**。そのため、書き込み権限のある人は、`deploy.yml` を書き換えた PR を自分で merge することもできる。ruleset は main にだけかかり、ほかのブランチは守らない。
+- fork はできない（`allow_forking: false`、非公開）。外部の人が fork の PR から取り出す道は無い。
+- `GITHUB_TOKEN` の既定は write で、PR の承認もできる（`can_approve_pull_request_reviews: true`）。
+- 組織の secrets に `VERCEL_*` があるかは、伊藤の権限では見えない（403）。
+- トークンの範囲（チーム全体かプロジェクトだけか）は分からない。共有アカウントで作ったトークンなので、伊藤の API からは見えない。
+
 ### fleet-ops（biz-fleet-ops）
 
 - Vercel のプロジェクトは GitHub に連携しているが、`vercel.json` の `git.deploymentEnabled: false` で Git 連携からのデプロイを止めている。デプロイはすべて `.github/workflows/vercel-preview.yml` から来ている（直近 100 件、すべて `source: cli`・production）。
