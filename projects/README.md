@@ -11,7 +11,7 @@
 
 注力している順に並べる。1件は `- [<project-id>/workstream/<名前>.md](./<同じパス>): 一言メモ` の1行にする。状態そのものは各 workstream の `- 状態:` 行に書き、ここには写さない。
 
-- [aws-data-protection/workstream/s3-data-protection-2.md](./aws-data-protection/workstream/s3-data-protection-2.md): WORM のガバナンスモードでの導入。共有用の資料 2 本を Notion に下書きで上げた。次はチームで話し合う
+- [aws-data-protection/workstream/s3-data-protection-2.md](./aws-data-protection/workstream/s3-data-protection-2.md): WORM のガバナンスモードでの導入。第 1 段階の PR（[cdk-apps#2500](https://github.com/turingmotors/cdk-apps/pull/2500)）の承認待ち。対象は 9 本
 - [privileged-access/workstream/apex-privileges.md](./privileged-access/workstream/apex-privileges.md): 権限の頂点の群の把握と管理。CorpIT に 1 回目の聞き取りをした。次は止めてある循環の詳細を聞く
 - [tern-ios-auth/workstream/tern-backend-api.md](./tern-ios-auth/workstream/tern-backend-api.md):
 - [m2m-auth/workstream/m2m-auth.md](./m2m-auth/workstream/m2m-auth.md):

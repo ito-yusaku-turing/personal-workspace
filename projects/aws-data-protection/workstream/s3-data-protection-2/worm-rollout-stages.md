@@ -2,7 +2,7 @@
 
 - 作成: 2026-11-09 ／ 伊藤（エージェントが起草）
 - 親: [S3 バケットのデータ保護 第二弾](../s3-data-protection-2.md)
-- 状態: **第 1 段階の PR をレビュー中**（[cdk-apps#2500](https://github.com/turingmotors/cdk-apps/pull/2500)。2026-11-10 に gaming-data-collection と denso-raw を対象から外した）
+- 状態: **第 1 段階の PR をレビュー中**（[cdk-apps#2500](https://github.com/turingmotors/cdk-apps/pull/2500)。2026-11-10 に gaming-data-collection と denso-raw を外し、tuscenes-annotation を戻した）
 - 使い道: 導入の段階の正本。ここから、共有用の資料（[notion-worm-governance-rollout.md](../../documents/notion-worm-governance-rollout.md)）の 1 章・4 章と、cdk-apps の各 PR の本文（[pr-step-a.md](pr-step-a.md) など）を作る。段階を変えたら、先にここを直す
 - 前提: [worm-decisions.md](worm-decisions.md)（D1〜D24）、[permission-model.md](permission-model.md)（層と抜け穴）
 
@@ -16,18 +16,18 @@
 
 | 区分 | バケット |
 |---|---|
-| **Object Lock を入れる 8 本** | `td1-raw-767397804933`、`tuscenes-raw-767397804933`、`td1-rlog`、`tuscenes-calibration`、`tuscenes-calibration-767397804933`、`denso-nx-raw-767397804933`、`denso-taxi-processed-767397804933`、`denso-taxi-video-767397804933` |
-| 入れない 4 本 | `tuscenes-model-767397804933`、`tuscenes-annotation-767397804933`、`gaming-data-collection-767397804933`、`denso-raw-767397804933`（tuscenes-model・tuscenes-annotation・gaming-data-collection は、費用をかければ作り直せるため。gaming-data-collection はシミュレータで集めたデータで、収集を終えている。2026-11-10 に持ち主が除外を了承。denso-raw は持ち主が退職して不在で、使われた形跡も無いため。2026-11-10 に除外を決めた。バージョニングと守りのバケットポリシーは残る） |
+| **Object Lock を入れる 9 本** | `td1-raw-767397804933`、`tuscenes-raw-767397804933`、`td1-rlog`、`tuscenes-calibration`、`tuscenes-calibration-767397804933`、`tuscenes-annotation-767397804933`、`denso-nx-raw-767397804933`、`denso-taxi-processed-767397804933`、`denso-taxi-video-767397804933` |
+| 入れない 3 本 | `tuscenes-model-767397804933`、`gaming-data-collection-767397804933`、`denso-raw-767397804933`（tuscenes-model は費用をかければ作り直せ、入れ替わりが激しいため。gaming-data-collection はシミュレータで集めたデータで、収集を終えている。2026-11-10 に持ち主が除外を了承。denso-raw は持ち主が退職して不在で、使われた形跡も無いため。2026-11-10 に除外を決めた。tuscenes-annotation は 2026-11-10 に対象に戻した（人手のラベルで、付け直すのが難しい）。バージョニングと守りのバケットポリシーは残る） |
 | カナリア | `original-bucket-canary-767397804933`。原本バケットと同じ守り（バージョニング・守りのバケットポリシー）を入れた検証用のバケットで、原本のデータは置かない。`apps/original-bucket-audit` の `OriginalBucketCanary` スタックが持つ。手順を原本バケットに入れる前に、ここで試す |
 
-原本バケットは、上の 8 本と 4 本の計 12 本。どれも tuscenes-prod（767397804933）の us-west-2 にある。
+原本バケットは、上の 9 本と 3 本の計 12 本。どれも tuscenes-prod（767397804933）の us-west-2 にある。
 
 ## 全体
 
 | 段階 | 目的 | 手順 | 形 | 終わった時点の姿 |
 |---|---|---|---|---|
 | 第 1 段階 | 部品を置く | A | cdk-apps の PR 1 本 | 迂回の禁止がバケットポリシーに入り、ジョブのロールとレポートの置き場ができている。止まる操作は無い |
-| 第 2 段階 | Object Lock を入れる | B（カナリアで予行）→ C（段階 1〜3 の順に各バケットへ） | CLI と S3 Batch Operations の作業 | 対象の 8 本で、新しく書かれる版と、今ある最新の版が保護されている |
+| 第 2 段階 | Object Lock を入れる | B（カナリアで予行）→ C（段階 1〜3 の順に各バケットへ） | CLI と S3 Batch Operations の作業 | 対象の 9 本で、新しく書かれる版と、今ある最新の版が保護されている |
 | 第 3 段階 | 抜け穴を塞ぐ | 通知 → D | cdk-apps の PR 2 本（通知、手順 D）と、組織のポリシー | 保護を外せるのは完全削除用の権限（AWSAdministratorAccess）がジョブを作ったときだけ。解除と設定の変更は通知される |
 
 ## 第 1 段階: 部品を置く（手順 A）
@@ -37,11 +37,14 @@
 | 部品 | 中身 | 置き場 |
 |---|---|---|
 | 迂回の禁止 `DenyGovernanceBypass` | Object Lock の保持の迂回（`s3:BypassGovernanceRetention`）を、全員に禁じる文。原本バケット 12 本とカナリアのバケットポリシーに入る | `packages/original-bucket-guard` |
-| ジョブのロール `original-bucket-lock-batch` | S3 Batch Operations だけが使えるロール。原本バケット 8 本とカナリアの版の保持を付ける・外す・読むことと、ジョブに対象の一覧を作らせることだけができる。版の削除・迂回・タグ付けはできない | `apps/original-bucket-audit` |
+| 保持の変更の禁止 `DenyLockChange` | 保持の変更（`s3:PutObjectRetention`）とリーガルホールドを、ジョブのロール以外の全員に禁じる文。似た権限のロールを新しく作っても拒否される。2026-11-10 に第 3 段階から前倒しした（D31） | `packages/original-bucket-guard` |
+| コンプライアンスモードの禁止 `DenyComplianceMode` | コンプライアンスモードの保持を付ける書き込み・保持の変更を、全員に禁じる文（2026-11-10 のレビューで足した） | `packages/original-bucket-guard` |
+| ジョブのロール `original-bucket-lock-batch` | S3 Batch Operations だけが使えるロール。原本バケット 9 本とカナリアの版の保持を付ける・外す・読むことと、ジョブに対象の一覧を作らせることだけができる。版の削除・迂回・タグ付けはできない | `apps/original-bucket-audit` |
 | レポートの置き場 `original-bucket-lock-batch-reports-767397804933` | ジョブが作った対象の一覧と、1 件ずつの結果を残す。何に保護を付けたかの記録なので、消さない。原本バケットと同じ守りのバケットポリシーを入れる | `apps/original-bucket-audit` |
 
-- **変わらないこと:** 今は Object Lock が無いので、迂回の禁止が止める操作は無い。ジョブのロールも、ジョブを作るまで何もしない。
-- **迂回の禁止を先に入れる理由:** 第 2 段階で Object Lock を入れたその時から、保護された版を迂回して消せない状態にするため。
+- **変わらないこと:** 今は Object Lock が無いので、迂回・保持の変更・コンプライアンスモードの禁止が止める操作は無い。ジョブのロールも、ジョブを作るまで何もしない。
+- **これらの禁止を先に入れる理由:** 第 2 段階で Object Lock を入れたその時から、保護された版を迂回して消せず、ジョブのロール以外は保持を外せない状態にするため。第 2 段階で FullAccess が行うのは Object Lock の設定とジョブの作成で、保持の変更はジョブのロールが行うので、先に入れても作業は止まらない。
+- **第 3 段階まで残る穴:** ジョブのロールを渡す操作とロールの変更の禁止（組織のポリシー）は第 3 段階で入る。それまでは、ジョブを作れて、このロールを渡せる主体（FullAccess など）なら、このロールで解除のジョブを作れる。
 - **誰が:** 伊藤が PR を作り、チームがレビューする。deploy は GitHub Actions（`main` へのマージ）。
 - **終わった条件:** deploy が済み、3 つの部品ができている。
 
@@ -56,8 +59,12 @@
 - 既存のバケットに、後から Object Lock を有効にしたときの振る舞い。
 - 既定の保持設定を外すと、チェックサムなしで書けるようになるか（書き込みが止まったときの戻し方）。
 - ジョブのロールで、対象の一覧を作らせてイベントホールドを付けるジョブが通るか（このロールの形では初めて流す）。外すジョブが通るか。
-- ジョブのロールで、コンプライアンスモードの保持を指定すると拒まれるか（ロールのポリシーで拒んでいる）。保持の変更の要求が、モードや期限の条件キーをどう持つか（固定の期限も止めるかを、これで決める）。
+- ジョブのロールと、バケットポリシーの `DenyComplianceMode` で、コンプライアンスモードの保持を指定すると拒まれるか。**確かめ方**（2026-11-10 のレビューの提案を採用）:
+  1. 先に IAM ポリシーシミュレーター（`aws iam simulate-principal-policy`、`--context-entries` で `s3:object-lock-mode=COMPLIANCE` を与える）で、ロールの判定を見る。何も変えずに、ポリシーの書き方を確かめられる。
+  2. 実際の要求は **1 件だけ、イベントホールドではなく固定の期限（翌日）** で試す。ジョブのロールは固定の期限そのものを拒む（`DenyFixedRetention`）ので、ロールの `DenyComplianceRetention` を切り分けて見るのはシミュレーターで行う。バケットポリシーの `DenyComplianceMode` も、シミュレーター（`simulate-custom-policy` の `--resource-policy`）で見る。FullAccess からの実際の要求は、先に `DenyLockChange` で拒まれるので、`DenyComplianceMode` の切り分けには使えない。拒否が効かなかったときの被害を、1 件・1 日に抑えるため。イベントホールドで試して効かなかった場合、解除の要求にもモード `COMPLIANCE` が載るので、同じ Deny でジョブのロールからは外せなくなる。
+  3. 保持の変更の要求が、モードや期限の条件キーをどう持つかも、このとき見る（固定の期限も止めるかを、これで決める）。
 - DataSync が、Object Lock のバケットに書き込めるか。
+- （解除後の保持期間をロールで固定する場合）30 日以外の日数・年での指定・固定の期限が拒まれ、30 日のホールドと解除が通るか。あわせて、ホールド中の版の日数を延ばす・縮めるとどうなるか（縮めるのに迂回が要るか。AWS のドキュメントに書かれていない）。あとから日数を変えるときの手順の確かめになる。
 
 ジョブに対象の一覧を作らせる方法（ManifestGenerator）は、2026-11-09 にカナリアで確かめた。一覧には最新版だけが版の ID つきで入り、古い版と、最新が削除マーカーのキーは入らない。確認待ちの設定で止めて、流す前に一覧を確かめられる（[manifest-generator-probe-runbook.md](manifest-generator-probe-runbook.md)）。
 
@@ -68,8 +75,8 @@
 | 段階 | バケット | 理由 |
 |---|---|---|
 | 1 | tuscenes-calibration（新・旧）、td1-rlog | 書き込みが止まっている。件数が少ない |
-| 2 | denso-taxi-processed、denso-taxi-video、denso-nx-raw | Azure から DataSync で書き込まれる |
-| 3 | td1-raw、tuscenes-raw | 対象の 8 本の版の数の 9 割を占める |
+| 2 | denso-taxi-processed、denso-taxi-video、denso-nx-raw、tuscenes-annotation | denso の 3 本は Azure から DataSync で書き込まれる。tuscenes-annotation は自動の処理（perception-detection・localization）が毎日書く |
+| 3 | td1-raw、tuscenes-raw | 対象の 9 本の版の数の 9 割を占める |
 
 各バケットでの作業:
 
@@ -78,10 +85,16 @@
 3. S3 Batch Operations のジョブで、最新の版にイベントホールドを付ける。対象の一覧はジョブに作らせ、確認待ちで止めて、件数と中身を 2 人で確かめてから流す。
 4. 付いた件数を確かめる。
 
+段ごとの前に決める・確かめること（2026-11-10 に分かったもの）:
+
+- 段階 1: tuscenes-calibration（新）は、JADD STUDIO の確定版のリリース（backend-api の Lambda、boto3 1.42、条件付き書き込み `IfNoneMatch`）が書く。予行で、Object Lock のバケットでもこの書き方が通るか確かめる。
+- 段階 2: tuscenes-annotation には、人手のラベルのほかに自動の処理の出力が毎日書かれる。既定の保持設定はバケット全体に効くので、自動の出力にも保持を付けるかを先に決める（アクション 4c-1）。
+- 段階 3: td1-raw の LiDAR の間引きの残りと `LidarDeleter` の扱いを先に決める（アクション 4c-2）。
+
 `tuscenes-calibration-767397804933` だけは SSE-KMS（AWS 管理のキー `aws/s3`）で暗号化されている。カナリアでは確かめられないので、段階 1 で、このバケットは少ない件数で先に流す。
 
 - **誰が:** 伊藤（FullAccess）。ジョブの設定は、伊藤ともう 1 人で確かめる。
-- **終わった条件:** 段階ごとに数日、書き込みのエラーが無い。8 本の最新の版に、イベントホールドが付いている。
+- **終わった条件:** 段階ごとに数日、書き込みのエラーが無い。9 本の最新の版に、イベントホールドが付いている。
 
 ## 第 3 段階: 抜け穴を塞ぐ（通知・手順 D）
 
@@ -104,7 +117,6 @@
 
 | 何を | 中身 |
 |---|---|
-| 保持の変更の禁止 `DenyLockChange` | 保持の変更とリーガルホールドを、ジョブのロール以外に禁じる文を、バケットポリシーに足す |
 | FullAccess を例外から外す | 既存の 2 文（`DenyIrreversibleDelete`・`DenyProtectionRemoval`）の例外から FullAccess を外す。古い版の削除・バケットの設定の変更は、AWSAdministratorAccess と deploy の経路だけになる |
 | ジョブのロールを守る組織のポリシー | ロールを渡す操作（`iam:PassRole`）を AWSAdministratorAccess だけにする。ロールの作成・削除・信頼の変更・ポリシーの変更を、deploy の経路以外に禁じる |
 | deploy の経路を守る組織のポリシー | deploy のロールの引き受けを GitHub Actions の deploy のロールだけにする。cfn-exec-role を渡す操作を deploy のロールだけにする。`cdk-hnb659fds-*` のロールと GitHub Actions の deploy のロールの、作成・削除・信頼の変更・ポリシーの変更を禁じる |

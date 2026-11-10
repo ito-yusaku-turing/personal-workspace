@@ -55,22 +55,33 @@
 
 | # | やること | 担当 | 期限・条件 |
 |---|---|---|---|
-| 4-1 | 手順 A の PR（迂回の禁止・ジョブのロール・レポートの置き場）→ 2026-11-09 に作った: [cdk-apps#2500](https://github.com/turingmotors/cdk-apps/pull/2500)。レビュー → マージ → deploy の後の確かめ | エージェントが起草、伊藤が確かめて PR を作った | Go サインのあと |
+| 4-1 | 手順 A の PR（迂回の禁止・ジョブのロール・レポートの置き場）→ 2026-11-09 に作った: [cdk-apps#2500](https://github.com/turingmotors/cdk-apps/pull/2500)。レビュー → マージ → deploy の後の確かめ 11-10 に安本さんのレビューへ対応した（`DenyComplianceMode`・CI のテスト・日数の固定・`DenyLockChange` の前倒し・tuscenes-annotation を戻す。最新は `2de9dd86`、CI 通過）。人間の承認待ち | エージェントが起草、伊藤が確かめて PR を作った | Go サインのあと |
 | 4-2 | 手順 B の手順書（予行用のバケットに後から Object Lock を入れる）と実施。予行用のバケットは、そのあと訓練用に使う（D23） | エージェントが手順書、伊藤が実施（FullAccess） | 4-1 のあと |
-| 4-3 | 解除後の保持期間の正式な値を決める（7 章の 3） | チーム | 手順 C の前 |
-| 4-4 | ジョブの設定を確かめる 2 人目を決める（7 章の 5） | チーム | 手順 C の前 |
-| 4-5 | 通知の受け手を決める（7 章の 6） | チーム | 4-9 の前（メールの宛先が要る） |
-| 4-6 | 段階 2 の前の確かめ: DataSync を予行用のバケットに向けて試す、Databricks の volume の場所 | 伊藤とエージェント | 段階 2 の前 |
+| 4-3 | 解除後の保持期間の正式な値を決める（共有用の資料の 6.2） | チーム | 手順 C の前 |
+| 4-4 | ジョブの設定を確かめる 2 人目を決める（共有用の資料の 6.2） | チーム | 手順 C の前 |
+| 4-5 | 通知の受け手を決める（共有用の資料の 6.2） | チーム | 4-9 の前（メールの宛先が要る） |
+| 4-6 | 段階 2 の前の確かめ: DataSync を予行用のバケットに向けて試す、Databricks の volume の場所 。tuscenes-annotation の書き込み元（perception-detection・localization のロール）がチェックサムを付けているか | 伊藤とエージェント | 段階 2 の前 |
 | 4-7 | 手順 C（段階 1〜3 の順に各バケットへ導入） | 伊藤 | 4-2〜4-4 のあと |
-| 4-9 | 通知の PR（ルール A・B・C。ルール B に `CreateJob`・`UpdateJobStatus` を足す（I5））。レポートの置き場を、書き込み系のデータイベントのトレイル（`TRAIL_TARGET_BUCKETS`）に足す（cdk-apps#2500 のレビュー）。original-bucket-audit のテストを CI で走らせる workflow も、このあたりの PR で足す（同）。前に、EventBridge の有効化が CDK の定義とぶつからないか・どの CloudTrail の証跡に頼っているかを確かめる | エージェントが起草、伊藤が PR を作る | 4-5 のあと、4-8 の前 |
-| 4-8 | 手順 D の PR（`DenyLockChange`・FullAccess を例外から外す・ジョブのロールを渡す操作と変更の禁止・deploy の経路を守る SCP の 4 文（X1〜X3・X5）） | エージェントが起草、伊藤が PR を作る | 4-7 と 2-3・3-5 のあと |
+| 4-9 | 通知の PR（ルール A・B・C。ルール B に `CreateJob`・`UpdateJobStatus` を足す（I5））。レポートの置き場を、書き込み系のデータイベントのトレイル（`TRAIL_TARGET_BUCKETS`）に足す（[cdk-apps#2500](https://github.com/turingmotors/cdk-apps/pull/2500) のレビュー）。original-bucket-audit のテストを CI で走らせる workflow も、このあたりの PR で足す（同）。前に、EventBridge の有効化が CDK の定義とぶつからないか・どの CloudTrail の証跡に頼っているかを確かめる | エージェントが起草、伊藤が PR を作る | 4-5 のあと、4-8 の前 |
+| 4-8 | 手順 D の PR（FullAccess を例外から外す（`DenyLockChange` は 11-10 に 4-1 へ前倒し、D31）・ジョブのロールを渡す操作と変更の禁止・deploy の経路を守る SCP の 4 文（X1〜X3・X5）） | エージェントが起草、伊藤が PR を作る | 4-7 と 2-3・3-5 のあと |
 
 ### 4b. 実装の残りの決めごと（2026-11-09 のセカンドオピニオンから）
 
 | # | やること | 担当 | 期限・条件 |
 |---|---|---|---|
-| 4b-1 | [worm-decisions.md](worm-decisions.md) の「2026-11-09（続き）」の I1〜I6 を決める（`DenyLockChange` の時期、deploy の経路を守る SCP の時期、マニフェスト、既定の保持設定の守り、通知、大きいバケットの流し方） | 伊藤 | 4-1 の前（I1・I2・I5）、4-7 の前（I3・I4・I6） |
+| 4b-1 | [worm-decisions.md](worm-decisions.md) の「2026-11-09（続き）」の I1〜I6 を決める（`DenyLockChange` の時期、deploy の経路を守る SCP の時期、マニフェスト、既定の保持設定の守り、通知、大きいバケットの流し方） 。I1 は 11-10 に決めた（`DenyLockChange` を手順 A に前倒し、D31） | 伊藤 | 4-1 の前（I1・I2・I5）、4-7 の前（I3・I4・I6） |
 | 4b-2 | X4（既存のスタックの更新）の手当てを、次回以降に検討する（D20） | 伊藤 | この計画のあと |
+
+### 4c. 2026-11-10 に出た決めごと・確かめごと
+
+| # | やること | 担当 | 期限・条件 |
+|---|---|---|---|
+| 4c-1 | tuscenes-annotation の自動の出力（`object_detection/auto_label/`・`lane_master_kun/`・`localization/`。開発用の試し出力を含む）にも保持を付けるかを決める。付けたくなければ、出力先を分けるか、既定の保持設定を使わずジョブで人手のラベルだけに付ける（[remaining-buckets-review.md](remaining-buckets-review.md)、共有用の資料の 6.2） | チーム（perception-detection・localization の担当に聞く） | 段階 2 で tuscenes-annotation に入れる前 |
+| 4c-2 | td1-raw の LiDAR の間引きの残り（約 1.3〜1.6 PiB）を、入れる前に終えるか、保持の対象から外すかを決める。`LidarDeleter`（FullAccess に開いたまま）の扱いも。共有用の資料にはまだ書いていない | 伊藤 | 段階 3 で td1-raw に入れる前 |
+| 4c-3 | deploy の経路（cfn-exec-role）を、9 本のバケットポリシーの変更から締め出すかを決める（共有用の資料の Q3。①バケットポリシー／②SCP） | 伊藤（安本さんと） | 4-8 の前 |
+| 4c-4 | GitHub 側の 3 点（承認のあとの push で承認が外れない、PR を経ない Integration の例外、`packages/original-bucket-guard` の CODEOWNERS）を直すか決める | 伊藤 | 4c-3 と一緒に |
+| 4c-5 | ジョブのロールを渡す操作の禁止（SCP）も前倒しするかを決める。前倒ししないと、第 3 段階まではジョブを作れる主体がこのロールで解除のジョブを作れる（共有用の資料の Q2） | 伊藤 | 4-7 の前 |
+| 4c-6 | 予行（4-2）で足した確かめ: 30 日以外の日数・固定の期限が拒まれること、ジョブのロールが `DenyLockChange` の例外に当たること、`DenyComplianceMode` の判定（シミュレーター）、ホールド中の日数の延長・短縮の振る舞い。tuscenes-calibration（新）の書き手（backend-api の条件付き書き込み `IfNoneMatch`）が Object Lock のバケットで通ること | 伊藤とエージェント | 4-2 のとき |
 
 ### 5. そのほか
 

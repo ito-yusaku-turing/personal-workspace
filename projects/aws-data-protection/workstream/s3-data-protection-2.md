@@ -1,7 +1,7 @@
 # S3 バケットのデータ保護 第二弾（権限設計のアップグレード）
 
 - 開始: 2026-10-20
-- 状態: **第 1 段階（手順 A）の PR が人間のレビュー待ち**（[cdk-apps#2500](https://github.com/turingmotors/cdk-apps/pull/2500)。Copilot は指摘なし、CI は通過、2026-11-10）。次は人間のレビュー → マージ・deploy → deploy の後の確かめ。対象は 8 本（11-10 に gaming-data-collection と denso-raw を外した）。共有用の資料の再反映（denso-raw の除外）と学習用の資料の Notion への反映は、伊藤の許可待ち。段階の正本は [worm-rollout-stages.md](s3-data-protection-2/worm-rollout-stages.md)。全体のアクションは [worm-action-list.md](s3-data-protection-2/worm-action-list.md)。権限の頂点の問題は別の案件（project:privileged-access）
+- 状態: **第 1 段階（手順 A）の PR が人間の承認待ち**（[cdk-apps#2500](https://github.com/turingmotors/cdk-apps/pull/2500)。最新は `2de9dd86`、CI 通過。安本さんのレビューには対応済み、2026-11-10）。対象は 9 本。次は承認 → マージ・deploy → deploy の後の確かめ → 予行（4-2）の手順書。決めごとはアクションリストの 4c。段階の正本は [worm-rollout-stages.md](s3-data-protection-2/worm-rollout-stages.md)。全体のアクションは [worm-action-list.md](s3-data-protection-2/worm-action-list.md)。権限の頂点の問題は別の案件（project:privileged-access）
 - 所属: project:aws-data-protection（2026-10-26 に `~/docs/workstream/` から移した）
 - 前段（第一弾、完了）:
   - [走行データ消失リスクへの対応](done/raw-data-security.md)（バケットの種別と処遇、裁定の正本）
@@ -784,7 +784,46 @@
   - **次**: 新しいコミットの CI と Copilot の再レビューを確かめる → 人間のレビュー。denso-raw を外すかは、安本さんへの確認（5-2）しだい。
 - 2026-11-10: 共有用の資料を、レビュー用から**現在地と計画を書く資料**に組み直した（伊藤の依頼）。冒頭に現在地、1 章に段階ごとの状態、6 章に決まったこと（日付つき）と決まっていないこと（誰が・いつまでに）、具体的な値は 8.1「設定の詳細」に寄せ、9 章に更新の履歴。denso-raw は「持ち主に確認中」として対象に残した。Notion に上げ、タイトルを「原本バケットの WORM 化: 現在地と計画」に変えた（1-1 済み。上げる前に、人の編集・コメントが無いことを確かめた）。`eb40da4f` の CI は 7 件すべて通過。Copilot の再レビューは来ていない。
   - 学習用の資料「S3 Object Lock（WORM）の仕組み」に、11-09 までの検証と調べものを足した（ローカルだけ。Notion は伊藤の許可待ち）: ManifestGenerator の振る舞い（5.3、9 章の M1〜M5）、費用の内訳（一覧の生成・Intelligent-Tiering の PUT・CloudTrail のデータイベント）、解除で期限が固まるので日数の誤りは解除で直せないこと（3.1）、失敗が 5 割を超えると止まるが値の誤りは止まらないこと（5.3）。コンプライアンスモードを条件キーで拒む話は、手順 B で確かめてから足す。
-- 2026-11-10: **denso-raw も WORM の対象から外した**（D27。持ち主が退職して不在で、使われた形跡も無い、と伊藤が決定）。対象は 8 本とカナリア。5-2（出どころの確認）は不要になった。
+- 2026-11-10: **denso-raw も WORM の対象から外した**（D27。持ち主の松田さんが退職して不在で、使われた形跡も無い、と伊藤が決定）。対象は 8 本とカナリア。5-2（出どころの確認）は不要になった。
   - cdk-apps: [cdk-apps#2500](https://github.com/turingmotors/cdk-apps/pull/2500) の `NOT_LOCKED_BUCKET_NAMES` に足し、テストと README を直した（`9de086e9`、push 済み）。jest 16 件・tsc・prettier は通過。PR の本文も上げ直した。
   - 直した資料: 段階の正本・PR の本文・共有用の資料（8 本、費用は約 $3,790＋記録の約 $630、8 本の約 6.28 億件）・決定の一覧（D27）・アクションリスト（5-2）・denso-raw の調査資料の結論。共有用の資料の Notion への再反映は、伊藤の許可待ち。
   - **次**: `9de086e9` の CI を確かめる → 人間のレビュー。共有用・学習用の資料を Notion に上げる（許可を得て）。
+- 2026-11-10: 残りの 8 本を精査した（伊藤の依頼。[remaining-buckets-review.md](s3-data-protection-2/remaining-buckets-review.md)）。**確定**は td1-raw・denso-taxi-video・denso-taxi-processed・tuscenes-calibration（新）と tuscenes-raw。**要確認**は td1-rlog（唯一の原本だが 15 か月以上休眠）・tuscenes-calibration（旧）（2024 の撮影データ、休眠、移行されていない）・denso-nx-raw（10-03 から転送 0 件。Azure に原本が残っているなら受け取り直せる）。td1-raw は、LiDAR の間引きの残り（約 1.3〜1.6 PiB）と LidarDeleter の扱いを、段階 3 の前に決める必要がある。
+  - 共有用の資料の「DENSO のデータに返却・消去の義務は無い」は、安本さんの調査書の「返却・削除義務と衝突する」と食い違って見えるが、11-04 に伊藤が義務は無いと答えている（D2）。調査書の記述はその前の確認事項。
+- 2026-11-10: 確定の 3 本（denso-taxi-video・denso-taxi-processed・tuscenes-calibration（新））の関係者を、コードの履歴から調べた（remaining-buckets-review.md の末尾）。denso-taxi の 2 本はInuzuka さんが作り、取り込みと読み手（DLT・動画の変換）も書いた。tuscenes-calibration（新）は、`tsuzuki16` が作った JADD STUDIO の確定版のリリース（backend-api の Lambda）が書いている。この書き込み元は 11-02 の洗い出しに無かった（boto3 1.42 なのでチェックサムは付く見込み）。
+- 2026-11-10: **denso-taxi-video・denso-taxi-processed・denso-nx-raw を、WORM の対象として正式に決めた**（D28。伊藤が Inuzuka さんに聞き取りをして決定）。どれも対象の 8 本に入っているので、cdk-apps の変更は無い。残りの要確認は td1-rlog と tuscenes-calibration（旧）の 2 本と、td1-raw の LiDAR の扱い。共有用の資料の 6.1 に行を足した（Notion は未反映）。
+- 2026-11-10: denso-raw の持ち主は松田さん（退職）だった。安本さんは在籍している（伊藤）。D27・denso-raw の調査資料に反映した。
+- 2026-11-10: 対象の 8 本のサイズ・費用・最終参照日を一覧にした（remaining-buckets-review.md の末尾。計 約 3,381 TB・約 6.28 億件・約 $4,410）。td1-rlog は「15 か月読まれていない」としていたが、2025-10〜2026-04 に少量（2〜12 GB）の読み出しが 9 回あった。
+- 2026-11-10: **td1-rlog と tuscenes-calibration（旧）も対象とした**（D29。前の版の走行データで、単発で学習に使われた。重要性は低いが、費用が安い）。**対象の 8 本はすべて確定。** 残る決めごとは td1-raw の LiDAR の扱い（第 2 段階の順 3 の前）。
+- 2026-11-10: 共有用・学習用の資料を Notion に上げた（伊藤の許可。どちらも人の編集・コメントは無かった。差分の箇所だけ置き換えた）。
+- 2026-11-10: [cdk-apps#2500](https://github.com/turingmotors/cdk-apps/pull/2500) に安本さんのレビュー（`9de086e9` に対して、COMMENTED）。「このままマージしても害は無い」としたうえで、
+  1. **コンプライアンスモードの禁止をバケットポリシーにも入れる**（`DenyComplianceMode`。`s3:PutObject`・`s3:PutObjectRetention` を、`s3:object-lock-mode` が COMPLIANCE なら全員に拒否）。今の `DenyComplianceRetention` はジョブのロールにしか効かず、td1-raw に `s3:PutObjectRetention` を持つ主体が 24、`s3:PutObject` が 31 ある。上りのヘッダーでも付けられる。この PR に入れたい。
+  2. **権限を固定したテストを CI で走らせる**（`original-bucket-audit-diff.yml`・`datalake-diff.yml` に `npm test`）。手元で確かめたところ、テストを走らせるのは `denso-taxi-diff.yml` だけ。この PR に入れたい。
+  3. 提案: 解除後の保持期間をロールのポリシーで 30 日に固定（`s3:object-lock-event-hold-duration-days`）し、固定の期限も拒否する。30 日が決まってから、第 2 段階の前に。
+  4. 提案: カナリアでコンプライアンスの拒否を確かめるときは、先に IAM ポリシーシミュレーター、実際のジョブは 1 件・固定の期限（翌日）で。
+  - 細かいもの: `lock-batch-stack.ts` の「未確認」の注記（ドキュメントに「An event hold requires a retention mode.」）、PR 本文の「手順 B」が未定義、README の迂回の禁止を外す手順は 14 本同時に外れる、Notion が古い（反映済み）。
+  - 伊藤の判断: 1・2 は対応、3 は採用の方向（あとから変える方法を調べる）、4 は採用。
+  - 1・2 と細かいものを入れた（`40477269`、push 済み）。`DenyComplianceMode` を共通パッケージに足し、datalake のテストを直した。CI のテストは original-bucket-audit・datalake・gaming-data-collection の 3 つに足した（denso-nx にはテストが無い）。手元で 4 アプリの jest（16・25・5・8 件）・tsc・prettier が通った。PR の本文も上げ直した（「手順 B」は「第 2 段階の予行」に直した）。4 は段階の正本の手順 B に書いた。
+  - 3 の調べ（AWS のドキュメントと worm-reference.md の 4 章。試してはいない）: 日数を変える場所は 3 つ。(a) ロールのポリシーの固定値（PR で数字を変えて deploy）、(b) 各バケットの既定の保持設定（CLI。`DenyIrreversibleDelete` で AWSAdministratorAccess だけ。新しい版に効く）、(c) すでにホールドの付いた版（付け直しのジョブ。全件で約 $4,410）。延ばすのは迂回なしでできる。縮めても保持期限は前に戻らない（"does not set the retain-until-date to an earlier date than its current value"）ので、縮めた日数が効くのは、変えてから元の日数がたったあと。縮めるのに迂回が要るかは書かれていない。解除の要求は日数を持たないので、固定の条件（`event-hold` が ON のときだけ）に当たらず、日数を変えている途中でも解除は止まらない。第 2 段階の前なら (a) と (b) を直すだけで、費用はかからない。
+  - 3 も入れた（伊藤の判断。`60c3ac1e`、push 済み）。`EVENT_HOLD_DAYS = 30`（`apps/original-bucket-audit/lib/config.ts`）をスタックに渡し、ロールに `DenyUnexpectedEventHoldDuration`（ON のときに日数が違えば拒否）と `DenyFixedRetention`（固定の期限を拒否）を足した。テスト 17 件・tsc・prettier が通った。PR の本文・README・段階の正本（予行での確かめ方。ロールは固定の期限を拒むので、コンプライアンスの拒否の切り分けはシミュレーター、バケットポリシーの拒否は FullAccess の 1 件の要求で見る）・共有用の資料（8.1・3.2・5.3。Notion は未反映）を直した。PR にはほかのコメントは無かった。
+  - 安本さんへの返信を PR に投稿した（伊藤の許可。https://github.com/turingmotors/cdk-apps/pull/2500#issuecomment-6761471777 ）。
+- 2026-11-10: 共有用の資料（Notion）に安本さんのコメントが 4 件（学習用は 0 件）。回答案を作った（投稿は伊藤が手で行う）。
+  1. tuscenes-annotation は作り直せるのか → 人手のラベル（S4、13.5 TB・約 1,770 万件）。元の走行データがあれば費用をかけて付け直せる、の意味。付け直せるか（外注先・仕様）は未確認。戻すなら約 $124。
+  2. 似た権限のロールの作成も禁じるべきか → 第 3 段階の `DenyLockChange`（バケットポリシーで、ロールの ARN 以外の保持の変更を拒否）と、同じ名前のロールの SCP で足りる。第 3 段階までは FullAccess などが解除できる（通知もまだ無い）。
+  3. deploy のロールからバケットポリシーの変更も禁じたい → 案 A（Object Lock の 8 本だけ、cfn-exec-role を `PutBucketPolicy`・`DeleteBucketPolicy` の例外から外す。X4 もポリシーについては塞がる。代わりにポリシーの変更は手作業）・案 B（RCP、D16 で見送り）・案 C（GitHub 側）。推しは A＋C。
+  4. 新しくアップロードされたデータに自動で付くか → 既定の保持設定で自動で付く。
+  - GitHub の `main`: ブランチ保護（古い形）は無いが、ルールセットで PR 必須・承認 1・CODEOWNERS 必須。承認のあとの push で承認が外れない設定と、PR を経ずにマージできる Integration の例外がある。`packages/original-bucket-guard` に専用の CODEOWNERS は無い。
+  - 共有用のページの「最後の編集者」は安本さんだった（コメントの印と表の列幅。文章の書き換えは無い）。次の更新は、コメントの付いた箇所を壊さないよう、差分の置き換えで行う。
+  - **次**: 安本さんの返事を受けて、案 A・C を第 3 段階に入れるかを決める。共有用の資料を Notion に上げる（許可を得て）。
+- 2026-11-10: **tuscenes-annotation を対象に戻した**（D30。安本さんが「大事なので対象にしてほしい」）。cdk-apps は `NOT_LOCKED_BUCKET_NAMES` から外し、テスト・README を直した（`94ef8d28`、push 済み。jest 17 件・tsc 通過）。対象は 9 本、費用は約 $3,900＋記録の約 $650（約 6.46 億件）。段階 2 に入れた。
+  - 気をつけること: このバケットには人手のラベルのほかに、perception-detection（`object_detection/auto_label/`・`lane_master_kun/`）と localization（`localization/odometry/`・`localization/dev-loader-canary/`）の自動の出力が毎日書かれる（直近 1 週間で 1 日 0.7〜8.5 万件）。既定の保持設定はバケット全体に効くので、それらにも保持が付き、消すには解除と 30 日の待ちが要る。共有用の資料の 6.2 に「決まっていないこと」として足した。
+  - 直した資料: PR の本文・段階の正本・決定の一覧（D30）・共有用の資料（ローカル）・残り 8 本の精査の資料。
+- 2026-11-10: 伊藤が Notion のコメント 4 件に返信した。内容を確かめ、事実の誤りは無かった。#2 は「同じ名前のロールは SCP で止める」「第 3 段階までは穴がある」、#3 は「まだ計画に入っていない」「9 本のポリシーを deploy で変えられなくなる」を補足として、共有用の資料の 10 章（よくある質問、Q1〜Q4）に書いた（ローカル。Notion は未反映）。
+  - 未決のまま残るもの: `DenyLockChange` を第 2 段階の前に入れるか（I1 の見直し）、cfn-exec-role をバケットポリシーの変更から外すか（①バケットポリシー／②SCP）、GitHub 側の 3 点。
+- 2026-11-10: **`DenyLockChange` を第 1 段階に前倒しした**（D31。伊藤の判断）。[cdk-apps#2500](https://github.com/turingmotors/cdk-apps/pull/2500) の共通パッケージに足した（`2de9dd86`、push 済み。4 アプリの jest・tsc が通過）。前倒しで、`s3:PutObjectRetention` を持つだけの主体は第 1 段階から外せなくなる。第 3 段階まで残るのは、ジョブを作れてジョブのロールを渡せる主体（FullAccess など）が、このロールで解除のジョブを作る道。段階の正本・PR の本文・決定の一覧（I1・D31）・共有用の資料（4.1・4.3・6.1・8.1・Q2）を直した。予行での `DenyComplianceMode` の確かめは、FullAccess の要求が先に `DenyLockChange` で拒まれるので、シミュレーターで行う形に直した。
+- 2026-11-10: 共有用の資料を Notion に上げた（伊藤の許可）。安本さんのコメントの付け先を残すため、差分の置き換えと末尾への追記で行った。2 章の tuscenes-annotation の行は消さず「対象に戻した」と書き換えた（コメントの付け先のため）。
+- 2026-11-10 のセッションの終わり。引き継ぎ:
+  - **現在地**: [cdk-apps#2500](https://github.com/turingmotors/cdk-apps/pull/2500) は人間の承認待ち（最新 `2de9dd86`、CI 7 件通過）。中身は `DenyGovernanceBypass`・`DenyLockChange`・`DenyComplianceMode`（共通パッケージ）、ジョブのロール（30 日のイベントホールドだけ）、レポートの置き場、3 アプリの CI のテスト。対象は 9 本（外したのは tuscenes-model・gaming-data-collection・denso-raw）。手元の cdk-apps は `feat/original-bucket-worm-step-a` のまま。
+  - **Notion**: 共有用（現在地と計画、10 章の FAQ つき）・学習用とも、ローカルの原本と同じ内容。共有用には安本さんのコメントが 4 件あり（伊藤が返信済み、未解決のまま）。次の更新も、コメントの付け先を壊さないよう、差分の置き換えで行う（`replace_content` は使わない）。ページの版の履歴を読むツールは、notion-guard で止まる。
+  - **次にやること**: (1) PR の承認・マージ・deploy の後の確かめ（PR の本文の 3 項目）。(2) 予行（4-2）の手順書。確かめることは段階の正本の手順 B と、アクションの 4c-6。(3) 決めごと 4c-1〜4c-5（tuscenes-annotation の自動の出力、td1-raw の LiDAR、cfn-exec-role の締め出し、GitHub 側、PassRole の SCP の前倒し）。
+  - **注意**: td1-raw の LiDAR（4c-2）は共有用の資料にまだ書いていない。共有用の資料の 6.2 に足すかは伊藤に確かめる。権限を持つ人の一覧（5-3）は未着手のまま。

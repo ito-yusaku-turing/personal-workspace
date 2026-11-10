@@ -15,7 +15,7 @@
 | # | 決めたこと | 選んだもの | 状態 | 出典 |
 |---|---|---|---|---|
 | D1 | 消せない保護の本命 | **WORM（S3 Object Lock）**。BreakGlass は撤回の方向 | 仮決定（10-30） | option-reassessment.md の 1・6 章 |
-| D2 | 対象のバケット | 10-30 は**原本バケット 12 本すべて** → 11-05 に **S1・S2 の 10 本**（S3 の tuscenes-model と S4 の tuscenes-annotation を外す） | 見直して決定（11-05、伊藤） | worm-design.md の 1 章、worm-quickwin-plan.md の 2 章 |
+| D2 | 対象のバケット | 10-30 は**原本バケット 12 本すべて** → 11-05 に **S1・S2 の 10 本**（S3 の tuscenes-model と S4 の tuscenes-annotation を外す） → 現在は **9 本**（D26・D27 で 2 本を外し、D30 で tuscenes-annotation を戻した） | 見直して決定（11-05、伊藤） | worm-design.md の 1 章、worm-quickwin-plan.md の 2 章 |
 | D3 | 保護の表し方 | **イベントホールド（可変の保持期間）** | 決定（10-30） | worm-reference.md の 1 章、worm-design.md の 2.1 |
 | D4 | 解除後の保持期間 | **30 日** | 決定（10-30）→ **仮決定**（11-05、E1。チームで正式な値を決める。正式な値は段階 1 の Batch Operations の前に。流し直しの費用は単発なら予算上問題ない（安本さん）） | worm-reference.md の 3 章 |
 | D5 | モード | 10-30 は**コンプライアンス** → **Quick Win はガバナンス** | 見直し（11-02）→ 決定（11-04、理由を確認） | worm-design.md の 3 章、worm-quickwin-plan.md の 1・2 章 |
@@ -40,7 +40,11 @@
 | D24 | 手順 A の範囲 | **迂回の禁止・ジョブのロール・レポートの置き場だけ。通知は別の PR にし、手順 D の前に入れる** | 決定（11-09、伊藤） | 下の「2026-11-09（続き）」の節 |
 | D25 | 手順 A の仕様 | **ジョブのロールの対象は 10 本とカナリア。権限は保持の変更・読み取り・対象の一覧を作る・レポートの書き込みだけ。レポートの置き場は `original-bucket-lock-batch-reports-767397804933`（消さない）。`DenyLockChange` は手順 D で入れ、例外に当たることはそのときカナリアで確かめる（I1 を閉じる）** | 決定（11-09、伊藤） | [worm-rollout-stages.md](worm-rollout-stages.md) の第 1 段階 |
 | D26 | gaming-data-collection を Object Lock の対象から外す | **外す。対象は 9 本とカナリア。バージョニングと守りのバケットポリシーは残す**。シミュレータで集めたデータで、シミュレータがあれば集め直せる。収集は 2026-07-31 に終わっている（[gaming-data-collection-survey.md](gaming-data-collection-survey.md)） | 決定（11-10、持ち主の石原さんの回答を受けて伊藤） | [cdk-apps#2500](https://github.com/turingmotors/cdk-apps/pull/2500) の `LOCK_TARGET_BUCKETS` から外した |
-| D27 | denso-raw を Object Lock の対象から外す | **外す。対象は 8 本とカナリア。バージョニングと守りのバケットポリシーは残す**。持ち主が退職して不在で、2025-05 を最後に使われた形跡も無い（[denso-raw-survey.md](denso-raw-survey.md)）。手順 C の費用は約 $65 減る | 決定（11-10、伊藤） | [cdk-apps#2500](https://github.com/turingmotors/cdk-apps/pull/2500) の `LOCK_TARGET_BUCKETS` から外した（`9de086e9`） |
+| D27 | denso-raw を Object Lock の対象から外す | **外す。対象は 8 本とカナリア。バージョニングと守りのバケットポリシーは残す**。持ち主の松田さんが退職して不在で、2025-05 を最後に使われた形跡も無い（[denso-raw-survey.md](denso-raw-survey.md)）。手順 C の費用は約 $65 減る | 決定（11-10、伊藤） | [cdk-apps#2500](https://github.com/turingmotors/cdk-apps/pull/2500) の `LOCK_TARGET_BUCKETS` から外した（`9de086e9`） |
+| D28 | denso-taxi-video・denso-taxi-processed・denso-nx-raw を Object Lock の対象とする | **対象とする（正式）**。3 本とも、取り込みを作った Inuzuka さんへの聞き取りを受けて決めた。denso-nx-raw は「Azure に原本が残っていれば受け取り直せる」として要確認にしていたが、対象に確定した（[remaining-buckets-review.md](remaining-buckets-review.md)） | 決定（11-10、Inuzuka さんへの聞き取りを受けて伊藤） | 対象の 8 本のまま。cdk-apps の変更は無い |
+| D29 | td1-rlog・tuscenes-calibration（旧）を Object Lock の対象とする | **対象とする**。どちらも前の版の走行データ（td1-rlog は 2024-10〜2025-04 の TD1、旧のキャリブレーションは 2024 の撮影データ）。単発で学習に使われたことがあり、2026-04 の読み出しと符号する。重要性は低いが、唯一の原本で、保持を付ける費用は 2 本で約 $34 と安い。これで対象の 8 本はすべて確定 | 決定（11-10、伊藤） | 対象の 8 本のまま。cdk-apps の変更は無い |
+| D30 | tuscenes-annotation を Object Lock の対象に戻す | **戻す。対象は 9 本とカナリア**。人手のラベルで、付け直すのが難しく大事なデータなので対象にしてほしい、と安本さん（共有用の資料へのコメント）。11-05 の D2 で外したのを見直した。費用は約 $124（約 1,770 万件）。自動の処理（物体検出・車線の自動ラベル、位置推定の毎晩の出力。開発用の試し出力を含む）も同じバケットに毎日書くので、既定の保持設定で、それらにも保持が付く。プレフィックスで分けるかは未決 | 決定（11-10、安本さんの意見を受けて伊藤） | [cdk-apps#2500](https://github.com/turingmotors/cdk-apps/pull/2500) の `LOCK_TARGET_BUCKETS` に戻した（`94ef8d28`） |
+| D31 | 保持の変更の禁止（`DenyLockChange`）を入れる時期 | **第 1 段階（[cdk-apps#2500](https://github.com/turingmotors/cdk-apps/pull/2500)）に前倒し**。第 3 段階のままだと、第 2 段階で保持を付け始めてから第 3 段階までの間、`s3:PutObjectRetention` を持つ主体（td1-raw では 24）なら誰でも外せ、通知も無い。第 2 段階で保持を変えるのはジョブのロールだけなので、先に入れても作業は止まらない。ジョブのロールを渡す操作の禁止（組織のポリシー）は第 3 段階のままなので、それまではジョブを作れる主体がこのロールで外せる穴が残る | 決定（11-10、伊藤。安本さんのコメントを受けて） | [cdk-apps#2500](https://github.com/turingmotors/cdk-apps/pull/2500)（`2de9dd86`） |
 | P1〜P7 | 設計案の決めごと（迂回の Deny を先に入れる、など） | 下の「提案」の節 | 提案（11-04） | worm-quickwin-design.md の 2〜4・7 章 |
 
 ## D1. 消せない保護の本命 → WORM
@@ -334,7 +338,7 @@ E2〜E4 の権限は、費用を減らすための意図した掃除をどう行
 
 | # | 論点 | 案 |
 |---|---|---|
-| I1 | 保持の変更の禁止（`DenyLockChange`）を入れる時期 | 11-09 伊藤: **あとでもよいものはあとに**。原本バケットには手順 D で入れる。予行 B の確かめのため、カナリアにだけ手順 A で入れる案を出した（未決） |
+| I1 | 保持の変更の禁止（`DenyLockChange`）を入れる時期 | 11-09 伊藤: **あとでもよいものはあとに**。原本バケットには手順 D で入れる。予行 B の確かめのため、カナリアにだけ手順 A で入れる案を出した（未決） → **11-10 に見直し: 手順 A（第 1 段階）で入れる**（D31） |
 | I2 | deploy の経路を守る SCP（X1〜X3・X5）を出す時期 | **決定（11-09、伊藤）: 手順 D**（あとでもよいものはあとに） |
 | I3 | 大きいバケットの対象の一覧（マニフェスト） | 11-09 にカナリアで試した（[manifest-generator-probe-runbook.md](manifest-generator-probe-runbook.md)）。**ジョブに作らせる一覧（ManifestGenerator）は、最新版だけを版の ID つきで作る**（古い版・最新が削除マーカーのキーは入らない）。S3 Inventory を使わずに作れる見込み。未決: 8 億件の規模での時間と費用、ジョブと独立に件数を突き合わせる手段、バケットを足す・外すときの手順 |
 | I4 | 既定の保持設定を CDK に持たないことの守り | 定期的に設定を確かめる仕組みと、CDK に `objectLockEnabled` が足されていないことを検査するテスト。CloudFormation のドリフトの検出には出ない |
