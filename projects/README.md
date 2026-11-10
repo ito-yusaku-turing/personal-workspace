@@ -19,6 +19,7 @@
 - [idp-broker/workstream/idp-auth0-role-division.md](./idp-broker/workstream/idp-auth0-role-division.md):
 - [information-resource-inventory/workstream/vercel-accounts.md](./information-resource-inventory/workstream/vercel-accounts.md): Vercel。人のアカウントの 2FA は完了。次は jadd_studio3・fleet-ops を Git 連携に移す
 - [information-resource-inventory/workstream/supabase-db-access.md](./information-resource-inventory/workstream/supabase-db-access.md): Supabase の DB への直接の接続経路。起票した（vercel-accounts からの派生）
+- [databricks-app-hosting/workstream/databricks-app-hosting.md](./databricks-app-hosting/workstream/databricks-app-hosting.md): アプリを Databricks に移せるかの検討。起票した（vercel-accounts からの派生）
 
 ## 待ち・保留
 
@@ -30,6 +31,7 @@
 ## 案件
 
 - [aws-data-protection/](./aws-data-protection/README.md): S3 原本バケットの保護
+- [databricks-app-hosting/](./databricks-app-hosting/README.md): 社内の Web アプリを Databricks（Apps・Lakebase）に移せるかの検討
 - [gaming-data-collection/](./gaming-data-collection/README.md): BeamNG の MOD と資料
 - [idp-broker/](./idp-broker/README.md): 社内アプリの認証の入口（IdP）の選定
 - [information-resource-inventory/](./information-resource-inventory/README.md): 情報資源の棚卸し

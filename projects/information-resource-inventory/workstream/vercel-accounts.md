@@ -380,5 +380,6 @@ fleet-ops（Git 連携はつながっている）:
 ## 関連リンク
 
 - [supabase-db-access.md](./supabase-db-access.md): 派生タスク。Supabase の DB に psql などで直接つなぐ経路は MFA が効かないので、経路の把握とセキュリティ強化を別に進める（2026-11-09 起票）
+- [project:databricks-app-hosting](../../databricks-app-hosting/workstream/databricks-app-hosting.md): 派生案件。アプリを Databricks（Apps・Lakebase）に移し、Vercel の席とトークンの問題をなくせるかの検討（2026-11-10 起票）
 - [project:privileged-access](../../privileged-access/README.md): 組織の Owner は権限の頂点の地図（privilege-map.md）に反映する
 - [project:idp-broker](../../idp-broker/README.md): 社内アプリを使う人の認証の入口の選定（この案件は社員が Vercel そのものに入るためのアカウントで、別物）

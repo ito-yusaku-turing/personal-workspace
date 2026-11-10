@@ -21,6 +21,7 @@ personal-workspace/
 ├── projects/    # 案件ごとの資料置き場（下記「projects/（案件ごとの資料）」）
 │   ├── README.md                 # projects/ 全体の目録と、取り組み中の workstream の並び
 │   ├── aws-data-protection/      # project:aws-data-protection。S3 原本バケットの保護
+│   ├── databricks-app-hosting/   # project:databricks-app-hosting。アプリの Databricks への移設の検討
 │   ├── gaming-data-collection/   # project:gaming-data-collection。BeamNG の MOD と資料
 │   ├── idp-broker/               # project:idp-broker。社内アプリの認証の入口（IdP）の選定
 │   ├── information-resource-inventory/ # project:information-resource-inventory。情報資源の棚卸し
