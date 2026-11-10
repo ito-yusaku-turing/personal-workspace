@@ -1,7 +1,7 @@
 # S3 バケットのデータ保護 第二弾（権限設計のアップグレード）
 
 - 開始: 2026-10-20
-- 状態: **第 1 段階（手順 A）の PR をレビュー中**（[cdk-apps#2500](https://github.com/turingmotors/cdk-apps/pull/2500)、2026-11-09）。次回は Copilot のレビューの確認から。Copilot の指摘が出なくなったら人間のレビューに回す → マージ・deploy → deploy の後の確かめ。並行して Notion の更新（1-1、伊藤の許可を得て）→ チームの Go サイン（1-2）。段階の正本は [worm-rollout-stages.md](s3-data-protection-2/worm-rollout-stages.md)。全体のアクションは [worm-action-list.md](s3-data-protection-2/worm-action-list.md)。権限の頂点の問題は別の案件（project:privileged-access）
+- 状態: **第 1 段階（手順 A）の PR が人間のレビュー待ち**（[cdk-apps#2500](https://github.com/turingmotors/cdk-apps/pull/2500)。Copilot は指摘なし、CI は通過、2026-11-10）。次は人間のレビュー → マージ・deploy → deploy の後の確かめ。並行して Notion の更新（1-1、伊藤の許可を得て）→ チームの Go サイン（1-2）。段階の正本は [worm-rollout-stages.md](s3-data-protection-2/worm-rollout-stages.md)。全体のアクションは [worm-action-list.md](s3-data-protection-2/worm-action-list.md)。権限の頂点の問題は別の案件（project:privileged-access）
 - 所属: project:aws-data-protection（2026-10-26 に `~/docs/workstream/` から移した）
 - 前段（第一弾、完了）:
   - [走行データ消失リスクへの対応](done/raw-data-security.md)（バケットの種別と処遇、裁定の正本）
@@ -770,3 +770,4 @@
   - 別のセッション（pw-1109-rev）がレビューした。重い指摘 1 つ: ロールの保持の変更に条件が無く、ジョブの指定を誤るとコンプライアンスモードの保持を付けられた。`s3:object-lock-mode` が COMPLIANCE の要求を拒む文をロールのポリシーに足した（許す側の条件にすると、モードを持たない要求まで拒まれるおそれがあるので、拒む側にした。伊藤が了承）。あわせて、レポートの置き場の守りのテストを丸ごと比べる形にし、README を直した。`d019123d` を push し、PR の本文も直した。レポートの置き場をトレイルに足すことと、テストを CI で走らせることは、後の PR に回した（伊藤）。`aws:SourceArn` は足さない（効果が小さく、渡されるか分からない）。
   - セッションの終わり（2026-11-09）: `d019123d` の CI は format-diff と 5 アプリの prd-diff が通り、test は実行中だった。Copilot のレビューはまだ付いていない。
   - **次回**: Copilot のレビューを確かめて直す（`gh api repos/turingmotors/cdk-apps/pulls/2500/reviews` と `.../comments`）。指摘が出なくなったら人間のレビューに回す（伊藤）。直したら、手元の本文 [pr-step-a.md](s3-data-protection-2/pr-step-a.md) を先に直し、`gh pr edit --body-file` で上げる。cdk-apps の手元の checkout は `feat/original-bucket-worm-step-a` のまま。
+- 2026-11-10: [cdk-apps#2500](https://github.com/turingmotors/cdk-apps/pull/2500) の Copilot のレビューを確かめた。`d019123d` に対して指摘は 0 件（インラインのコメントも無し）。概要に「取り返しのつかない本番の WORM 化の前に、ロール・一覧・保持の組み合わせと COMPLIANCE を拒む動きを、人間のレビューとカナリアで確かめる必要がある」とだけ書かれていた（カナリアでの確かめは手順 B の前の予定どおり）。CI は 7 件すべて通過。**次**: 人間のレビューに回す（伊藤）。
