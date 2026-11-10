@@ -2,7 +2,7 @@
 
 - 作成: 2026-11-09 ／ 伊藤（エージェントが起草）
 - 元: [worm-rollout-stages.md](worm-rollout-stages.md) の「全体」「第 1 段階」「第 3 段階」
-- ブランチ: [`feat/original-bucket-worm-step-a`](https://github.com/turingmotors/cdk-apps/tree/feat/original-bucket-worm-step-a)（`38b26cd0`、レビューの指摘を直した `c8c8d394`・`d019123d`）。**PR: [cdk-apps#2500](https://github.com/turingmotors/cdk-apps/pull/2500)**（2026-11-09 に作った）
+- ブランチ: [`feat/original-bucket-worm-step-a`](https://github.com/turingmotors/cdk-apps/tree/feat/original-bucket-worm-step-a)（`38b26cd0`、レビューの指摘を直した `c8c8d394`・`d019123d`、gaming-data-collection を対象から外した `eb40da4f`）。**PR: [cdk-apps#2500](https://github.com/turingmotors/cdk-apps/pull/2500)**（2026-11-09 に作った）
 - タイトル: `feat(original-bucket-guard,original-bucket-audit): Object Lock の導入に備え、迂回の禁止とジョブのロール・レポートの置き場を足す`
 
 以下が本文。
@@ -25,8 +25,8 @@
 
 | 区分 | バケット |
 |---|---|
-| **Object Lock を入れる 10 本** | `td1-raw-767397804933`、`tuscenes-raw-767397804933`、`td1-rlog`、`tuscenes-calibration`、`tuscenes-calibration-767397804933`、`denso-raw-767397804933`、`denso-nx-raw-767397804933`、`denso-taxi-processed-767397804933`、`denso-taxi-video-767397804933`、`gaming-data-collection-767397804933` |
-| 入れない 2 本 | `tuscenes-model-767397804933`、`tuscenes-annotation-767397804933`（費用をかければ作り直せるため） |
+| **Object Lock を入れる 9 本** | `td1-raw-767397804933`、`tuscenes-raw-767397804933`、`td1-rlog`、`tuscenes-calibration`、`tuscenes-calibration-767397804933`、`denso-raw-767397804933`、`denso-nx-raw-767397804933`、`denso-taxi-processed-767397804933`、`denso-taxi-video-767397804933` |
+| 入れない 3 本 | `tuscenes-model-767397804933`、`tuscenes-annotation-767397804933`、`gaming-data-collection-767397804933`（費用をかければ作り直せるため。gaming-data-collection はシミュレータで集めたデータで、収集を終えている。2026-11-10 に持ち主が除外を了承） |
 | カナリア | `original-bucket-canary-767397804933`。原本バケットと同じ守り（バージョニング・守りのバケットポリシー）を入れた検証用のバケットで、原本のデータは置かない（`OriginalBucketCanary` スタック、[#2267](https://github.com/turingmotors/cdk-apps/pull/2267)）。手順を原本バケットに入れる前に、ここで試す |
 
 ## この PR でやること
@@ -34,7 +34,7 @@
 | 部品 | 中身 |
 |---|---|
 | 迂回の禁止 `DenyGovernanceBypass`（`packages/original-bucket-guard`） | 守りのバケットポリシーに、Object Lock の保持の迂回（`s3:BypassGovernanceRetention`）を**全員に**拒否する文を足す。原本バケット 12 本とカナリアに入る |
-| ジョブのロール `original-bucket-lock-batch`（`apps/original-bucket-audit`、新しいスタック `OriginalBucketLockBatch`） | S3 Batch Operations だけが引き受けられるロール（`aws:SourceAccount` で tuscenes-prod に固定）。Object Lock を入れる 10 本とカナリアの版の保持を付ける・外す・読むこと、ジョブに対象の一覧を作らせること（ManifestGenerator）、レポートの置き場への読み書きだけができる。**対象のバケットの版の削除・上書き・保持の迂回・タグ付けはできない**。ジョブの指定を誤ってもコンプライアンスモードの保持は付けられないよう、ロールのポリシーで拒む（コンプライアンスモードは root でも縮められず、期限まで版もバケットも消せない）。権限はテストで文ごと固定した |
+| ジョブのロール `original-bucket-lock-batch`（`apps/original-bucket-audit`、新しいスタック `OriginalBucketLockBatch`） | S3 Batch Operations だけが引き受けられるロール（`aws:SourceAccount` で tuscenes-prod に固定）。Object Lock を入れる 9 本とカナリアの版の保持を付ける・外す・読むこと、ジョブに対象の一覧を作らせること（ManifestGenerator）、レポートの置き場への読み書きだけができる。**対象のバケットの版の削除・上書き・保持の迂回・タグ付けはできない**。ジョブの指定を誤ってもコンプライアンスモードの保持は付けられないよう、ロールのポリシーで拒む（コンプライアンスモードは root でも縮められず、期限まで版もバケットも消せない）。権限はテストで文ごと固定した |
 | レポートの置き場 `original-bucket-lock-batch-reports-767397804933`（同上） | ジョブが作った対象の一覧と、1 件ずつの結果を残す。何に保護を付けたかの記録なので、消さない（バージョニング・ライフサイクルなし）。原本バケットと同じ守りのバケットポリシー（`original-bucket-guard` の文）を入れる |
 
 - ロールの名前は `LOCK_BATCH_ROLE_NAME` として `original-bucket-guard` に置いた。第 3 段階の「保持の変更の禁止」で、このロールだけを例外にする。
@@ -61,7 +61,7 @@
    | 段階 | バケット |
    |---|---|
    | 1 | `tuscenes-calibration`、`tuscenes-calibration-767397804933`、`td1-rlog`、`denso-raw-767397804933` |
-   | 2 | `gaming-data-collection-767397804933`、`denso-taxi-processed-767397804933`、`denso-taxi-video-767397804933`、`denso-nx-raw-767397804933` |
+   | 2 | `denso-taxi-processed-767397804933`、`denso-taxi-video-767397804933`、`denso-nx-raw-767397804933` |
    | 3 | `td1-raw-767397804933`、`tuscenes-raw-767397804933` |
 
    各バケットで、

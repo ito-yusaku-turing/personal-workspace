@@ -2,7 +2,7 @@
 
 - 作成: 2026-11-09 ／ 伊藤（エージェントが起草）
 - 親: [S3 バケットのデータ保護 第二弾](../s3-data-protection-2.md)
-- 状態: **第 1 段階の PR を作った**（[cdk-apps#2500](https://github.com/turingmotors/cdk-apps/pull/2500)、2026-11-09）
+- 状態: **第 1 段階の PR をレビュー中**（[cdk-apps#2500](https://github.com/turingmotors/cdk-apps/pull/2500)。2026-11-10 に gaming-data-collection を対象から外した）
 - 使い道: 導入の段階の正本。ここから、共有用の資料（[notion-worm-governance-rollout.md](../../documents/notion-worm-governance-rollout.md)）の 5.1 と、cdk-apps の各 PR の本文（[pr-step-a.md](pr-step-a.md) など）を作る。段階を変えたら、先にここを直す
 - 前提: [worm-decisions.md](worm-decisions.md)（D1〜D24）、[permission-model.md](permission-model.md)（層と抜け穴）
 
@@ -16,18 +16,18 @@
 
 | 区分 | バケット |
 |---|---|
-| **Object Lock を入れる 10 本** | `td1-raw-767397804933`、`tuscenes-raw-767397804933`、`td1-rlog`、`tuscenes-calibration`、`tuscenes-calibration-767397804933`、`denso-raw-767397804933`、`denso-nx-raw-767397804933`、`denso-taxi-processed-767397804933`、`denso-taxi-video-767397804933`、`gaming-data-collection-767397804933` |
-| 入れない 2 本 | `tuscenes-model-767397804933`、`tuscenes-annotation-767397804933`（費用をかければ作り直せるため。バージョニングと守りのバケットポリシーは残る） |
+| **Object Lock を入れる 9 本** | `td1-raw-767397804933`、`tuscenes-raw-767397804933`、`td1-rlog`、`tuscenes-calibration`、`tuscenes-calibration-767397804933`、`denso-raw-767397804933`、`denso-nx-raw-767397804933`、`denso-taxi-processed-767397804933`、`denso-taxi-video-767397804933` |
+| 入れない 3 本 | `tuscenes-model-767397804933`、`tuscenes-annotation-767397804933`、`gaming-data-collection-767397804933`（費用をかければ作り直せるため。gaming-data-collection はシミュレータで集めたデータで、収集を終えている。2026-11-10 に持ち主が除外を了承。バージョニングと守りのバケットポリシーは残る） |
 | カナリア | `original-bucket-canary-767397804933`。原本バケットと同じ守り（バージョニング・守りのバケットポリシー）を入れた検証用のバケットで、原本のデータは置かない。`apps/original-bucket-audit` の `OriginalBucketCanary` スタックが持つ。手順を原本バケットに入れる前に、ここで試す |
 
-原本バケットは、上の 10 本と 2 本の計 12 本。どれも tuscenes-prod（767397804933）の us-west-2 にある。
+原本バケットは、上の 9 本と 3 本の計 12 本。どれも tuscenes-prod（767397804933）の us-west-2 にある。
 
 ## 全体
 
 | 段階 | 目的 | 手順 | 形 | 終わった時点の姿 |
 |---|---|---|---|---|
 | 第 1 段階 | 部品を置く | A | cdk-apps の PR 1 本 | 迂回の禁止がバケットポリシーに入り、ジョブのロールとレポートの置き場ができている。止まる操作は無い |
-| 第 2 段階 | Object Lock を入れる | B（カナリアで予行）→ C（段階 1〜3 の順に各バケットへ） | CLI と S3 Batch Operations の作業 | 対象の 10 本で、新しく書かれる版と、今ある最新の版が保護されている |
+| 第 2 段階 | Object Lock を入れる | B（カナリアで予行）→ C（段階 1〜3 の順に各バケットへ） | CLI と S3 Batch Operations の作業 | 対象の 9 本で、新しく書かれる版と、今ある最新の版が保護されている |
 | 第 3 段階 | 抜け穴を塞ぐ | 通知 → D | cdk-apps の PR 2 本（通知、手順 D）と、組織のポリシー | 保護を外せるのは完全削除用の権限（AWSAdministratorAccess）がジョブを作ったときだけ。解除と設定の変更は通知される |
 
 ## 第 1 段階: 部品を置く（手順 A）
@@ -37,7 +37,7 @@
 | 部品 | 中身 | 置き場 |
 |---|---|---|
 | 迂回の禁止 `DenyGovernanceBypass` | Object Lock の保持の迂回（`s3:BypassGovernanceRetention`）を、全員に禁じる文。原本バケット 12 本とカナリアのバケットポリシーに入る | `packages/original-bucket-guard` |
-| ジョブのロール `original-bucket-lock-batch` | S3 Batch Operations だけが使えるロール。原本バケット 10 本とカナリアの版の保持を付ける・外す・読むことと、ジョブに対象の一覧を作らせることだけができる。版の削除・迂回・タグ付けはできない | `apps/original-bucket-audit` |
+| ジョブのロール `original-bucket-lock-batch` | S3 Batch Operations だけが使えるロール。原本バケット 9 本とカナリアの版の保持を付ける・外す・読むことと、ジョブに対象の一覧を作らせることだけができる。版の削除・迂回・タグ付けはできない | `apps/original-bucket-audit` |
 | レポートの置き場 `original-bucket-lock-batch-reports-767397804933` | ジョブが作った対象の一覧と、1 件ずつの結果を残す。何に保護を付けたかの記録なので、消さない。原本バケットと同じ守りのバケットポリシーを入れる | `apps/original-bucket-audit` |
 
 - **変わらないこと:** 今は Object Lock が無いので、迂回の禁止が止める操作は無い。ジョブのロールも、ジョブを作るまで何もしない。
@@ -68,8 +68,8 @@
 | 段階 | バケット | 理由 |
 |---|---|---|
 | 1 | tuscenes-calibration（新・旧）、td1-rlog、denso-raw | 書き込みが止まっている。件数が少ない |
-| 2 | gaming-data-collection、denso-taxi-processed、denso-taxi-video、denso-nx-raw | 書き込み元が SDK の既定で書く見込み。denso の 3 本は Azure から DataSync で書き込まれる |
-| 3 | td1-raw、tuscenes-raw | 対象の 10 本の版の数の 9 割を占める |
+| 2 | denso-taxi-processed、denso-taxi-video、denso-nx-raw | Azure から DataSync で書き込まれる |
+| 3 | td1-raw、tuscenes-raw | 対象の 9 本の版の数の 9 割を占める |
 
 各バケットでの作業:
 
@@ -81,7 +81,7 @@
 `tuscenes-calibration-767397804933` だけは SSE-KMS（AWS 管理のキー `aws/s3`）で暗号化されている。カナリアでは確かめられないので、段階 1 で、このバケットは少ない件数で先に流す。
 
 - **誰が:** 伊藤（FullAccess）。ジョブの設定は、伊藤ともう 1 人で確かめる。
-- **終わった条件:** 段階ごとに数日、書き込みのエラーが無い。10 本の最新の版に、イベントホールドが付いている。
+- **終わった条件:** 段階ごとに数日、書き込みのエラーが無い。9 本の最新の版に、イベントホールドが付いている。
 
 ## 第 3 段階: 抜け穴を塞ぐ（通知・手順 D）
 
