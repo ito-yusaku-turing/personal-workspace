@@ -1,11 +1,11 @@
 # アプリを Databricks に移せるかの検討
 
 - 開始: 2026-11-10
-- 状態: **起票した**（2026-11-10。公式ドキュメントで一次調査済み）。次は、社の Databricks の Workspace のリージョン・プラン・単価を確かめ、社外の利用者を入れられるかを CorpIT と詰める
+- 状態: **料金体系を調べ、試算した**（2026-11-10。アプリ 1 つで月 $200〜600 の定価）。次は、社のプランと契約の単価、いまの DB の大きさを確かめ、東京とオレゴンのどちらに置くかを決める
 - 所属: project:databricks-app-hosting
 - 派生元: [information-resource-inventory/workstream/vercel-accounts.md](../../information-resource-inventory/workstream/vercel-accounts.md)（Vercel の MFA の必須化と、共有アカウント・CI のトークンをなくす作業）
 
-社内の Web アプリを、Vercel（ホスティング）と Supabase（DB・認証）から、Databricks の Databricks Apps（ホスティング）・Lakebase（Postgres）・Databricks の認証（社の IdP の SSO）に移せるかを検討する。
+社内の Web アプリを、Vercel（ホスティング）と Supabase（DB・認証）から、Databricks の Databricks Apps（ホスティング）・Lakebase（Postgres）・Databricks の認証（社の IdP の SSO）に移せるかを検討する。**移すアプリは完全に社内専用として作る**（社外の利用者は対象外。2026-11-10、伊藤）。
 
 ## 背景・目的
 
@@ -34,7 +34,6 @@
 
 - **公開も、匿名でのアクセスもできない**。"You can't make Databricks apps public. Anonymous access and bypassing single sign-on (SSO) are not supported."（[Permissions](https://docs.databricks.com/aws/en/dev-tools/databricks-apps/permissions)）
 - 使う人は、社の IdP で認証された **Databricks のアカウントユーザー**であること。権限は `CAN USE` / `CAN MANAGE` で、人・グループ・サービスプリンシパルに付ける。`All account users` に開くこともできる。
-- 社外の人は「identity federation with SCIM and JIT provisioning」で入れる（Workspace の全体の権限は渡さずに、アプリだけを使わせられる）。
 - アプリが受け取るヘッダー: `X-Forwarded-Email`・`X-Forwarded-User`・`X-Forwarded-Preferred-Username` など（[HTTP headers](https://docs.databricks.com/aws/en/dev-tools/databricks-apps/http-headers)）。
 - アプリごとにサービスプリンシパルが作られる（`DATABRICKS_CLIENT_ID`・`DATABRICKS_CLIENT_SECRET`）。ログインした人の権限で Unity Catalog などを使わせることもできる（user authorization。[Authorization](https://docs.databricks.com/aws/en/dev-tools/databricks-apps/auth)）。
 
@@ -51,16 +50,21 @@
 
 ### 料金
 
-- 公式の料金のページ（[Apps](https://www.databricks.com/product/pricing/databricks-apps)・[Lakebase](https://www.databricks.com/product/pricing/lakebase)）は、取得しても単価が表示されなかった。
-- 外部の記事では Apps は Premium で $0.75/DBU とある（[Flexera](https://www.flexera.com/blog/finops/databricks-pricing-guide/)。**未確認**）。この単価だと、Medium 1 台を常に動かして 0.5 × 730 時間 × $0.75 ≒ **月 $270**。Vercel のチーム全体は月 $360（vercel-accounts の試算）。
+料金体系と試算は [documents/pricing-estimate.md](../documents/pricing-estimate.md) にまとめた（2026-11-10）。要点:
+
+- **社の Workspace（`dbc-24f125d6-4420`）は us-west-2（オレゴン）**。データの本体もオレゴン。東京に置くなら別の Workspace が要る。
+- Apps は「Interactive Serverless」の単価で、動いている時間 × 大きさで課金される。Medium 1 台・1 時間は、東京 Premium $0.415、オレゴン Premium $0.375。
+- Lakebase は CU 時間（東京 Premium $0.110、オレゴン Premium $0.092）と、ストレージ（DSU）。2027-01-31 まで 50% 引き。
+- アプリ 1 つ（Apps Medium＋Lakebase 2 CU＋50 GB）で、24 時間動かすと月 $425〜596、業務時間だけなら月 $182〜250（定価）。東京はオレゴンの 1.1〜1.2 倍。
+- Vercel は、全員分の席でチーム全体の月 $620 前後（12 プロジェクト）。Databricks はアプリごとに課金される。
 - 人ごとの課金は無いと思われる（ドキュメントでは確かめていない）。
 
 ## 対象のアプリ（2026-11-10 にリポジトリで確認）
 
 | アプリ | いまの構成 | 利用者 | Databricks との関係 |
 |---|---|---|---|
-| jadd_studio3 | Next.js 16（Node 24.22.1 に固定）・Prisma・Supabase。Vercel の cron（offboarding-sync など） | 社内の人は Google（Supabase Auth）。**Google アカウントを使わない社外の人は、メールとパスワードと TOTP**（STUDIO 独自の認証。`docs/general` の認証の仕様・`docs/workstream/email-user-totp.md`） | `@databricks/sql` で Workspace `dbc-24f125d6-4420` を使っている |
-| fleet-ops | Next.js 16.2.1・Supabase（`@supabase/ssr`）。Supabase Auth を 13 ファイル、Storage か Realtime を 4 ファイルで使う（grep の件数） | 未確認 | `@databricks/sql` を使っている |
+| jadd_studio3 | Next.js 16（Node 24.22.1 に固定）・Prisma・Supabase。Vercel の cron（offboarding-sync など） | 社内の人は Google（Supabase Auth）。ほかにメールとパスワードの経路がある（STUDIO 独自の認証。`docs/general` の認証の仕様）。社内専用にするなら使わなくなる | `@databricks/sql` で Workspace `dbc-24f125d6-4420` を使っている |
+| fleet-ops | Next.js 16.2.1・Supabase（`@supabase/ssr`）。Supabase Auth を 13 ファイル、Storage か Realtime を 4 ファイルで使う（grep の件数） | 未確認（社内専用にする前提） | `@databricks/sql` を使っている |
 
 ## 見立て（2026-11-10。まだ決めていない）
 
@@ -72,13 +76,12 @@
 
 壁になりそうなこと:
 
-1. **使う人が全員 Databricks のアカウントユーザーである必要がある**。jadd_studio3 の社外の利用者を入れるには、IdP と ID 連携で Databricks に登録することになる。
+1. **使う人が全員 Databricks のアカウントユーザーである必要がある**。社内専用なので、社の IdP から Databricks に人を登録できていれば足りる（いまの登録の範囲は未確認）。
 2. **Next.js が動くか分からない**（対応の一覧に無い。H2C の要件。Node 22 と 24 の違い。ファイル 1 つ 10 MB まで）。
 3. **Supabase の代わりは DB だけ**。Auth・Realtime・Storage は作り直しになる。
 4. cron・独自のドメイン・自動の台数の増減にあたるものが無い。cron は Databricks の Jobs で代えられる（推測）。
-5. 料金は未確定。Vercel より安くなるとは限らない。
-
-第一候補は、社内の人だけが使うアプリにするのがよさそう（推測）。
+5. アプリごとに課金されるので、移すアプリが多いと Vercel より高くなりうる（[documents/pricing-estimate.md](../documents/pricing-estimate.md)）。
+6. データはオレゴンにある。東京に置くと、Workspace を新しく作り、データを読むたびにリージョンをまたぐ。
 
 ## 設計判断と理由
 
@@ -87,10 +90,12 @@
 ## 進捗チェックリスト
 
 - [x] Databricks Apps・Lakebase・認証を公式ドキュメントで調べる（2026-11-10）
-- [ ] 社の Databricks の Workspace（`dbc-24f125d6-4420`）のリージョン・プラン（Premium / Enterprise）を確かめる
-- [ ] Apps と Lakebase の単価を確かめる（料金のページかアカウントの担当者）
-- [ ] 社外の利用者を ID 連携（SCIM と JIT）で入れられるか、CorpIT と詰める
-- [ ] fleet-ops などの利用者が社内の人だけかを確かめる
+- [x] 社の Workspace のリージョンを確かめる（us-west-2。2026-11-10）
+- [x] 料金体系を調べ、定価で試算する（2026-11-10。[documents/pricing-estimate.md](../documents/pricing-estimate.md)）
+- [ ] 社のプラン（Premium / Enterprise）と契約の単価を確かめる（`system.billing.list_prices`）
+- [ ] jadd_studio3・fleet-ops のいまの DB の大きさと負荷を確かめ、試算を直す
+- [ ] 東京とオレゴンのどちらに置くかを決める（東京ならオレゴンのデータの読み方も）
+- [ ] 社の IdP から Databricks に、アプリを使う社内の人が登録されているかを確かめる
 - [ ] Next.js 16 の小さなアプリが Databricks Apps で動くかを試す（H2C・Node 22・ファイルの大きさ）
 - [ ] GitHub Actions からのデプロイの認証（OIDC が使えるか）を確かめる
 - [ ] Lakebase の拡張（PostGIS・pg_cron など）と、Supabase からの移行の手順を確かめる
@@ -98,11 +103,12 @@
 
 ## 次セッションへの引き継ぎ
 
-**2026-11-10**: 起票した。公式ドキュメントで一次調査を済ませた（上の「公式ドキュメントで分かったこと」）。
+**2026-11-10**: 起票し、公式ドキュメントで一次調査した。続けて料金体系を調べ、定価で試算した（[documents/pricing-estimate.md](../documents/pricing-estimate.md)）。社外の利用者は対象外にした（社内専用で作る）。
 
-- 次は、社の Workspace のリージョン・プラン・単価を確かめる。Lakebase は Workspace と同じリージョンに作られるので、リージョンが東京でなければ、DB の置き場の前提が変わる。
-- 料金のページは取得しても単価が出なかった。ブラウザで見るか、アカウントの担当者に聞く。
-- 読んでいないページ: Apps の deploy・environment-variables・cicd-github-actions・create-app-template・embed、AppKit（https://developers.databricks.com/docs/appkit/v0/）、Lakebase の料金・拡張・高可用性。
+- 置き場所: 東京を第一候補、データのあるオレゴン（いまの Workspace）も候補。料金と運用の手間はオレゴンが有利。東京の利点は画面の応答の速さだが、データをオレゴンから読むので効き目は画面による（推測）。
+- 次は、社のプランと契約の単価（`system.billing.list_prices`）、いまの DB の大きさを確かめて試算を直す。
+- 単価は、公式の料金の計算機のデータ（`https://www.databricks.com/en-pricing-assets/data/pricing/AWS.json`）と、料金のページのデータ（`https://www.databricks.com/en-pricing-assets/page-data/product/pricing/<databricks-apps|lakebase|storage>/page-data.json`）から取った。料金のページは JavaScript で描くので、ふつうに取得すると単価が出ない。
+- 読んでいないページ: Apps の deploy・environment-variables・cicd-github-actions・create-app-template・embed、AppKit（https://developers.databricks.com/docs/appkit/v0/）、Lakebase の拡張・高可用性。
 
 ## 関連リンク
 
