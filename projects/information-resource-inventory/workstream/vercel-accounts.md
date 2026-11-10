@@ -208,6 +208,39 @@ GitHub の組織 `turingmotors` のコードを `VERCEL_TOKEN` で検索して�
 - 「最後にデプロイを作った日」は、プロジェクトごとの直近 100 件の中での最新。`-` は使っていないという意味ではない。
 - sangotaro と colum2131 は gmail のアドレスで入っている。外す人を決めるときに確かめる。
 
+## 個人のメールアドレスで入っている人（2026-11-10 に取得）
+
+`GET /v3/teams/{teamId}/members` を取り直した（19 名。一次情報は `~/vercel/turing-inc/2026-11-10/members-personal-email.json`）。会社のドメイン（`turing-motors.com`）でないのは 2 名で、11-06 の記録と同じ。アドレスそのものは資料に書かない（一次情報を見る）。
+
+| ユーザー | ロール | 本人（推定） | 参加 | 入った経路（`joinedFrom`） | 2FA | 最近の動き |
+|---|---|---|---|---|---|---|
+| colum2131 | Developer | 岩政 公平さん（GitHub の名前は Kohei Iwamasa、所属 Turing Inc.。自動運転第 4 グループの正社員） | 2026-09-28 | 参加の申請（`nsnb-request-access`） | 済み | jadd_studio3 の main の作者（直近 90 日に 12 件、最新 2026-11-05）、fleet-management も 4 件。**席が要る人** |
+| sangotaro | Member | 渡辺 磯太郎さん（伊藤に確かめた。Vercel・GitHub の名前は Watanabe Shotaro / Shotaro Watanabe。GitHub の所属は空欄） | 2025-08-26 | メールの招待（`mail`） | 済み | 直近 90 日に Git 連携のリポジトリの作者でなく、11-06 に取ったデプロイ（プロジェクトごとに直近 100 件）にも出てこない。Viewer に移せそうな 6 名の 1 人 |
+
+- 2 名とも GitHub の組織 `turingmotors` のメンバーで、Vercel のアカウントに GitHub をつないでいる（API の `github.login` が colum2131・sangotaro）。
+- **sangotaro はいまも動いている**。openpilot に 2026-11-10 までコミットがある（openpilot は Vercel に載っていない）。初めに「最後は 2023 年」と書いたのは、検索を日付順に並べていなかったための誤り。
+- 個人のアドレスのままだと、退職しても会社の側でアカウントを止められない（メールのコードでのログインが個人の受信箱に届く）。SSO を入れても、既存のアカウントとどう紐づくかは未確認。
+
+### 結論: 何もしない（2026-11-10、伊藤）
+
+- 2 名とも、Vercel のアカウントを個人の用途（Hobby）と兼ねている。GitHub も個人のアカウントで `turingmotors` に入っている。
+- 2 つの Vercel のアカウントを同じ GitHub のアカウントにつなぐことはできない（[kb](https://vercel.com/kb/guide/why-aren-t-commits-triggering-deployments-on-vercel)）。アカウントを会社用に分けると、GitHub も分けない限り、個人か会社のどちらかのデプロイが止まる。
+- 会社のアドレスに替えても、会社がアカウントを止められるようにはならない（GitHub でのログインが残り、アカウントは本人のもの）。会社が管理できるのはチームに属しているかどうかで、これはアドレスに関係なく Owner が外せる。
+- そのため、メールの変更もアカウントの作り直しも求めない。会社の側の管理は、退職・異動のときにチームから外すこと（Okta の名簿との突き合わせ）・2FA の必須化・入れるなら SSO の強制で行う。
+
+### 会社のアドレスに替えたとき、デプロイに響くか（2026-11-10 に公式の資料で確かめた）
+
+- Git 連携で作者がチームにいるかは、**Vercel のアカウントにつないだ Git のアカウント（Login Connections）で照合する**。"Membership is verified by finding the Vercel user associated with the commit author through Login Connections"（[Git](https://vercel.com/docs/git#deploying-private-git-repositories)）。Vercel のアカウントのメールでは照合しない。
+- 加えて、**コミットのメールが GitHub のアカウントで確認済みのアドレスであること**が要る（[kb](https://vercel.com/kb/guide/why-aren-t-commits-triggering-deployments-on-vercel)）。見るのは GitHub 側のアドレスで、Vercel のアドレスではない。
+- **同じ GitHub のアカウントは、Vercel のアカウント 1 つにしかつなげない**。別のアカウントでつなぐと、前のアカウントから外れる（同じ kb）。
+
+したがって:
+
+- **いまのアカウントのメールを替えるなら、デプロイに響かない**。Account Settings → Emails で会社のアドレスを足して確認し、Primary にしてから gmail を消す（3 つまで持てる。消さないと gmail でもログインできる）。GitHub のつなぎはそのまま残る。
+- **会社のアドレスで Vercel のアカウントを作り直すと響く**。GitHub のつなぎが新しいアカウントへ移り、チームにいる古いアカウントから外れる。新しいアカウントをチームに入れるまで、その人のコミットは BLOCKED になり、入れる間は席も 2 つ分になる。作り直させない。
+- colum2131（岩政さん）: jadd_studio3 などのコミットのメールは GitHub の noreply のアドレス（直近はすべて）。GitHub で確認済みとして扱われるので、Vercel のメールを替えても影響しない。
+- sangotaro（渡辺さん）: コミットのメールは gmail（openpilot、直近まで）。Vercel のメールを替えるだけなら影響しない。ただし、手元の `git config user.email` を会社のアドレスに替えるなら、先に GitHub のアカウントにそのアドレスを足して確認しておく必要がある（しないと、Vercel に載ったリポジトリでは作者として通らない）。いまは Vercel に載ったリポジトリの作者ではない。
+
 ## ログインの方法と MFA の効き目（2026-11-06）
 
 公式ドキュメントとログインの画面で確かめたこと:
@@ -365,6 +398,7 @@ fleet-ops（Git 連携はつながっている）:
 
 - **Git 連携に戻し、CI のトークンと共有アカウントをなくす**（2026-11-06、伊藤）。main への merge で本番に出る便利さは残す。人に紐づかないトークンも、GitHub Actions からの OIDC も無いため（「共有アカウントを使わないデプロイの方法」）。
 - **コミットの作者全員の席の料金を払う**（2026-11-10、伊藤）。11-06 の「席の無い人の merge は BLOCKED を受け入れる」は取り消す。BLOCKED を受け入れると、直近 3 か月の PR の約 3 割が止まり、他人の変更が本人の知らないうちに一緒に出るため。予算の目安は「費用の見積もり（2026-11-10）」の **月 $750〜810**（32 席 $640＋使用量）。相談は上限を見て**月 $820（年 $9,840）**とする。11-09 の「31 席・月 $620」は席だけの試算だった。
+- **個人のメールアドレスで入っている 2 名には、何もしない**（2026-11-10、伊藤）。Vercel・GitHub とも個人のアカウントを兼用しており、分けるとデプロイが止まる。会社の管理はチームの所属・2FA・SSO で行う（「個人のメールアドレスで入っている人」）。
 - 並行して、アプリを Databricks に移す案を別の案件で検討する（[project:databricks-app-hosting](../../databricks-app-hosting/workstream/databricks-app-hosting.md)）。結論が出るまでは、Vercel のこの方針で進める。
 
 ## 進捗チェックリスト
@@ -407,7 +441,7 @@ fleet-ops（Git 連携はつながっている）:
 
 残っている小さなこと:
 
-- 要らない人を外す（Okta の名簿と突き合わせる）。sangotaro・colum2131 は gmail のアドレスで入っている。
+- 要らない人を外す（Okta の名簿と突き合わせる）。個人のメールアドレスの 2 名（colum2131＝岩政さん・sangotaro＝渡辺 磯太郎さん）は在籍していて、何もしないと決めた（「個人のメールアドレスで入っている人（2026-11-10）」）。
 - jadd_studio3 のトークンが漏れた場合の手当て（「トークンが漏れたときの影響」）は、Git 連携に移すまでのつなぎとして残る。
 - SSO（Pro の add-on、月 $300）を入れるかは決めていない。
 
