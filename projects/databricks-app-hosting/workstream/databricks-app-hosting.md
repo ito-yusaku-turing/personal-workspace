@@ -1,7 +1,7 @@
 # アプリを Databricks に移せるかの検討
 
 - 開始: 2026-11-10
-- 状態: **jadd_studio3 を移したときに機能をどこまで保てるかを評価した**（2026-11-10。最大の山は backend-api への鍵＝Supabase のトークン）。次は、ホスティングだけを移すお試しをするか決める。社のプランの確認は、billing の閲覧権限が無いので後回し
+- 状態: **お試しは「土台を作り直し、backend-api を使わない機能だけ移す」と決め、構築とデプロイの方法を調べた**（2026-11-10。GitHub Actions + OIDC を勧める。mono-e2e に前例あり）。次は、移す機能を選び、Next.js の最小のアプリが Apps で動くか試す
 - 所属: project:databricks-app-hosting
 - 派生元: [information-resource-inventory/workstream/vercel-accounts.md](../../information-resource-inventory/workstream/vercel-accounts.md)（Vercel の MFA の必須化と、共有アカウント・CI のトークンをなくす作業）
 
@@ -85,7 +85,7 @@
 
 ## 設計判断と理由
 
-（まだ無い）
+- **お試しでは jadd_studio3 をまるごと移さない。土台を新しく作り、backend-api を使わない機能だけを移す**（2026-11-10、伊藤）。まるごと移すのは大変で、backend-api を使わない機能を選べば、最大の懸念（backend-api への鍵。[documents/jadd-studio3-feasibility.md](../documents/jadd-studio3-feasibility.md)）が消えるため。
 
 ## 進捗チェックリスト
 
@@ -96,17 +96,26 @@
 - [x] 置き場所を決める（オレゴンのいまの Workspace。2026-11-10、伊藤）
 - [ ] 社のプラン（Premium / Enterprise）と契約の割引を確かめる（調べ方は [documents/pricing-estimate.md](../documents/pricing-estimate.md) の末尾）。**billing の閲覧権限が無いので後回し**（2026-11-10、伊藤）
 - [x] jadd_studio3 を移したときに機能をどこまで保てるかを評価する（2026-11-10。[documents/jadd-studio3-feasibility.md](../documents/jadd-studio3-feasibility.md)）
-- [ ] お試し（ホスティングだけ移し、DB と Supabase Auth は残す）をするか決める
+- [x] お試しの形を決める（土台を作り直し、backend-api を使わない機能だけ移す。2026-11-10、伊藤）
+- [x] 構築とデプロイの方法を調べる（2026-11-10。[documents/build-and-deploy.md](../documents/build-and-deploy.md)）
+- [ ] 移す機能を選ぶ（backend-api を使わないもの）
+- [ ] デプロイのやり方を決める（Git の自動デプロイか、GitHub Actions + OIDC か）。デプロイ用のサービスプリンシパルと信頼の設定を、だれに作ってもらうか決める
 - [ ] backend-api の鍵の道（Supabase のログインを残す / STUDIO が JWT を署名 / BFF が Databricks のトークンを受け付ける / サービスキー）を、cdk-apps・backend-api のチームと決める
 - [ ] jadd_studio3 の瞬間の山を確かめ、Apps の台数を決める
 - [ ] 社の IdP から Databricks に、アプリを使う社内の人が登録されているかを確かめる
-- [ ] Next.js 16 の小さなアプリが Databricks Apps で動くかを試す（H2C・Node 22・ファイルの大きさ）
-- [ ] GitHub Actions からのデプロイの認証（OIDC が使えるか）を確かめる
+- [ ] Next.js 16 の小さなアプリが Databricks Apps で動くかを試す（H2C・Node 22・ファイルの大きさ・ビルドの時間とメモリ）
+- [x] GitHub Actions からのデプロイの認証（OIDC が使えるか）を確かめる（2026-11-10。使える。mono-e2e が `github-oidc` で 48 本を回している）
 - [x] Lakebase の拡張と、Supabase からの移行の手順を確かめる（2026-11-10。pgcrypto・btree_gist はある。pg_cron は無い。手順は pg_dump / pg_restore）
 - [ ] Lakebase で SECURITY DEFINER の関数と、Data API の upsert・`return=representation` が使えるか試す
 - [ ] 進めるかを決める
 
 ## 次セッションへの引き継ぎ
+
+**2026-11-10（続きの 2）**: お試しは土台を作り直し、backend-api を使わない機能だけ移すことにした（伊藤）。構築とデプロイの方法を調べた（[documents/build-and-deploy.md](../documents/build-and-deploy.md)）。
+
+- main への push での自動デプロイは作れる。Git からの直接デプロイ（push で自動、CI を待たない）か、GitHub Actions + OIDC。勧めは後者で、mono-e2e の作り（`projects/databricks-terraform/account/service_principals.tf`）をそのまま手本にできる。
+- PR ごとのプレビューは無い。共有の dev のアプリか手元で代える。切り戻しは前のコミットを出し直す。ログは止まると消える。
+- 次は、移す機能を選ぶことと、Next.js の最小のアプリが Apps で動くかを試すこと。
 
 **2026-11-10（続き）**: jadd_studio3 の機能をどこまで保てるかを評価した（[documents/jadd-studio3-feasibility.md](../documents/jadd-studio3-feasibility.md)）。
 

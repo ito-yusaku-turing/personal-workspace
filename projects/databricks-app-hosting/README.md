@@ -12,3 +12,4 @@
 
 - [documents/pricing-estimate.md](./documents/pricing-estimate.md): **Databricks の料金体系と見積もり**（2026-11-10、定価、オレゴン）。いまの負荷から jadd_studio3・fleet-ops の月額を出し、Vercel に残す場合と比べた。社のプランと契約の単価の調べ方も
 - [documents/jadd-studio3-feasibility.md](./documents/jadd-studio3-feasibility.md): **jadd_studio3 を移したとき、機能をどこまで保てるか**（2026-11-10）。Supabase の使い方（Auth・PostgREST・backend-api への鍵）、機能ごとの見立て、お試しの進め方
+- [documents/build-and-deploy.md](./documents/build-and-deploy.md): **Databricks Apps での構築とデプロイ**（2026-11-10）。Vercel との比較、Git の自動デプロイと GitHub Actions + OIDC（mono-e2e の前例）、プレビュー・切り戻し・ログ、土台を Next.js にするか AppKit にするか
