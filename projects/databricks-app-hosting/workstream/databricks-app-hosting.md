@@ -1,7 +1,7 @@
 # アプリを Databricks に移せるかの検討
 
 - 開始: 2026-11-10
-- 状態: **オレゴンに置く前提で、いまの負荷から見積もった**（2026-11-10。jadd_studio3 と fleet-ops で定価 月 $655〜822、Vercel に残すより月 $200〜450 高い）。次は、社のプランと契約の割引を確かめる（調べ方は料金の資料の末尾）
+- 状態: **jadd_studio3 を移したときに機能をどこまで保てるかを評価した**（2026-11-10。最大の山は backend-api への鍵＝Supabase のトークン）。次は、ホスティングだけを移すお試しをするか決める。社のプランの確認は、billing の閲覧権限が無いので後回し
 - 所属: project:databricks-app-hosting
 - 派生元: [information-resource-inventory/workstream/vercel-accounts.md](../../information-resource-inventory/workstream/vercel-accounts.md)（Vercel の MFA の必須化と、共有アカウント・CI のトークンをなくす作業）
 
@@ -94,15 +94,27 @@
 - [x] 料金体系を調べ、定価で試算する（2026-11-10。[documents/pricing-estimate.md](../documents/pricing-estimate.md)）
 - [x] jadd_studio3・fleet-ops のいまの負荷と DB の大きさから見積もり直す（2026-11-10）
 - [x] 置き場所を決める（オレゴンのいまの Workspace。2026-11-10、伊藤）
-- [ ] 社のプラン（Premium / Enterprise）と契約の割引を確かめる（調べ方は [documents/pricing-estimate.md](../documents/pricing-estimate.md) の末尾）
+- [ ] 社のプラン（Premium / Enterprise）と契約の割引を確かめる（調べ方は [documents/pricing-estimate.md](../documents/pricing-estimate.md) の末尾）。**billing の閲覧権限が無いので後回し**（2026-11-10、伊藤）
+- [x] jadd_studio3 を移したときに機能をどこまで保てるかを評価する（2026-11-10。[documents/jadd-studio3-feasibility.md](../documents/jadd-studio3-feasibility.md)）
+- [ ] お試し（ホスティングだけ移し、DB と Supabase Auth は残す）をするか決める
+- [ ] backend-api の鍵の道（Supabase のログインを残す / STUDIO が JWT を署名 / BFF が Databricks のトークンを受け付ける / サービスキー）を、cdk-apps・backend-api のチームと決める
 - [ ] jadd_studio3 の瞬間の山を確かめ、Apps の台数を決める
 - [ ] 社の IdP から Databricks に、アプリを使う社内の人が登録されているかを確かめる
 - [ ] Next.js 16 の小さなアプリが Databricks Apps で動くかを試す（H2C・Node 22・ファイルの大きさ）
 - [ ] GitHub Actions からのデプロイの認証（OIDC が使えるか）を確かめる
-- [ ] Lakebase の拡張（PostGIS・pg_cron など）と、Supabase からの移行の手順を確かめる
+- [x] Lakebase の拡張と、Supabase からの移行の手順を確かめる（2026-11-10。pgcrypto・btree_gist はある。pg_cron は無い。手順は pg_dump / pg_restore）
+- [ ] Lakebase で SECURITY DEFINER の関数と、Data API の upsert・`return=representation` が使えるか試す
 - [ ] 進めるかを決める
 
 ## 次セッションへの引き継ぎ
+
+**2026-11-10（続き）**: jadd_studio3 の機能をどこまで保てるかを評価した（[documents/jadd-studio3-feasibility.md](../documents/jadd-studio3-feasibility.md)）。
+
+- 社のプランの確認は、Databricks の billing の閲覧権限が無いので後回しにした（伊藤）。
+- 画面と Databricks のデータを読む機能は、ほぼそのまま動く見込み。
+- 最大の山は、backend-api（BFF）がログインした人の Supabase のトークンを鍵にしていること。SSO に替えると、backend-api を使う機能（app/lib で 32 ファイル）が止まる。道は 4 つで、資料の「backend-api の鍵」に書いた。
+- Supabase の DB は、backend と drivers-app がほかのチームのものなので、まるごとは捨てられない。STUDIO の DB を Lakebase に移すかは選べるが、supabase-js が Data API で動くかは未確認。
+- 勧めは、第一段階でホスティングだけ移すお試し（DB と Supabase Auth は残す）。
 
 **2026-11-10**: 起票し、公式ドキュメントで調べ、料金を見積もった。社外の利用者は対象外（社内専用で作る）。置き場所はオレゴンのいまの Workspace に決めた。
 
