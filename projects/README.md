@@ -19,7 +19,7 @@
 - [idp-broker/workstream/idp-auth0-role-division.md](./idp-broker/workstream/idp-auth0-role-division.md):
 - [information-resource-inventory/workstream/vercel-accounts.md](./information-resource-inventory/workstream/vercel-accounts.md): Vercel。席を全員分払う方針（月 $750〜810 の見積もり）。次は経理に予算を相談する
 - [information-resource-inventory/workstream/supabase-db-access.md](./information-resource-inventory/workstream/supabase-db-access.md): Supabase の DB への直接の接続経路。起票した（vercel-accounts からの派生）
-- [databricks-app-hosting/workstream/databricks-app-hosting.md](./databricks-app-hosting/workstream/databricks-app-hosting.md): アプリを Databricks に移せるかの検討（社内専用・オレゴン）。定価では Vercel より月 $200〜450 高い
+- [databricks-app-hosting/workstream/databricks-app-hosting.md](./databricks-app-hosting/workstream/databricks-app-hosting.md): アプリを Databricks に移せるかの検討（社内専用・オレゴン）。次は最小版の STUDIO を置いたときの運用の精査
 
 ## 待ち・保留
 

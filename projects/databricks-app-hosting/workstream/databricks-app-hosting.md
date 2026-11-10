@@ -1,7 +1,7 @@
 # アプリを Databricks に移せるかの検討
 
 - 開始: 2026-11-10
-- 状態: **お試しは「土台を作り直し、backend-api を使わない機能だけ移す」と決め、構築とデプロイの方法を調べた**（2026-11-10。GitHub Actions + OIDC を勧める。mono-e2e に前例あり）。次は、移す機能を選び、Next.js の最小のアプリが Apps で動くか試す
+- 状態: **お試しの方針（土台を作り直し、backend-api を使わない機能だけ移す）と、構築・デプロイの方法まで調べた**（2026-11-10）。次は、最小版の STUDIO を Databricks Apps に置いたときの運用を精査する（観点は引き継ぎに）
 - 所属: project:databricks-app-hosting
 - 派生元: [information-resource-inventory/workstream/vercel-accounts.md](../../information-resource-inventory/workstream/vercel-accounts.md)（Vercel の MFA の必須化と、共有アカウント・CI のトークンをなくす作業）
 
@@ -111,27 +111,50 @@
 
 ## 次セッションへの引き継ぎ
 
-**2026-11-10（続きの 2）**: お試しは土台を作り直し、backend-api を使わない機能だけ移すことにした（伊藤）。構築とデプロイの方法を調べた（[documents/build-and-deploy.md](../documents/build-and-deploy.md)）。
+### 現在地（2026-11-10 のまとめ）
 
-- main への push での自動デプロイは作れる。Git からの直接デプロイ（push で自動、CI を待たない）か、GitHub Actions + OIDC。勧めは後者で、mono-e2e の作り（`projects/databricks-terraform/account/service_principals.tf`）をそのまま手本にできる。
-- PR ごとのプレビューは無い。共有の dev のアプリか手元で代える。切り戻しは前のコミットを出し直す。ログは止まると消える。
-- 次は、移す機能を選ぶことと、Next.js の最小のアプリが Apps で動くかを試すこと。
+1 日で、起票・料金・機能の見立て・構築とデプロイまで調べた。資料は 3 つ。
 
-**2026-11-10（続き）**: jadd_studio3 の機能をどこまで保てるかを評価した（[documents/jadd-studio3-feasibility.md](../documents/jadd-studio3-feasibility.md)）。
+- [documents/pricing-estimate.md](../documents/pricing-estimate.md): 料金。オレゴンの定価で jadd_studio3 と fleet-ops を移すと月 $655〜822。Vercel に残して全員分の席を払う（月 $750〜810）より、合計で月 $200〜450 高い。Apps は使われていなくても 1 台ごとに課金されるため。
+- [documents/jadd-studio3-feasibility.md](../documents/jadd-studio3-feasibility.md): jadd_studio3 の機能をどこまで保てるか。
+- [documents/build-and-deploy.md](../documents/build-and-deploy.md): 構築とデプロイの方法。Vercel との比較。
 
-- 社のプランの確認は、Databricks の billing の閲覧権限が無いので後回しにした（伊藤）。
-- 画面と Databricks のデータを読む機能は、ほぼそのまま動く見込み。
-- 最大の山は、backend-api（BFF）がログインした人の Supabase のトークンを鍵にしていること。SSO に替えると、backend-api を使う機能（app/lib で 32 ファイル）が止まる。道は 4 つで、資料の「backend-api の鍵」に書いた。
-- Supabase の DB は、backend と drivers-app がほかのチームのものなので、まるごとは捨てられない。STUDIO の DB を Lakebase に移すかは選べるが、supabase-js が Data API で動くかは未確認。
-- 勧めは、第一段階でホスティングだけ移すお試し（DB と Supabase Auth は残す）。
+決めたこと（伊藤）:
 
-**2026-11-10**: 起票し、公式ドキュメントで調べ、料金を見積もった。社外の利用者は対象外（社内専用で作る）。置き場所はオレゴンのいまの Workspace に決めた。
+- 社内専用で作る。社外の利用者・社外の ID は対象外。
+- 置き場所はオレゴン（us-west-2）のいまの Workspace（`dbc-24f125d6-4420`）。データの本体もここにある。
+- **お試しでは jadd_studio3 をまるごと移さない。土台を新しく作り、backend-api を使わない機能だけを移す**。
+- 社のプラン（Premium / Enterprise）と契約の割引の確認は、billing の閲覧権限が無いので後回し。
 
-- 見積もり（[documents/pricing-estimate.md](../documents/pricing-estimate.md)）では、定価だと Vercel に残すほうが月 $200〜450 安い。進めるかは、契約の割引と、お金以外の利点（トークンが要らない、入口で SSO と MFA が効く）で判断する。
-- 次は、社のプランと契約の割引を確かめる。手順は料金の資料の末尾（アカウントコンソールの Settings、または `system.billing.list_prices` の SQL、年間の契約なら担当者に聞く）。
-- 単価は、公式の料金の計算機のデータ（`https://www.databricks.com/en-pricing-assets/data/pricing/AWS.json`）と、料金のページのデータ（`https://www.databricks.com/en-pricing-assets/page-data/product/pricing/<databricks-apps|lakebase|storage>/page-data.json`）から取った。料金のページは JavaScript で描くので、ふつうに取得すると単価が出ない。
+分かったことの要点:
+
+- **最大の懸念は backend-api への鍵だった**。STUDIO は、ログインした人の Supabase のトークンを backend-api（BFF）への Bearer にしている。Databricks の SSO にするとこれが手に入らない。backend-api を使わない機能を選べば、この懸念は消える。
+- Supabase で使っているのは Auth と PostgREST（supabase-js）だけ。Storage・Realtime は使っていない。backend と drivers-app の DB はほかのチームのものなので、Supabase はまるごとは捨てられない。Lakebase の Data API が supabase-js で動くかは未確認。
+- 画面と Databricks のデータを読む機能は、ほぼそのまま動く見込み。Databricks の資格情報は、Apps が注入するアプリのサービスプリンシパルに替えられる。
+- main への push での自動デプロイは作れる。勧めは GitHub Actions + OIDC（トークン無し）。mono-e2e が `github-oidc` で 48 本を回していて、サービスプリンシパルと信頼の設定は `mono-e2e/projects/databricks-terraform/account/service_principals.tf` にある（PR 用の信頼の設定を本番のサービスプリンシパルに足さない、という注意つき）。
+- Vercel に無かった手間: PR ごとのプレビューが無い。ワンクリックの切り戻しが無い。ビルドはアプリの計算機の上で走る。ログは止まると消える。URL は固定。cron が無い（Jobs で代える）。
+- Next.js は Databricks のドキュメントに記述が無い。動かなければ AppKit（React + Express、v0）に切り替える。
+
+### 次回: 最小版の STUDIO を Databricks に置いたときの運用を精査する
+
+「jadd_studio3 の最小版を Databricks Apps にデプロイする」想定で、運用がどうなるかを精査・理解するところから始める（伊藤）。見る観点の案:
+
+1. **最小版の中身**: 移す機能（backend-api を使わないもの）。DB が要るか（Databricks SQL だけで済む機能なら、Supabase も Lakebase も要らない）。ログインした人の扱い（`X-Forwarded-Email` から STUDIO のロールへの対応）。
+2. **デプロイの流れ**: リポジトリの置き場所（新しい private のリポジトリか）。main → 本番、dev のアプリの置き方。デプロイ用のサービスプリンシパルと信頼の設定をだれが作り、だれが持つか（アカウントの管理者・infra 側の Terraform）。
+3. **権限**: アプリを使える人（`CAN USE` を付けるグループ、社の IdP から Databricks への登録の範囲）。アプリを触れる人（`CAN MANAGE`）。アプリのサービスプリンシパルに付ける Unity Catalog の権限と、ログインした人の権限で読ませるか（user authorization）。
+4. **設定と秘密**: secret scope をだれが管理するか。dev と本番の分け方（bundle の target）。
+5. **監視と障害**: ログの残し方（App telemetry、Beta）、死活の見張りと通知、切り戻しの手順、出し直しの間に止まるか。
+6. **費用の管理**: 常に動かす台数、dev のアプリを止める運用、`system.billing.usage` での見え方（閲覧権限が要る）。
+7. **手元の開発**: devbox から Workspace に向けて動かす方法（`databricks apps run-local`、資格情報の持ち方）。
+8. **定期実行**: Jobs からアプリの `/api/` を呼ぶ形。
+
+まだ試していないこと: Next.js 16 の最小のアプリが Apps で動くか（H2C・Node 22・ビルドの時間とメモリ・1 ファイル 10 MB）。運用の精査のあとか途中で試す。
+
+### 補足（一次情報と、調べ方）
+
+- 料金の単価は、公式の料金の計算機のデータ（`https://www.databricks.com/en-pricing-assets/data/pricing/AWS.json`）と、料金のページのデータ（`https://www.databricks.com/en-pricing-assets/page-data/product/pricing/<databricks-apps|lakebase|storage>/page-data.json`）から取った。料金のページは JavaScript で描くので、ふつうに取得すると単価が出ない。
 - 負荷の一次情報は `~/vercel/turing-inc/2026-11-10/`（Vercel の請求）と `~/supabase/dhazyhuzuwitqasezcvr/2026-11-10/`（Supabase のプロジェクト）。
-- 読んでいないページ: Apps の deploy・environment-variables・cicd-github-actions・create-app-template・embed、AppKit（https://developers.databricks.com/docs/appkit/v0/）、Lakebase の拡張・高可用性。
+- jadd_studio3 は `origin/main` の `b034efdd`（2026-11-10）で調べた。手元の作業ツリーは別のブランチにある。
 
 ## 関連リンク
 
