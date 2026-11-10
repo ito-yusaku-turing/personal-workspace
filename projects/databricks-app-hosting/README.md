@@ -10,4 +10,4 @@
 
 ## documents/ — 調べたこと・決めたこと
 
-- [documents/pricing-estimate.md](./documents/pricing-estimate.md): **Databricks の料金体系と試算**（2026-11-10、定価）。Apps・Lakebase・ストレージの単価を東京とオレゴンで比べ、アプリ 1 つあたりの月額を出した
+- [documents/pricing-estimate.md](./documents/pricing-estimate.md): **Databricks の料金体系と見積もり**（2026-11-10、定価、オレゴン）。いまの負荷から jadd_studio3・fleet-ops の月額を出し、Vercel に残す場合と比べた。社のプランと契約の単価の調べ方も

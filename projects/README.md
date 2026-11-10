@@ -17,9 +17,9 @@
 - [m2m-auth/workstream/m2m-auth.md](./m2m-auth/workstream/m2m-auth.md):
 - [information-resource-inventory/workstream/aws-resource-inventory.md](./information-resource-inventory/workstream/aws-resource-inventory.md): tuscenes-prod の総ざらい
 - [idp-broker/workstream/idp-auth0-role-division.md](./idp-broker/workstream/idp-auth0-role-division.md):
-- [information-resource-inventory/workstream/vercel-accounts.md](./information-resource-inventory/workstream/vercel-accounts.md): Vercel。席を全員分払う方針に決めた。次は経理に予算を相談する
+- [information-resource-inventory/workstream/vercel-accounts.md](./information-resource-inventory/workstream/vercel-accounts.md): Vercel。席を全員分払う方針（月 $750〜810 の見積もり）。次は経理に予算を相談する
 - [information-resource-inventory/workstream/supabase-db-access.md](./information-resource-inventory/workstream/supabase-db-access.md): Supabase の DB への直接の接続経路。起票した（vercel-accounts からの派生）
-- [databricks-app-hosting/workstream/databricks-app-hosting.md](./databricks-app-hosting/workstream/databricks-app-hosting.md): アプリを Databricks に移せるかの検討（社内専用）。料金を試算した
+- [databricks-app-hosting/workstream/databricks-app-hosting.md](./databricks-app-hosting/workstream/databricks-app-hosting.md): アプリを Databricks に移せるかの検討（社内専用・オレゴン）。定価では Vercel より月 $200〜450 高い
 
 ## 待ち・保留
 

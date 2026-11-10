@@ -1,7 +1,7 @@
 # S3 バケットのデータ保護 第二弾（権限設計のアップグレード）
 
 - 開始: 2026-10-20
-- 状態: **第 1 段階（手順 A）の PR が人間のレビュー待ち**（[cdk-apps#2500](https://github.com/turingmotors/cdk-apps/pull/2500)。Copilot は指摘なし、CI は通過、2026-11-10）。次は人間のレビュー → マージ・deploy → deploy の後の確かめ。並行して Notion の更新（1-1、伊藤の許可を得て）→ チームの Go サイン（1-2）。段階の正本は [worm-rollout-stages.md](s3-data-protection-2/worm-rollout-stages.md)。全体のアクションは [worm-action-list.md](s3-data-protection-2/worm-action-list.md)。権限の頂点の問題は別の案件（project:privileged-access）
+- 状態: **第 1 段階（手順 A）の PR が人間のレビュー待ち**（[cdk-apps#2500](https://github.com/turingmotors/cdk-apps/pull/2500)。Copilot は指摘なし、CI は通過、2026-11-10）。次は人間のレビュー → マージ・deploy → deploy の後の確かめ。対象は 8 本（11-10 に gaming-data-collection と denso-raw を外した）。共有用の資料の再反映（denso-raw の除外）と学習用の資料の Notion への反映は、伊藤の許可待ち。段階の正本は [worm-rollout-stages.md](s3-data-protection-2/worm-rollout-stages.md)。全体のアクションは [worm-action-list.md](s3-data-protection-2/worm-action-list.md)。権限の頂点の問題は別の案件（project:privileged-access）
 - 所属: project:aws-data-protection（2026-10-26 に `~/docs/workstream/` から移した）
 - 前段（第一弾、完了）:
   - [走行データ消失リスクへの対応](done/raw-data-security.md)（バケットの種別と処遇、裁定の正本）
@@ -782,3 +782,9 @@
   - cdk-apps: [cdk-apps#2500](https://github.com/turingmotors/cdk-apps/pull/2500) の `NOT_LOCKED_BUCKET_NAMES` に足し、`LOCK_TARGET_BUCKETS` とテストから外した（`eb40da4f`、push 済み）。jest 16 件・tsc・prettier は通過。PR の本文も上げ直した。守りのバケットポリシー（`DenyGovernanceBypass` を含む）は 12 本すべてに残る。
   - 直した資料: 段階の正本・PR の本文・共有用の資料（2 章・3 章・5 章・用語・参考資料。費用は 9 本で約 $3,840＋記録の約 $640）・決定の一覧（D26）・アクションリスト（4-6）。Notion は未反映（1-1 で上げる）。
   - **次**: 新しいコミットの CI と Copilot の再レビューを確かめる → 人間のレビュー。denso-raw を外すかは、安本さんへの確認（5-2）しだい。
+- 2026-11-10: 共有用の資料を、レビュー用から**現在地と計画を書く資料**に組み直した（伊藤の依頼）。冒頭に現在地、1 章に段階ごとの状態、6 章に決まったこと（日付つき）と決まっていないこと（誰が・いつまでに）、具体的な値は 8.1「設定の詳細」に寄せ、9 章に更新の履歴。denso-raw は「持ち主に確認中」として対象に残した。Notion に上げ、タイトルを「原本バケットの WORM 化: 現在地と計画」に変えた（1-1 済み。上げる前に、人の編集・コメントが無いことを確かめた）。`eb40da4f` の CI は 7 件すべて通過。Copilot の再レビューは来ていない。
+  - 学習用の資料「S3 Object Lock（WORM）の仕組み」に、11-09 までの検証と調べものを足した（ローカルだけ。Notion は伊藤の許可待ち）: ManifestGenerator の振る舞い（5.3、9 章の M1〜M5）、費用の内訳（一覧の生成・Intelligent-Tiering の PUT・CloudTrail のデータイベント）、解除で期限が固まるので日数の誤りは解除で直せないこと（3.1）、失敗が 5 割を超えると止まるが値の誤りは止まらないこと（5.3）。コンプライアンスモードを条件キーで拒む話は、手順 B で確かめてから足す。
+- 2026-11-10: **denso-raw も WORM の対象から外した**（D27。持ち主が退職して不在で、使われた形跡も無い、と伊藤が決定）。対象は 8 本とカナリア。5-2（出どころの確認）は不要になった。
+  - cdk-apps: [cdk-apps#2500](https://github.com/turingmotors/cdk-apps/pull/2500) の `NOT_LOCKED_BUCKET_NAMES` に足し、テストと README を直した（`9de086e9`、push 済み）。jest 16 件・tsc・prettier は通過。PR の本文も上げ直した。
+  - 直した資料: 段階の正本・PR の本文・共有用の資料（8 本、費用は約 $3,790＋記録の約 $630、8 本の約 6.28 億件）・決定の一覧（D27）・アクションリスト（5-2）・denso-raw の調査資料の結論。共有用の資料の Notion への再反映は、伊藤の許可待ち。
+  - **次**: `9de086e9` の CI を確かめる → 人間のレビュー。共有用・学習用の資料を Notion に上げる（許可を得て）。

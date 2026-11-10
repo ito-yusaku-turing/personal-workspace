@@ -1,7 +1,7 @@
 # アプリを Databricks に移せるかの検討
 
 - 開始: 2026-11-10
-- 状態: **料金体系を調べ、試算した**（2026-11-10。アプリ 1 つで月 $200〜600 の定価）。次は、社のプランと契約の単価、いまの DB の大きさを確かめ、東京とオレゴンのどちらに置くかを決める
+- 状態: **オレゴンに置く前提で、いまの負荷から見積もった**（2026-11-10。jadd_studio3 と fleet-ops で定価 月 $655〜822、Vercel に残すより月 $200〜450 高い）。次は、社のプランと契約の割引を確かめる（調べ方は料金の資料の末尾）
 - 所属: project:databricks-app-hosting
 - 派生元: [information-resource-inventory/workstream/vercel-accounts.md](../../information-resource-inventory/workstream/vercel-accounts.md)（Vercel の MFA の必須化と、共有アカウント・CI のトークンをなくす作業）
 
@@ -50,13 +50,13 @@
 
 ### 料金
 
-料金体系と試算は [documents/pricing-estimate.md](../documents/pricing-estimate.md) にまとめた（2026-11-10）。要点:
+料金体系と見積もりは [documents/pricing-estimate.md](../documents/pricing-estimate.md) にまとめた（2026-11-10）。要点:
 
-- **社の Workspace（`dbc-24f125d6-4420`）は us-west-2（オレゴン）**。データの本体もオレゴン。東京に置くなら別の Workspace が要る。
-- Apps は「Interactive Serverless」の単価で、動いている時間 × 大きさで課金される。Medium 1 台・1 時間は、東京 Premium $0.415、オレゴン Premium $0.375。
-- Lakebase は CU 時間（東京 Premium $0.110、オレゴン Premium $0.092）と、ストレージ（DSU）。2027-01-31 まで 50% 引き。
-- アプリ 1 つ（Apps Medium＋Lakebase 2 CU＋50 GB）で、24 時間動かすと月 $425〜596、業務時間だけなら月 $182〜250（定価）。東京はオレゴンの 1.1〜1.2 倍。
-- Vercel は、全員分の席でチーム全体の月 $620 前後（12 プロジェクト）。Databricks はアプリごとに課金される。
+- **社の Workspace（`dbc-24f125d6-4420`）は us-west-2（オレゴン）**。データの本体もオレゴン。**オレゴンのいまの Workspace に置く**（2026-11-10、伊藤）。
+- Apps は「Interactive Serverless」の単価で、動いている時間 × 大きさで課金される。Medium 1 台・1 時間は、オレゴンの Premium で $0.375、Enterprise で $0.475。
+- Lakebase は CU 時間（オレゴンの Premium で $0.092）と、ストレージ（DSU）。2027-01-31 まで 50% 引き。
+- いまの負荷（Vercel の請求の使用量と、Supabase の計算機の大きさ）から、Apps は Medium 1 台ずつ、Lakebase は jadd_studio3 が 1 CU・fleet-ops が 0.5 CU と置いた。jadd_studio3 と fleet-ops で、定価で **Premium 月 $655 / Enterprise 月 $822**。
+- Vercel に残して全員分の席を払う場合は月 $750〜810。移すと Vercel は月 $375 ほどに下がるが、合計は **Premium 約 $1,030 / Enterprise 約 $1,200** で、**定価では Vercel に残すほうが月 $200〜450 安い**。Apps は使われていなくても 1 台ごとに課金されるため。
 - 人ごとの課金は無いと思われる（ドキュメントでは確かめていない）。
 
 ## 対象のアプリ（2026-11-10 にリポジトリで確認）
@@ -81,7 +81,7 @@
 3. **Supabase の代わりは DB だけ**。Auth・Realtime・Storage は作り直しになる。
 4. cron・独自のドメイン・自動の台数の増減にあたるものが無い。cron は Databricks の Jobs で代えられる（推測）。
 5. アプリごとに課金されるので、移すアプリが多いと Vercel より高くなりうる（[documents/pricing-estimate.md](../documents/pricing-estimate.md)）。
-6. データはオレゴンにある。東京に置くと、Workspace を新しく作り、データを読むたびにリージョンをまたぐ。
+6. 東京のオフィスからオレゴンのアプリまでは遠い（往復で 100 ms 前後と言われる。測っていない）。いまの jadd_studio3 の関数は東京（`hnd1`）で動いているが、DB は東京、データ（Databricks）はオレゴン。
 
 ## 設計判断と理由
 
@@ -92,9 +92,10 @@
 - [x] Databricks Apps・Lakebase・認証を公式ドキュメントで調べる（2026-11-10）
 - [x] 社の Workspace のリージョンを確かめる（us-west-2。2026-11-10）
 - [x] 料金体系を調べ、定価で試算する（2026-11-10。[documents/pricing-estimate.md](../documents/pricing-estimate.md)）
-- [ ] 社のプラン（Premium / Enterprise）と契約の単価を確かめる（`system.billing.list_prices`）
-- [ ] jadd_studio3・fleet-ops のいまの DB の大きさと負荷を確かめ、試算を直す
-- [ ] 東京とオレゴンのどちらに置くかを決める（東京ならオレゴンのデータの読み方も）
+- [x] jadd_studio3・fleet-ops のいまの負荷と DB の大きさから見積もり直す（2026-11-10）
+- [x] 置き場所を決める（オレゴンのいまの Workspace。2026-11-10、伊藤）
+- [ ] 社のプラン（Premium / Enterprise）と契約の割引を確かめる（調べ方は [documents/pricing-estimate.md](../documents/pricing-estimate.md) の末尾）
+- [ ] jadd_studio3 の瞬間の山を確かめ、Apps の台数を決める
 - [ ] 社の IdP から Databricks に、アプリを使う社内の人が登録されているかを確かめる
 - [ ] Next.js 16 の小さなアプリが Databricks Apps で動くかを試す（H2C・Node 22・ファイルの大きさ）
 - [ ] GitHub Actions からのデプロイの認証（OIDC が使えるか）を確かめる
@@ -103,11 +104,12 @@
 
 ## 次セッションへの引き継ぎ
 
-**2026-11-10**: 起票し、公式ドキュメントで一次調査した。続けて料金体系を調べ、定価で試算した（[documents/pricing-estimate.md](../documents/pricing-estimate.md)）。社外の利用者は対象外にした（社内専用で作る）。
+**2026-11-10**: 起票し、公式ドキュメントで調べ、料金を見積もった。社外の利用者は対象外（社内専用で作る）。置き場所はオレゴンのいまの Workspace に決めた。
 
-- 置き場所: 東京を第一候補、データのあるオレゴン（いまの Workspace）も候補。料金と運用の手間はオレゴンが有利。東京の利点は画面の応答の速さだが、データをオレゴンから読むので効き目は画面による（推測）。
-- 次は、社のプランと契約の単価（`system.billing.list_prices`）、いまの DB の大きさを確かめて試算を直す。
+- 見積もり（[documents/pricing-estimate.md](../documents/pricing-estimate.md)）では、定価だと Vercel に残すほうが月 $200〜450 安い。進めるかは、契約の割引と、お金以外の利点（トークンが要らない、入口で SSO と MFA が効く）で判断する。
+- 次は、社のプランと契約の割引を確かめる。手順は料金の資料の末尾（アカウントコンソールの Settings、または `system.billing.list_prices` の SQL、年間の契約なら担当者に聞く）。
 - 単価は、公式の料金の計算機のデータ（`https://www.databricks.com/en-pricing-assets/data/pricing/AWS.json`）と、料金のページのデータ（`https://www.databricks.com/en-pricing-assets/page-data/product/pricing/<databricks-apps|lakebase|storage>/page-data.json`）から取った。料金のページは JavaScript で描くので、ふつうに取得すると単価が出ない。
+- 負荷の一次情報は `~/vercel/turing-inc/2026-11-10/`（Vercel の請求）と `~/supabase/dhazyhuzuwitqasezcvr/2026-11-10/`（Supabase のプロジェクト）。
 - 読んでいないページ: Apps の deploy・environment-variables・cicd-github-actions・create-app-template・embed、AppKit（https://developers.databricks.com/docs/appkit/v0/）、Lakebase の拡張・高可用性。
 
 ## 関連リンク

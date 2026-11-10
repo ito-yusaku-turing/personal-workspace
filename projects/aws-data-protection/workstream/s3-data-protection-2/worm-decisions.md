@@ -40,6 +40,7 @@
 | D24 | 手順 A の範囲 | **迂回の禁止・ジョブのロール・レポートの置き場だけ。通知は別の PR にし、手順 D の前に入れる** | 決定（11-09、伊藤） | 下の「2026-11-09（続き）」の節 |
 | D25 | 手順 A の仕様 | **ジョブのロールの対象は 10 本とカナリア。権限は保持の変更・読み取り・対象の一覧を作る・レポートの書き込みだけ。レポートの置き場は `original-bucket-lock-batch-reports-767397804933`（消さない）。`DenyLockChange` は手順 D で入れ、例外に当たることはそのときカナリアで確かめる（I1 を閉じる）** | 決定（11-09、伊藤） | [worm-rollout-stages.md](worm-rollout-stages.md) の第 1 段階 |
 | D26 | gaming-data-collection を Object Lock の対象から外す | **外す。対象は 9 本とカナリア。バージョニングと守りのバケットポリシーは残す**。シミュレータで集めたデータで、シミュレータがあれば集め直せる。収集は 2026-07-31 に終わっている（[gaming-data-collection-survey.md](gaming-data-collection-survey.md)） | 決定（11-10、持ち主の石原さんの回答を受けて伊藤） | [cdk-apps#2500](https://github.com/turingmotors/cdk-apps/pull/2500) の `LOCK_TARGET_BUCKETS` から外した |
+| D27 | denso-raw を Object Lock の対象から外す | **外す。対象は 8 本とカナリア。バージョニングと守りのバケットポリシーは残す**。持ち主が退職して不在で、2025-05 を最後に使われた形跡も無い（[denso-raw-survey.md](denso-raw-survey.md)）。手順 C の費用は約 $65 減る | 決定（11-10、伊藤） | [cdk-apps#2500](https://github.com/turingmotors/cdk-apps/pull/2500) の `LOCK_TARGET_BUCKETS` から外した（`9de086e9`） |
 | P1〜P7 | 設計案の決めごと（迂回の Deny を先に入れる、など） | 下の「提案」の節 | 提案（11-04） | worm-quickwin-design.md の 2〜4・7 章 |
 
 ## D1. 消せない保護の本命 → WORM

@@ -1,15 +1,16 @@
-# Databricks の料金体系と試算（アプリのホスティング）
+# Databricks の料金体系と見積もり（アプリのホスティング）
 
-- 作成: 2026-11-10
+- 作成: 2026-11-10（同じ日に、実際の負荷から見積もり直した）
+- 置き場所: **オレゴン（us-west-2）のいまの Workspace に作る**前提（2026-11-10、伊藤）。東京の単価は比較のために残す。
 - 単価の出どころ: Databricks の公式の料金の計算機のデータ（`https://www.databricks.com/en-pricing-assets/data/pricing/AWS.json`）と、料金のページ（[Databricks Apps](https://www.databricks.com/product/pricing/databricks-apps)・[Lakebase](https://www.databricks.com/product/pricing/lakebase)・[Storage](https://www.databricks.com/product/pricing/storage)）の本文。2026-11-10 に取得した。
-- **定価（従量課金の一覧価格）**。社の契約の割引は入っていない。社の実際の単価は、Workspace の `system.billing.list_prices` か、アカウントの担当者で確かめる。
+- **定価（従量課金の一覧価格）**。社の契約の割引は入っていない。社のプランと契約の単価の調べ方は、末尾の「社のプランと契約の単価の調べ方」。
 - 金額はすべて米ドル。1 か月は 730 時間で数える（Databricks の料金のページと同じ）。
 
 ## 前提
 
 - **社の Databricks の Workspace（`dbc-24f125d6-4420`）は us-west-2（オレゴン）にある**（2026-11-10、DNS で確かめた。`oregon.cloud.databricks.com` の別名）。データの本体もオレゴンにある。
-- 東京に置くなら、東京（ap-northeast-1）に別の Workspace が要る。Apps も Lakebase も、Workspace のリージョンで動く。
-- 社のプラン（Premium / Enterprise）は確かめていない。下では両方を出す。
+- Apps も Lakebase も、Workspace のリージョンで動く。オレゴンなら、いまの Workspace に置ける。
+- AWS の Databricks のプランは **Premium と Enterprise の 2 つだけ**（Standard は 2025-10-01 に Premium へ移った。[Manage your subscription](https://docs.databricks.com/aws/en/admin/account-settings/account)）。社がどちらかは確かめていないので、下では両方を出す。
 
 ## 料金体系
 
@@ -19,74 +20,122 @@
 | **Lakebase の計算機**（Postgres） | CU 時間（1 CU は RAM 2 GB）。請求では「Database Serverless Compute」の DBU に換算される | 実際に使った CU 時間。自動で伸び縮みし、止められる（scale to zero）。高可用性（HA）の分の CU 時間も数える |
 | **Lakebase のストレージ** | DSU（Databricks Storage Unit） | DB の本体 1 GB・1 か月あたり 15 DSU、時点への復元（PITR）の履歴 8.60 DSU、スナップショット 3.91 DSU |
 | Unity Catalog → Lakebase の同期（synced tables） | DBU（裏で動くサーバーレスのパイプライン） | 使ったときだけ |
-| データの転送 | クラウドの転送料 | リージョンをまたぐとき・外に出すときにかかりうる（料金のページの「Data transfer and connectivity」。単価は見ていない） |
+| データの転送 | クラウドの転送料 | リージョンをまたぐとき・外に出すときにかかりうる（料金のページの「Data transfer and connectivity」。単価は見ていない）。オレゴンに置けば、データとの間はリージョンをまたがない |
 
 補足:
 
-- **Lakebase は 2027-01-31 まで 50% 引き**（"Promotion - Save 50% off price shown below until January 31, 2027"）。下の試算は割引前の定価で出す。
+- **Lakebase は 2027-01-31 まで 50% 引き**（"Promotion - Save 50% off price shown below until January 31, 2027"）。下の見積もりは割引前の定価で出す。
 - Lakebase は、scale to zero を 24 時間を超えて切ったままにすると「Always-on」の料金になる。最低の容量のぶんが安い単価になる（単価は取れていない）。
 - Apps の料金のページの例: 「Medium のアプリ 5 個を 30 日 24 時間、AWS Premium の US East で動かすと 1,800 DBU、$0.75/DBU で月 $1,350」。
 
 ## 単価（定価）
 
-| リージョン・プラン | Apps（Interactive Serverless）$/DBU | Medium 1 台・1 時間 | Lakebase $/CU 時間 |
+| リージョン・プラン | Apps（Interactive Serverless）$/DBU | Apps Medium 1 台・1 時間 | Lakebase $/CU 時間 |
 |---|---|---|---|
-| 東京 Premium | 0.83 | $0.415 | 0.110 |
-| 東京 Enterprise | 1.05 | $0.525 | 0.134 |
-| オレゴン Premium | 0.75 | $0.375 | 0.092 |
-| オレゴン Enterprise | 0.95 | $0.475 | 0.111 |
+| **オレゴン Premium** | 0.75 | $0.375 | 0.092 |
+| **オレゴン Enterprise** | 0.95 | $0.475 | 0.111 |
+| 東京 Premium（比較） | 0.83 | $0.415 | 0.110 |
+| 東京 Enterprise（比較） | 1.05 | $0.525 | 0.134 |
 
-- 東京は、オレゴンより Apps で約 1.1 倍、Lakebase で約 1.2 倍高い。
-- DSU の単価は公式のデータでは見つからなかった。外部の記事では、AWS の US East の Premium で $0.023/DSU（[Coupler.io](https://blog.coupler.io/?p=85874) ほか。**未確認**）。この単価だと、Lakebase の DB の本体は 1 GB・1 か月あたり $0.345。東京の DSU の単価は分からない。
+- DSU の単価は公式のデータでは見つからなかった。外部の記事では、AWS の US East の Premium で $0.023/DSU（[Coupler.io](https://blog.coupler.io/?p=85874) ほか。**未確認**）。この単価だと、Lakebase の DB の本体は 1 GB・1 か月あたり $0.345。
 
-## 試算（アプリ 1 つあたりの月額、定価）
+## いまの負荷（2026-11-10 に取得）
 
-置いた前提:
+Databricks に移す対象は jadd_studio3 と fleet-ops。いまの負荷から、Databricks の大きさを決める。
 
-- アプリ: Medium 1 台。
-- DB: Lakebase 2 CU（新しく作ったときの既定の範囲「2〜4 CU」の下限）。DB の大きさは 50 GB と置いた（jadd_studio3・fleet-ops のいまの DB の大きさは確かめていない）。
-- 「業務時間だけ」は平日 8〜22 時（14 時間 × 21 日 = 294 時間）だけ動かす場合。Apps を時間で止めて起動し直す運用ができるかは確かめていない。Lakebase は scale to zero で止まる。
+| | jadd_studio3（Vercel: jadd-studio3） | fleet-ops（Vercel: biz-fleet-ops） | 出どころ |
+|---|---|---|---|
+| Vercel の関数の CPU（10 月） | 44.8 時間 | 2.3 時間 | Vercel の請求の API（`Fluid Active CPU`） |
+| Vercel の関数のメモリ（10 月） | 1,116 GB 時間（平均 1.5 GB） | 26 GB 時間 | 同（`Fluid Provisioned Memory`） |
+| Vercel の関数の呼び出し（10 月） | 254 万回 | 13 万回 | 同（`Function Invocations`） |
+| Vercel の使用量の料金（10 月、クレジット前） | 約 $75 | 約 $4 | 同（`EffectiveCost`） |
+| 本番へのデプロイ | 30 日で 223 回 | 少ない | GitHub Actions の `deploy.yml` の実行 |
+| Supabase のプロジェクト | `ebdfwtvfpemzevdpxmek`（名前は jadd-studio-dev。本番が `env/static.yaml` で使う）。**Small（RAM 2 GB）**、東京 | `qgnfaidhxcuqivmgubuy`（biz-fleet-ops）。**Micro（RAM 1 GB）**、東京 | Supabase の API（`GET /v2/organizations/{slug}/projects`） |
+| Supabase のディスク | 8 GB（gp3） | 8 GB（gp3） | 同。データは 8 GB より小さい |
 
-| 構成 | 東京 Premium | 東京 Enterprise | オレゴン Premium | オレゴン Enterprise |
-|---|---|---|---|---|
-| Apps Medium・24 時間 | $303 | $383 | $274 | $347 |
-| Apps Medium・業務時間だけ | $122 | $154 | $110 | $140 |
-| Apps Large・24 時間 | $606 | $766 | $548 | $694 |
-| Lakebase 0.5 CU・24 時間 | $40 | $49 | $34 | $41 |
-| Lakebase 2 CU・24 時間 | $161 | $196 | $134 | $162 |
-| Lakebase 2 CU・業務時間だけ | $65 | $79 | $54 | $65 |
-| ストレージ 50 GB（DSU を $0.023 と置く） | $17 | $17 | $17 | $17 |
-| **合計: 24 時間（Apps Medium＋Lakebase 2 CU＋50 GB）** | **$481** | **$596** | **$425** | **$526** |
-| **合計: 最小（Apps Medium 24 時間＋Lakebase 0.5 CU＋50 GB）** | $360 | $449 | $325 | $405 |
-| **合計: 業務時間だけ** | $204 | $250 | $182 | $222 |
+一次情報は git の外に置いた（`~/vercel/turing-inc/2026-11-10/`・`~/supabase/dhazyhuzuwitqasezcvr/2026-11-10/`）。
 
-- アプリが 2 つ（jadd_studio3 と fleet-ops）なら、おおむね 2 倍。
-- Lakebase は 2027-01-31 までは半額。
-- 含めていないもの: いまも払っている SQL Warehouse の料金（アプリが Databricks のデータを読むぶん）、リージョンをまたぐ転送料、HA、Apps の台数を増やしたぶん、cron の代わりにする Jobs。
+見立て:
 
-## Vercel・Supabase との比べ方
+- **Apps は Medium 1 台で足りそう**。jadd_studio3 が月に使う CPU は 45 時間で、Medium 1 台を 24 時間動かしたとき（2 vCPU × 730 時間）の 3% ほど。ただし、瞬間の山（同時のアクセス）は測っていない。Apps は台数が自動で増えないので、山に備えるなら Large か 2 台にする。
+- **Lakebase は、Supabase の RAM に合わせる**（1 CU は RAM 2 GB）。jadd_studio3 は Small（2 GB）なので 1 CU、fleet-ops は Micro（1 GB）なので 0.5 CU（Lakebase の最小）。
+- ストレージは小さい（それぞれ 8 GB 以下）。
 
-- Vercel は、コミットの作者全員の席を払う方針で、チーム全体で **月 $620 前後**（31 席。[vercel-accounts.md](../../information-resource-inventory/workstream/vercel-accounts.md) の試算）。これでチームの 12 プロジェクトをまかなう。使用量が含まれる分を超えたら別に払う。
-- Databricks は、**アプリごとに**課金される。上の構成なら、アプリ 1 つで月 $200〜600。席の料金は無い（人ごとの課金は無いと思われる。未確認）。
-- Supabase の料金は、この資料では見ていない。比べるなら、移すアプリが使っている Supabase のプロジェクトの月額を足す。
-- アプリが 1〜2 個なら、Databricks のほうが安くなりうる。Vercel の 12 プロジェクトを全部移すと、Databricks のほうが高くなりそう（推測）。
+## 見積もり（オレゴン、月額、定価）
 
-## 東京とオレゴンのどちらに置くか
+| 項目 | 前提 | Premium | Enterprise |
+|---|---|---|---|
+| Apps: jadd_studio3 | Medium 1 台・24 時間 | $274 | $347 |
+| Apps: fleet-ops | Medium 1 台・24 時間 | $274 | $347 |
+| Lakebase: jadd_studio3 | 1 CU・24 時間 | $67 | $81 |
+| Lakebase: fleet-ops | 0.5 CU・24 時間（scale to zero で減る） | $34 | $41 |
+| ストレージ | 2 つ合わせて 16 GB 以下・DSU $0.023 | $6 以下 | $6 以下 |
+| **合計** | | **約 $655** | **約 $822** |
+| 参考: jadd_studio3 を 2 台にする | ＋Medium 1 台 | ＋$274 | ＋$347 |
+| 参考: 2027-01-31 までの Lakebase の 50% 引き | | −$50 | −$61 |
 
-| | 東京（ap-northeast-1） | オレゴン（us-west-2） |
+含めていないもの: いまも払っている SQL Warehouse の料金（アプリが Databricks のデータを読むぶん。移しても変わらない）、HA、cron の代わりにする Jobs、ビルドの計算機（Apps のデプロイのときのビルドの扱いは確かめていない）。
+
+## Vercel に残す場合との比較（月額、定価）
+
+Vercel の見積もりは [vercel-accounts.md](../../information-resource-inventory/workstream/vercel-accounts.md) の「費用の見積もり（2026-11-10）」。
+
+| | A. Vercel に残し、全員分の席を払う | B. jadd_studio3 と fleet-ops を Databricks（オレゴン）に移す |
 |---|---|---|
-| 料金 | 1.1〜1.2 倍高い | 安い |
-| 東京のオフィスからの近さ | 近い | 往復で 100 ms 前後の遅れ（一般的な値。測っていない） |
-| データとの距離 | データはオレゴンにある。アプリから読むたびにリージョンをまたぐ | 同じリージョン |
-| Workspace | 新しく作る。Unity Catalog の metastore もリージョンごとに要る（推測。未確認） | いまの Workspace に置ける |
-| Unity Catalog → Lakebase の同期 | リージョンをまたいで使えるかは未確認 | 同じリージョンで使える |
+| Vercel | 32 席 $640＋使用量 $110〜170 = **$750〜810** | 席の無い作者を足さずに済む。18 席 $360＋ほかのプロジェクトの使用量 約 $15 = **約 $375** |
+| Databricks | なし | Premium **約 $655** / Enterprise **約 $822** |
+| Supabase | いまのまま | 2 つのプロジェクトのぶん（Small と Micro の計算機）が減る。組織の Pro の基本料金はほかのプロジェクトで残る |
+| **合計** | **$750〜810** | Premium **約 $1,030** / Enterprise **約 $1,200** |
 
-見立て（まだ決めていない）: 料金と運用の手間だけを見ると、いまの Workspace に置けるオレゴンが有利。東京にする理由は、画面の応答の速さ。東京に置いても、オレゴンのデータを読むたびに太平洋を往復するので、データを多く読む画面では速くならないおそれがある（推測）。
+- **定価で比べると、Vercel に残すほうが月 $200〜450 安い**。Vercel は使った分だけ払う（jadd_studio3 の使用量は月 $75 ほど）。Databricks の Apps は、使われていなくても 1 台ごとに月 $274 以上かかる。
+- 差を縮める手: 契約の割引、fleet-ops を業務時間だけ動かす（Apps を時間で止めて起動し直せるかは未確認）、Lakebase の scale to zero。
+- お金以外の差（デプロイのトークンが要らない、入口で社の SSO と MFA が必ず効く、など）は [workstream](../workstream/databricks-app-hosting.md) の「見立て」。
+
+## 社のプランと契約の単価の調べ方
+
+1. **アカウントコンソールで見る**（Databricks のアカウント管理者が要る）
+   - https://accounts.cloud.databricks.com/login にログインし、サイドバーの **Settings** を開く。プランの横に **Upgrade** が出ていれば、そこにいまのプランがある（[Manage your subscription](https://docs.databricks.com/aws/en/admin/account-settings/account)）。
+   - このページは従量課金（pay-as-you-go）の契約だけが対象。**年間の契約（commit）なら、Databricks のアカウントの担当者に聞くよう書かれている**。
+   - 伊藤がアカウント管理者でなければ、管理者（CorpIT か、Databricks の契約を持っている人）に頼む。
+2. **Workspace の SQL で見る**（システムテーブル `system.billing` を読む権限が要る）
+   - 権限: アカウント管理者とメタストア管理者を兼ねる人は、初めから読める。ほかの人には、`system` カタログの `USE CATALOG`、`system.billing` の `USE SCHEMA` と `SELECT` を付けてもらう（[System tables](https://docs.databricks.com/aws/en/admin/system-tables/)）。クエリを走らせる計算機の料金だけがかかる。
+   - いま使っている SKU と単価（SKU の名前の頭の `PREMIUM_` / `ENTERPRISE_` でプランが分かるのが通例。ドキュメントには書かれていないので、単価でも確かめる）:
+
+     ```sql
+     SELECT DISTINCT u.sku_name, p.pricing.default AS list_price, p.pricing.effective_list
+     FROM system.billing.usage u
+     JOIN system.billing.list_prices p
+       ON u.sku_name = p.sku_name AND p.price_end_time IS NULL
+     WHERE u.usage_date >= current_date() - INTERVAL 30 DAYS;
+     ```
+
+   - Apps と Lakebase の単価（定価）。オレゴンの Interactive Serverless が $0.75 なら Premium、$0.95 なら Enterprise:
+
+     ```sql
+     SELECT sku_name, pricing.default, pricing.promotional, pricing.effective_list, usage_unit
+     FROM system.billing.list_prices
+     WHERE price_end_time IS NULL
+       AND (sku_name LIKE '%INTERACTIVE_SERVERLESS%' OR sku_name LIKE '%DATABASE_SERVERLESS%'
+            OR sku_name LIKE '%STORAGE%');
+     ```
+
+   - すでに Apps や Lakebase を使っている人がいるか（`billing_origin_product` が `APPS`・`LAKEBASE`）:
+
+     ```sql
+     SELECT billing_origin_product, usage_metadata.app_name, sum(usage_quantity) AS dbu
+     FROM system.billing.usage
+     WHERE billing_origin_product IN ('APPS', 'LAKEBASE', 'DATABASE')
+       AND usage_date >= current_date() - INTERVAL 90 DAYS
+     GROUP BY ALL;
+     ```
+
+   - `list_prices` は**定価**のテーブル。契約の割引込みの単価のテーブルは、ドキュメントでは見つからなかった（[Pricing system table](https://docs.databricks.com/aws/en/admin/system-tables/pricing)）。割引は、契約書か担当者で確かめる。
+3. **契約の形を確かめる**（経理か CorpIT）: 従量課金か年間の契約か、AWS Marketplace 経由か。割引の率は契約で決まる。
 
 ## 確かめていないこと
 
-- 社のプラン（Premium / Enterprise）と、契約の割引。`system.billing.list_prices` で見られる
-- DSU の単価（東京・オレゴン）、Lakebase の Always-on の単価、データの転送料
-- jadd_studio3・fleet-ops のいまの DB の大きさと負荷（必要な CU の見積もりのため）
+- 社のプランと契約の割引（上の手順）
+- DSU の単価、Lakebase の Always-on の単価
+- jadd_studio3 の瞬間の山（Apps の台数を決めるため）
 - Apps を時間で止めて起動し直す運用ができるか
-- 東京の Workspace から、オレゴンのデータ（Unity Catalog）をどう読むか
+- Apps のデプロイのときのビルドに料金がかかるか
