@@ -1,7 +1,7 @@
 # S3 バケットのデータ保護 第二弾（権限設計のアップグレード）
 
 - 開始: 2026-10-20
-- 状態: **第 1 段階（手順 A）は deploy 済み、予行（手順 B）の手順書を書いた・実施待ち**（[cdk-apps#2500](https://github.com/turingmotors/cdk-apps/pull/2500) は 2026-11-11 05:12 UTC にマージ、05:16 に deploy、後の確かめも済み。手順書は [canary-rehearsal-runbook.md](s3-data-protection-2/canary-rehearsal-runbook.md)）。対象は 9 本。次は伊藤が予行を実施 → 結果を読む → 手順 C の前の決めごと（4-3・4-4・4c）。段階の正本は [worm-rollout-stages.md](s3-data-protection-2/worm-rollout-stages.md)。全体のアクションは [worm-action-list.md](s3-data-protection-2/worm-action-list.md)。権限の頂点の問題は別の案件（project:privileged-access）
+- 状態: **予行（手順 B）を R5 で止めた。直す PR の承認待ち**（[cdk-apps#2537](https://github.com/turingmotors/cdk-apps/pull/2537)。ジョブのロールの `DenyFixedRetention` がホールドの要求まで拒んでいた。原因は特定済み）。次はマージ・deploy → 予行を hold からやり直す（手順書 [canary-rehearsal-runbook.md](s3-data-protection-2/canary-rehearsal-runbook.md)）→ 手順 C の前の決めごと（4-3・4-4・4c）。第 1 段階（[cdk-apps#2500](https://github.com/turingmotors/cdk-apps/pull/2500)）は 2026-11-11 に deploy 済み。段階の正本は [worm-rollout-stages.md](s3-data-protection-2/worm-rollout-stages.md)。全体のアクションは [worm-action-list.md](s3-data-protection-2/worm-action-list.md)。権限の頂点の問題は別の案件（project:privileged-access）
 - 所属: project:aws-data-protection（2026-10-26 に `~/docs/workstream/` から移した）
 - 前段（第一弾、完了）:
   - [走行データ消失リスクへの対応](done/raw-data-security.md)（バケットの種別と処遇、裁定の正本）
@@ -846,4 +846,9 @@
   - カナリアに既定の保持設定を入れると、`expire/` の版にも保持が付き、カナリアで失効の記録を試せなくなる（D23 の副作用。手順書の注意に書いた）。
   - DataSync（4-6）は手順書に入れていない。
 - 2026-11-11: deploy の後の書き込みを、監査のトレイル（`original-bucket-audit-logs-767397804933` の `trail/`）で見た（ReadOnly）。05:13〜05:48 UTC は td1-raw への書き込みが約 7,260 件（アップロード用の PC）で、**拒否は 0 件**。エラーは `IncompleteBody` 7 件だけで、deploy の前の 2 時間（03:13〜05:13）にも 245 件あったので、いつものもの。deploy の後に tuscenes-annotation・tuscenes-model への書き込みは無かった（前の 2 時間はそれぞれ 2,156 件・約 1,600 件）。拒否の記録も無いので、書き手が動いていなかったとみる。**次**: 11-12 に 11-11 の 1 日分を見て、13 本すべてで拒否が無いことを確かめる（スクリプトは `~/runbook/trail-scan/trail-scan.py`、git の管理外。日付のフォルダは中で固定しているので直して使う。2 時間分で約 400 ファイル・数分かかる）。
+- 2026-11-11: **予行（4-2）を始めた**（伊藤、06:07 UTC〜）。R1〜R4 は OK（後からの有効化は既存の版と書き込みに影響しない。既定の保持設定でだけチェックサムが要る。既定の保持設定を外せばすぐ戻る。FullAccess の保持の変更・迂回は拒まれる）。**R5 で止めた**: 一覧づくり（ManifestGenerator）は対象を読む権限なしで通ったが、30 日のホールドを付けるジョブが、ジョブのロール自身の `DenyFixedRetention` で拒まれた。
+  - 原因: 保持が延びる要求では、ホールドの要求でも S3 が `s3:object-lock-retain-until-date` を埋める。worm-probe で一時的なロールを使い、要求ごとにどの条件キーが載るかを確かめた（手順書の「R5 の切り分け」）。シミュレーターでは見抜けない種類の誤り。
+  - 直す PR: [cdk-apps#2537](https://github.com/turingmotors/cdk-apps/pull/2537)（`d0ccdec5`）。固定の期限は `s3:object-lock-event-hold` が無いことで見分け、残りの保持日数が `EVENT_HOLD_DAYS` を超える要求を拒む文を足した。jest 17 件・tsc・prettier 通過。
+  - CloudTrail での保持の変更の名前は `PutObjectLockRetention`（通知のルールを書くときに注意。4-9）。
+  - worm-probe: バケットポリシーを外した（片付け待ち）。試しの版の一部は 2026-11-14 07:08 UTC まで保持が残る。試験用のロール `worm-probe-condprobe` は、まだ消していない（`bash condprobe.sh cleanup`）。
 

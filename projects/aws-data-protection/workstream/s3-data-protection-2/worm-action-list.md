@@ -56,7 +56,7 @@
 | # | やること | 担当 | 期限・条件 |
 |---|---|---|---|
 | 4-1 | 手順 A の PR（迂回の禁止・ジョブのロール・レポートの置き場）→ 2026-11-09 に作った: [cdk-apps#2500](https://github.com/turingmotors/cdk-apps/pull/2500)。レビュー → マージ → deploy の後の確かめ 11-10 に安本さんのレビューへ対応した（`DenyComplianceMode`・CI のテスト・日数の固定・`DenyLockChange` の前倒し・tuscenes-annotation を戻す。最新は `2de9dd86`、CI 通過）。2026-11-10 に安本さんが承認、11-11 05:12 UTC にマージ、05:16 に deploy 済み。deploy の後の確かめ（3 項目）も済み（エージェント、ReadOnly） | エージェントが起草、伊藤が確かめて PR を作った | Go サインのあと |
-| 4-2 | 手順 B の手順書（予行用のバケットに後から Object Lock を入れる）と実施。予行用のバケットは、そのあと訓練用に使う（D23）。手順書は 11-11 に書いた（[canary-rehearsal-runbook.md](canary-rehearsal-runbook.md)、スクリプトは `~/runbook/canary-rehearsal/`）。シミュレーターの項目（S1）は済み。実施は未 | エージェントが手順書、伊藤が実施（FullAccess） | 4-1 のあと |
+| 4-2 | 手順 B の手順書（予行用のバケットに後から Object Lock を入れる）と実施。予行用のバケットは、そのあと訓練用に使う（D23）。手順書は 11-11 に書いた（[canary-rehearsal-runbook.md](canary-rehearsal-runbook.md)、スクリプトは `~/runbook/canary-rehearsal/`）。シミュレーターの項目（S1）は済み。11-11 に実施を始め、R5 でジョブのロールの誤りが見つかって止めた（直す PR は [cdk-apps#2537](https://github.com/turingmotors/cdk-apps/pull/2537)） | エージェントが手順書、伊藤が実施（FullAccess） | 4-1 のあと |
 | 4-3 | 解除後の保持期間の正式な値を決める（共有用の資料の 6.2） | チーム | 手順 C の前 |
 | 4-4 | ジョブの設定を確かめる 2 人目を決める（共有用の資料の 6.2） | チーム | 手順 C の前 |
 | 4-5 | 通知の受け手を決める（共有用の資料の 6.2） | チーム | 4-9 の前（メールの宛先が要る） |
