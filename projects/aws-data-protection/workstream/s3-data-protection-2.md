@@ -851,4 +851,5 @@
   - 直す PR: [cdk-apps#2537](https://github.com/turingmotors/cdk-apps/pull/2537)（`d0ccdec5`）。固定の期限は `s3:object-lock-event-hold` が無いことで見分け、残りの保持日数が `EVENT_HOLD_DAYS` を超える要求を拒む文を足した。jest 17 件・tsc・prettier 通過。
   - CloudTrail での保持の変更の名前は `PutObjectLockRetention`（通知のルールを書くときに注意。4-9）。
   - worm-probe: バケットポリシーを外した（片付け待ち）。試しの版の一部は 2026-11-14 07:08 UTC まで保持が残る。試験用のロール `worm-probe-condprobe` は、まだ消していない（`bash condprobe.sh cleanup`）。
+- 2026-11-11: [cdk-apps#2537](https://github.com/turingmotors/cdk-apps/pull/2537) に、別のセッション（pw-1111-rev1）からレビューが届いた（マージを止める指摘なし。提案 3・nit 2）。worm-probe で追加の試し（`condprobe.sh extra`、T8〜T11）をして評価した: (1) ホールドに遠い先の期限を混ぜた要求は、S3 が受け付けるが、`remaining-retention-days` に最低の期限から数えた値が入り、`DenyRetentionBeyondHoldDays` で止まる。(2) 保持の無い版に付けても、残りの日数は日数ちょうどの値なので、R5 はこの文で落ちない。(3) 解除に期限を添えた要求も S3 が受け付けるので、穴は実在した。`DenyReleaseWithFixedRetention`（OFF かつ期限のキーあり）を足した（`6b430f89`、伊藤の了承）。nit 2 件も直した。PR の本文を更新し、レビューのセッションに返信した。予行のスクリプトの R6 は、ジョブ 4 本（計 7 件）にした。worm-probe の試しの版の一部は 11-14 07:52 UTC まで保持が残る。
 

@@ -17,7 +17,7 @@
 | R3 | 既定の保持設定を外すと、チェックサムなしで書けるようになるか。付いた保持は残るか | 書き込みが止まったときの戻し方 | rollback |
 | R4 | FullAccess の直接の操作（ホールドを外す・リーガルホールド・迂回の削除・書き込みでの期限の指定）が拒まれるか | `DenyLockChange`・`DenyGovernanceBypass` を実物で確かめる | direct |
 | R5 | ジョブのロールで、対象の一覧をジョブに作らせ、確認待ちで止めてからホールドを付けられるか。対象を読む権限（`s3:GetObject`）なしで通るか。一覧と結果をレポートの置き場に書けるか | このロールの形で流すのは初めて（PR の未確認の点） | hold → run |
-| R6 | ジョブのロールで、30 日以外の日数と、固定の期限が拒まれるか | `DenyUnexpectedEventHoldDuration`・`DenyFixedRetention` を実物で確かめる | negative |
+| R6 | ジョブのロールで、30 日以外の日数・固定の期限・期限を混ぜた指定（30 日＋60 日先の期限、解除＋20 日先の期限）が拒まれるか | `DenyUnexpectedEventHoldDuration`・`DenyFixedRetention`・`DenyRetentionBeyondHoldDays`・`DenyReleaseWithFixedRetention`（[cdk-apps#2537](https://github.com/turingmotors/cdk-apps/pull/2537)）を実物で確かめる | negative |
 | R7 | ジョブのロールで、ホールドを外せるか。外したあとの期限は「外した時刻＋30 日」で固まるか | 手順の訓練。解除が止まらないこと | release |
 | R8 | ホールド中・解除後の版の日数を、延ばす・縮めるとどうなるか。縮めるのに迂回が要るか | あとから日数を変えるときの手順（AWS のドキュメントに書かれていない） | days（worm-probe のバケット） |
 | S1 | コンプライアンスモードの指定が、ジョブのロールとバケットポリシーの両方で拒まれるか | 実物では試さない（効かなかったとき戻せない） | **済み**（下の「結果」） |
@@ -50,7 +50,7 @@ cd ~/runbook/canary-rehearsal
 | 5 | `bash rehearsal.sh direct` | R4。FullAccess の直接の操作 6 つが拒まれることを見る | `NG` が無いこと |
 | 6 | `bash rehearsal.sh hold` | R5。ジョブを作る（確認待ち）。止まったら、作られた一覧を出す | **エージェントに知らせる**。一覧が 2 件（a と b の最新版）であること |
 | 7 | `bash rehearsal.sh run` | R5。確認待ちのジョブを流し、各版の保持を出す | — |
-| 8 | `bash rehearsal.sh negative` | R6。拒まれるはずのジョブを 2 本流す（各 2 件） | **エージェントに知らせる** |
+| 8 | `bash rehearsal.sh negative` | R6。拒まれるはずのジョブを 4 本流す（計 7 件） | **エージェントに知らせる** |
 | 9 | `bash rehearsal.sh release` | R7。pre/ の最新版のホールドを、ジョブで外す | — |
 | 10 | `bash rehearsal.sh days` | R8。worm-probe のバケットで、日数を延ばす・縮める | **エージェントに知らせる** |
 
@@ -104,4 +104,5 @@ cd ~/runbook/canary-rehearsal
 - **直し方:** `DenyFixedRetention` の条件を「`s3:object-lock-event-hold` が無い」（`Null: true`）に変える（固定の期限だけの要求を止める）。ホールドに最低の期限を混ぜる要求は、これでは止まらないので、「`s3:object-lock-remaining-retention-days` が `EVENT_HOLD_DAYS` を超える」（`NumericGreaterThan`）を拒む文を足す。
 - 境目（T7、07:13 UTC）: 「`remaining-retention-days` が 2 を超えたら拒む」文で、1 日から 2 日に延ばす要求は当たらなかった（日数ちょうどの値が入る）。固定の期限（+3 日）は当たった。新しい文の境目は `EVENT_HOLD_DAYS` のままでよい。
 - worm-probe に残ったもの: バケットポリシーは外したまま（片付け待ち）。試しの版のうち t2・t3 は固定の期限が 2026-11-14 07:08 UTC まで残る。試験用のロールは cleanup で消す。
+- レビューを受けた追加の試し（07:52〜07:54 UTC、`condprobe.sh extra`、ログ `20261111-165245-condprobe-extra.log`）: T8 ホールド 1 日＋期限 +3 日は「残りの日数 > 2」で拒否（最低の期限から数えた値が入る）。T8b 同じ要求を Deny の無い主体で送ると S3 は受け付け、期限が +3 日になった。T9「OFF かつ期限のキーあり」で、解除＋期限は拒否・ふつうの解除は許可。T9b 解除＋期限 +2 日も S3 は受け付け、期限が +2 日になった。T10 保持の無い版（期限切れ）に付けても残りの日数のキーは載る。T11 その値は日数ちょうど（「> 1」に当たらない）。→ `DenyReleaseWithFixedRetention` を足した。
 
