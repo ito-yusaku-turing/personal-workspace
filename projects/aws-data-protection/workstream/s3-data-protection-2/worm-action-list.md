@@ -56,7 +56,7 @@
 | # | やること | 担当 | 期限・条件 |
 |---|---|---|---|
 | 4-1 | 手順 A の PR（迂回の禁止・ジョブのロール・レポートの置き場）→ 2026-11-09 に作った: [cdk-apps#2500](https://github.com/turingmotors/cdk-apps/pull/2500)。レビュー → マージ → deploy の後の確かめ 11-10 に安本さんのレビューへ対応した（`DenyComplianceMode`・CI のテスト・日数の固定・`DenyLockChange` の前倒し・tuscenes-annotation を戻す。最新は `2de9dd86`、CI 通過）。2026-11-10 に安本さんが承認、11-11 05:12 UTC にマージ、05:16 に deploy 済み。deploy の後の確かめ（3 項目）も済み（エージェント、ReadOnly） | エージェントが起草、伊藤が確かめて PR を作った | Go サインのあと |
-| 4-2 | 手順 B の手順書（予行用のバケットに後から Object Lock を入れる）と実施。予行用のバケットは、そのあと訓練用に使う（D23）。手順書は 11-11 に書いた（[canary-rehearsal-runbook.md](canary-rehearsal-runbook.md)、スクリプトは `~/runbook/canary-rehearsal/`）。シミュレーターの項目（S1）は済み。11-11 に実施を始め、R5 でジョブのロールの誤りが見つかって止めた（直す PR は [cdk-apps#2537](https://github.com/turingmotors/cdk-apps/pull/2537)） | エージェントが手順書、伊藤が実施（FullAccess） | 4-1 のあと |
+| 4-2 | 手順 B の手順書（予行用のバケットに後から Object Lock を入れる）と実施。予行用のバケットは、そのあと訓練用に使う（D23）。手順書は 11-11 に書いた（[canary-rehearsal-runbook.md](canary-rehearsal-runbook.md)、スクリプトは `~/runbook/canary-rehearsal/`）。シミュレーターの項目（S1）は済み。11-11 に実施し、**完了**（R5 でジョブのロールの誤りが見つかり、[cdk-apps#2537](https://github.com/turingmotors/cdk-apps/pull/2537) で直してから通した） | エージェントが手順書、伊藤が実施（FullAccess） | 4-1 のあと |
 | 4-3 | 解除後の保持期間の正式な値を決める（共有用の資料の 6.2） | チーム | 手順 C の前 |
 | 4-4 | ジョブの設定を確かめる 2 人目を決める（共有用の資料の 6.2） | チーム | 手順 C の前 |
 | 4-5 | 通知の受け手を決める（共有用の資料の 6.2） | チーム | 4-9 の前（メールの宛先が要る） |
@@ -87,7 +87,7 @@
 
 | # | やること | 担当 | 期限・条件 |
 |---|---|---|---|
-| 5-1 | 検証用のバケット `worm-probe-767397804933` の cleanup（[worm-probe-runbook.md](worm-probe-runbook.md)）。終わったらエージェントがログを読む | 伊藤 | 2026-11-06 11:23 JST より後 |
+| 5-1 | 検証用のバケット `worm-probe-767397804933` の cleanup（[worm-probe-runbook.md](worm-probe-runbook.md)）。終わったらエージェントがログを読む。11-11 の予行の切り分けと R8 で版を足したので、**2026-11-14 08:53 UTC（17:53 JST）より後**。バケットポリシーは 11-11 に外した。先に試験用のロール `worm-probe-condprobe` を消す（`~/runbook/canary-rehearsal/condprobe.sh cleanup`） | 伊藤 | 2026-11-14 17:53 JST より後 |
 | 5-2 | ~~denso-raw の出どころ（だれが集めたか・権利・用途）を安本さんに確かめる~~ → 不要（2026-11-10、D27。持ち主が退職して不在で、使われた形跡も無いので、対象から外した） | 伊藤 | — |
 | 5-3 | 権限を持つ人の一覧（[notion-tuscenes-prod-privilege-holders.md](../../documents/notion-tuscenes-prod-privilege-holders.md)）を Notion に上げる | エージェント（伊藤の許可を得て） | 2-1 のあと |
 

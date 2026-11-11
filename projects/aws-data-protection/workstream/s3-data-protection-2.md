@@ -1,7 +1,7 @@
 # S3 バケットのデータ保護 第二弾（権限設計のアップグレード）
 
 - 開始: 2026-10-20
-- 状態: **予行（手順 B）を R5 で止めた。直す PR の承認待ち**（[cdk-apps#2537](https://github.com/turingmotors/cdk-apps/pull/2537)。ジョブのロールの `DenyFixedRetention` がホールドの要求まで拒んでいた。原因は特定済み）。次はマージ・deploy → 予行を hold からやり直す（手順書 [canary-rehearsal-runbook.md](s3-data-protection-2/canary-rehearsal-runbook.md)）→ 手順 C の前の決めごと（4-3・4-4・4c）。第 1 段階（[cdk-apps#2500](https://github.com/turingmotors/cdk-apps/pull/2500)）は 2026-11-11 に deploy 済み。段階の正本は [worm-rollout-stages.md](s3-data-protection-2/worm-rollout-stages.md)。全体のアクションは [worm-action-list.md](s3-data-protection-2/worm-action-list.md)。権限の頂点の問題は別の案件（project:privileged-access）
+- 状態: **第 2 段階の予行（手順 B）が完了した**（2026-11-11。R1〜R8 すべて答えが出た。途中でジョブのロールの誤りを [cdk-apps#2537](https://github.com/turingmotors/cdk-apps/pull/2537) で直した）。次は手順 C の前の決めごと（4-3 解除後の保持期間・4-4 2 人目・4c-1〜4c-5）と、段階 1 の前の確かめ（backend-api の S3 クライアントの設定・DataSync（4-6））。手順書は [canary-rehearsal-runbook.md](s3-data-protection-2/canary-rehearsal-runbook.md)。段階の正本は [worm-rollout-stages.md](s3-data-protection-2/worm-rollout-stages.md)。全体のアクションは [worm-action-list.md](s3-data-protection-2/worm-action-list.md)。権限の頂点の問題は別の案件（project:privileged-access）
 - 所属: project:aws-data-protection（2026-10-26 に `~/docs/workstream/` から移した）
 - 前段（第一弾、完了）:
   - [走行データ消失リスクへの対応](done/raw-data-security.md)（バケットの種別と処遇、裁定の正本）
@@ -852,4 +852,10 @@
   - CloudTrail での保持の変更の名前は `PutObjectLockRetention`（通知のルールを書くときに注意。4-9）。
   - worm-probe: バケットポリシーを外した（片付け待ち）。試しの版の一部は 2026-11-14 07:08 UTC まで保持が残る。試験用のロール `worm-probe-condprobe` は、まだ消していない（`bash condprobe.sh cleanup`）。
 - 2026-11-11: [cdk-apps#2537](https://github.com/turingmotors/cdk-apps/pull/2537) に、別のセッション（pw-1111-rev1）からレビューが届いた（マージを止める指摘なし。提案 3・nit 2）。worm-probe で追加の試し（`condprobe.sh extra`、T8〜T11）をして評価した: (1) ホールドに遠い先の期限を混ぜた要求は、S3 が受け付けるが、`remaining-retention-days` に最低の期限から数えた値が入り、`DenyRetentionBeyondHoldDays` で止まる。(2) 保持の無い版に付けても、残りの日数は日数ちょうどの値なので、R5 はこの文で落ちない。(3) 解除に期限を添えた要求も S3 が受け付けるので、穴は実在した。`DenyReleaseWithFixedRetention`（OFF かつ期限のキーあり）を足した（`6b430f89`、伊藤の了承）。nit 2 件も直した。PR の本文を更新し、レビューのセッションに返信した。予行のスクリプトの R6 は、ジョブ 4 本（計 7 件）にした。worm-probe の試しの版の一部は 11-14 07:52 UTC まで保持が残る。
+- 2026-11-11: [cdk-apps#2537](https://github.com/turingmotors/cdk-apps/pull/2537) を伊藤がマージ（08:27 UTC）、08:28 に deploy。ロールのポリシーが 8 文（新しい `DenyFixedRetention`・`DenyRetentionBeyondHoldDays`・`DenyReleaseWithFixedRetention`）になったことを ReadOnly で確かめた。
+- 2026-11-11: **予行を完了した**（R5 を 08:29 からやり直した）。R5: 保持の無い版 2 件に 30 日のホールドが付いた（成功 2）。R6: 1 日・固定の期限・30 日＋60 日先の期限・解除＋20 日先の期限の 4 本（計 7 件）が、すべてジョブのロールの Deny で拒まれた。R7: 解除のジョブが通り、期限は解除の時刻＋30 日で固まった。R8: 日数を延ばすのはすぐ効き、縮めても期限は前に戻らない（迂回は要らない）。手順 C への意味:
+  - 有効化だけでは書き込みは止まらない。既定の保持設定を入れたときにチェックサムが要るようになる。外せばすぐ戻る（R1〜R3）。
+  - 手順 C の操作（一覧をジョブに作らせ、確認待ちで止め、30 日のホールドを付ける）は、このロールの形で通る（R5）。
+  - `EVENT_HOLD_DAYS` を縮める変更は、付いた版には今の期限が過ぎるまで効かない（R8）。正式な値（4-3）は、短めから始めて延ばす方が安全。
+  - **残り**: 試験用のロール `worm-probe-condprobe` の削除（伊藤）。worm-probe の片付けは 2026-11-14 17:53 JST より後（5-1）。R4 の書き込みでの期限の指定がどのアクションで拒まれたかは、トレイルで見ていない（優先度は低い）。11-11 の 1 日分のトレイルの見直し（11-12）。backend-api の S3 クライアントが `when_required` でないかの確かめ（段階 1 の前）。DataSync（4-6）。
 
