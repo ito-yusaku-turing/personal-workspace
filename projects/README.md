@@ -36,6 +36,7 @@
 - [idp-broker/](./idp-broker/README.md): 社内アプリの認証の入口（IdP）の選定
 - [information-resource-inventory/](./information-resource-inventory/README.md): 情報資源の棚卸し
 - [m2m-auth/](./m2m-auth/README.md): 車載装置・CI 用マシンの認証
+- [mono-e2e-repo-size/](./mono-e2e-repo-size/README.md): mono-e2e のリポジトリの肥大の調査（岩政さんに引き継いで完了）
 - [personal-dev-hardware/](./personal-dev-hardware/README.md): 作業用 PC など物理的な個人開発環境の管理と購買
 - [privileged-access/](./privileged-access/README.md): 組織の権限の頂点の把握と管理
 - [tern-ios-auth/](./tern-ios-auth/README.md): Tern iOS アプリの認証
