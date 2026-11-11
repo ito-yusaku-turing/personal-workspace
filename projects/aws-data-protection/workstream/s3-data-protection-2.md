@@ -1,7 +1,7 @@
 # S3 バケットのデータ保護 第二弾（権限設計のアップグレード）
 
 - 開始: 2026-10-20
-- 状態: **第 1 段階（手順 A）の PR が人間の承認待ち**（[cdk-apps#2500](https://github.com/turingmotors/cdk-apps/pull/2500)。最新は `2de9dd86`、CI 通過。安本さんのレビューには対応済み、2026-11-10）。対象は 9 本。次は承認 → マージ・deploy → deploy の後の確かめ → 予行（4-2）の手順書。決めごとはアクションリストの 4c。段階の正本は [worm-rollout-stages.md](s3-data-protection-2/worm-rollout-stages.md)。全体のアクションは [worm-action-list.md](s3-data-protection-2/worm-action-list.md)。権限の頂点の問題は別の案件（project:privileged-access）
+- 状態: **第 1 段階（手順 A）の PR は承認済み・マージ待ち**（[cdk-apps#2500](https://github.com/turingmotors/cdk-apps/pull/2500)。最新は `2de9dd86`、CI 通過。2026-11-10 に安本さんが承認、11-11 にマージ前の最終確認を済ませた）。対象は 9 本。次はマージ・deploy → deploy の後の確かめ → 予行（4-2）の手順書。決めごとはアクションリストの 4c。段階の正本は [worm-rollout-stages.md](s3-data-protection-2/worm-rollout-stages.md)。全体のアクションは [worm-action-list.md](s3-data-protection-2/worm-action-list.md)。権限の頂点の問題は別の案件（project:privileged-access）
 - 所属: project:aws-data-protection（2026-10-26 に `~/docs/workstream/` から移した）
 - 前段（第一弾、完了）:
   - [走行データ消失リスクへの対応](done/raw-data-security.md)（バケットの種別と処遇、裁定の正本）
@@ -827,3 +827,10 @@
   - **Notion**: 共有用（現在地と計画、10 章の FAQ つき）・学習用とも、ローカルの原本と同じ内容。共有用には安本さんのコメントが 4 件あり（伊藤が返信済み、未解決のまま）。次の更新も、コメントの付け先を壊さないよう、差分の置き換えで行う（`replace_content` は使わない）。ページの版の履歴を読むツールは、notion-guard で止まる。
   - **次にやること**: (1) PR の承認・マージ・deploy の後の確かめ（PR の本文の 3 項目）。(2) 予行（4-2）の手順書。確かめることは段階の正本の手順 B と、アクションの 4c-6。(3) 決めごと 4c-1〜4c-5（tuscenes-annotation の自動の出力、td1-raw の LiDAR、cfn-exec-role の締め出し、GitHub 側、PassRole の SCP の前倒し）。
   - **注意**: td1-raw の LiDAR（4c-2）は共有用の資料にまだ書いていない。共有用の資料の 6.2 に足すかは伊藤に確かめる。権限を持つ人の一覧（5-3）は未着手のまま。
+- 2026-11-11: [cdk-apps#2500](https://github.com/turingmotors/cdk-apps/pull/2500) は 11-10 に安本さんが承認済み（未マージ）。承認のコメントで指摘された PR の本文の 2 か所（「1 文が加わる」・`cdk diff` の行）を、`2de9dd86` の CI の差分に合わせて「3 文」に直した（`gh pr edit`）。マージ前の最終確認（ReadOnly）:
+  - CI の差分（PR のコメント、省略なし）: 原本バケット 12 本とカナリアに 3 文が加わるだけ。`OriginalBucketLockBatch` は新規、`OriginalBucketAudit` は差分なし。作り直し・削除は無い。
+  - マージで deploy が走るのは 5 アプリ（datalake・gaming-data-collection・denso-taxi・denso-nx・original-bucket-audit。どれも `packages/original-bucket-guard/**` で起動）。datalake の dev は起動しない。ブランチを切ってから `main` に入った 25 件に、これらのアプリの変更は無い。
+  - 13 本とも Object Lock は未設定（今回の 3 文が止める操作は無い）。本番のバケットポリシーは deploy 済みのテンプレートと同じ中身（手での変更なし）。いちばん大きい tuscenes-model でも約 2 KB で、3 文を足しても 20 KB の上限に遠い。
+  - ロール `original-bucket-lock-batch`・レポートの置き場 `original-bucket-lock-batch-reports-767397804933`・スタック `OriginalBucketLockBatch` は未作成（名前の衝突なし）。既存の 6 スタックはすべて `UPDATE_COMPLETE`。
+  - 安本さんの追加のコメント 2 件（アップロード時の保持にも `s3:PutObjectRetention` が要る、という訂正。予行で `DenyComplianceMode` はシミュレーターで確かめる）は、どちらも直すところなし（予行のほうは段階の正本に反映済み）。
+  - **残り**: 共有用の資料（Notion）の 8.1 で、レポートの置き場に 5 文すべてが入ることが読み取れない（安本さんの指摘）。ローカルを直してから、差分の置き換えで上げる（許可を得て）。
