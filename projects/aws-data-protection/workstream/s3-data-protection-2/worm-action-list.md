@@ -60,7 +60,7 @@
 | 4-3 | 解除後の保持期間の正式な値を決める（共有用の資料の 6.2） | チーム | 手順 C の前 |
 | 4-4 | ジョブの設定を確かめる 2 人目を決める（共有用の資料の 6.2） | チーム | 手順 C の前 |
 | 4-5 | 通知の受け手を決める（共有用の資料の 6.2） | チーム | 4-9 の前（メールの宛先が要る） |
-| 4-6 | 段階 2 の前の確かめ: DataSync を予行用のバケットに向けて試す、Databricks の volume の場所 。tuscenes-annotation の書き込み元（perception-detection・localization のロール）がチェックサムを付けているか | 伊藤とエージェント | 段階 2 の前 |
+| 4-6 | 段階 2 の前の確かめ: DataSync を予行用のバケットに向けて試す、Databricks の volume の場所 。tuscenes-annotation の書き込み元（perception-detection・localization のロール）がチェックサムを付けているか  → 2026-11-11: 9 本の書き込み元をトレイルの 12 日分で見直した（[writer-survey-1111.md](writer-survey-1111.md)。`when_required` の書き手は無し）。backend-api は記号とコードで確かめた。DataSync の手順書を書いた（[datasync-probe-runbook.md](datasync-probe-runbook.md)、未実施） | 伊藤とエージェント | 段階 2 の前 |
 | 4-7 | 手順 C（段階 1〜3 の順に各バケットへ導入） | 伊藤 | 4-2〜4-4 のあと |
 | 4-9 | 通知の PR（ルール A・B・C。ルール B に `CreateJob`・`UpdateJobStatus` を足す（I5））。レポートの置き場を、書き込み系のデータイベントのトレイル（`TRAIL_TARGET_BUCKETS`）に足す（[cdk-apps#2500](https://github.com/turingmotors/cdk-apps/pull/2500) のレビュー）。original-bucket-audit のテストを CI で走らせる workflow も、このあたりの PR で足す（同）。前に、EventBridge の有効化が CDK の定義とぶつからないか・どの CloudTrail の証跡に頼っているかを確かめる | エージェントが起草、伊藤が PR を作る | 4-5 のあと、4-8 の前 |
 | 4-8 | 手順 D の PR（FullAccess を例外から外す（`DenyLockChange` は 11-10 に 4-1 へ前倒し、D31）・ジョブのロールを渡す操作と変更の禁止・deploy の経路を守る SCP の 4 文（X1〜X3・X5）） | エージェントが起草、伊藤が PR を作る | 4-7 と 2-3・3-5 のあと |

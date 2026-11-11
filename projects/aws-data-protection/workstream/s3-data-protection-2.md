@@ -1,7 +1,7 @@
 # S3 バケットのデータ保護 第二弾（権限設計のアップグレード）
 
 - 開始: 2026-10-20
-- 状態: **第 2 段階の予行（手順 B）が完了し、片付けも済んだ**（2026-11-11。R1〜R8 すべて答えが出た。途中でジョブのロールの誤りを [cdk-apps#2537](https://github.com/turingmotors/cdk-apps/pull/2537) で直した）。次は手順 C の前の決めごと（4-3 解除後の保持期間・4-4 2 人目・4c-1〜4c-5）と、段階 1 の前の確かめ（backend-api の S3 クライアントの設定・DataSync（4-6））。手順書は [canary-rehearsal-runbook.md](s3-data-protection-2/canary-rehearsal-runbook.md)。段階の正本は [worm-rollout-stages.md](s3-data-protection-2/worm-rollout-stages.md)。全体のアクションは [worm-action-list.md](s3-data-protection-2/worm-action-list.md)。権限の頂点の問題は別の案件（project:privileged-access）
+- 状態: **第 2 段階の予行は完了。段階 1 に向けて A〜B、段階 2・3 に向けて E・F を進めている**（2026-11-11 に伊藤が決めた。A: backend-api の S3 クライアントの確かめ、B: 段階 1 の本番の手順書、E: 書き込み元の見直し（トレイルを数週間分）、F: DataSync の試しの手順書。C（ジョブのロールを渡す操作の禁止の前倒し）・D（4-3・4-4 の判断材料）は後回し）。手順書は [canary-rehearsal-runbook.md](s3-data-protection-2/canary-rehearsal-runbook.md)。段階の正本は [worm-rollout-stages.md](s3-data-protection-2/worm-rollout-stages.md)。全体のアクションは [worm-action-list.md](s3-data-protection-2/worm-action-list.md)。権限の頂点の問題は別の案件（project:privileged-access）
 - 所属: project:aws-data-protection（2026-10-26 に `~/docs/workstream/` から移した）
 - 前段（第一弾、完了）:
   - [走行データ消失リスクへの対応](done/raw-data-security.md)（バケットの種別と処遇、裁定の正本）
@@ -862,4 +862,10 @@
   - **次のセッションでやること**: (1) 11-11 の 1 日分のトレイルを見て、13 本すべてで拒否が無いことを確かめる（`~/runbook/trail-scan/trail-scan.py`）。(2) backend-api の S3 クライアントが `when_required` でないか（段階 1 の前）。(3) DataSync（4-6）。(4) 手順 C の前の決めごと（4-3・4-4・4c-1〜4c-5）。（共有用の資料の更新は、同じ日に済ませた。下の記録）
 - 2026-11-11: **共有用の資料（Notion の「原本バケットの WORM 化: 現在地と計画」）を更新した**（伊藤の許可）。先に Notion の側を読み、人の編集が無いこと（最終更新は 11-10 の伊藤）とコメント 4 件が返信済み・10 章に取り込み済みであることを確かめた。ローカルの原本（`documents/notion-worm-governance-rollout.md`）を直してから、差分の置き換え 18 か所で反映した（コメントの付け先には触れていない）。中身: 現在地、1 章の進み具合、4.1 を済みに、4.2 の予行の結果（9 行。DataSync だけ未）とジョブのロールの誤りの注、5.3 の戻し方、6.2 の解除後の保持期間の注意、8.1 にレポートの置き場にも 5 文が入ること（安本さんの指摘）・ジョブのロールの Deny の 5 文の表・条件キーの載り方・CloudTrail での名前、8.4・9 章。
 - 2026-11-11: **学習用の資料（Notion の「S3 Object Lock（WORM）の仕組み」）も更新した**（伊藤の許可）。Notion の側に人の編集・コメントが無いことを確かめ、ローカルの原本（`documents/notion-s3-object-lock-spec.md`）を直してから、差分の置き換え 14 か所で反映した。中身: 3.1 に日数の延長・短縮、5.1〜5.3 に後からの有効化・縮める付け直し・一覧づくりに読む権限が要らないこと、**5.4（新しい節）に条件キーで保持の変更を絞る方法とキーの載り方の表**、6.2 にチェックサムが要らない場合と戻し方・条件付き書き込み、6.3 に CloudTrail での名前、9 章に予行（R1〜R8）と条件キーの試し（K1〜K11）、10 章に「条件キー」。
+- 2026-11-11: 本番に入れるまでの課題を洗い出し、次のアクションを伊藤が決めた。**進める**: A（backend-api の S3 クライアントの確かめ）・B（段階 1 の本番の手順書。tuscenes-calibration の新・旧、td1-rlog）・E（書き込み元の見直し。トレイルを数週間分、大量の読み取りを伊藤が了承）・F（DataSync を予行用のバケットで試す手順書）。**後回し**: C（ジョブのロールを渡す操作の禁止の前倒し、4c-5）・D（4-3・4-4 の判断材料）・G・H（4c-1・4c-2 の聞き取り）・I（規模の見積もり）。J（11-11 の 1 日分のトレイル）は 11-12 に行う。
+- 2026-11-11: **A・B・E・F を進めた。**
+  - A（backend-api）: 済み。tuscenes-calibration（新）への書き込みは `routers/wheel_calibration.py` の既定の boto3 のクライアントで、チェックサムの設定の変更は無い（cdk-apps の Lambda の環境変数にも無い）。トレイルの 13 件も、userAgent の記号でチェックサムを付けていた（実際の boto3 は 1.43 系で、`uv.lock` の 1.42.11 と違う）。
+  - E（書き込み元の見直し）: [writer-survey-1111.md](s3-data-protection-2/writer-survey-1111.md)。10-30〜11-11 の 12 日分（2.2 万ファイル）。9 本に `when_required` の書き手は無い。td1-rlog・tuscenes-calibration（旧）・tuscenes-raw・denso の 3 本は書き込みなし。td1-raw の古い CLI（2.15〜2.25）と rlog のデコーダー（boto3 1.36.14）は、記号が出ない版なので版から推定（rlog のデコーダーはコードも確かめた）。古い SDK は `m/` に記号を出さないので、判定の道具に「版からの推定」を足した。
+  - B（段階 1 の手順書）: [stage1-runbook.md](s3-data-protection-2/stage1-runbook.md) と `~/runbook/worm-stage/worm-stage.sh`（段階 2・3 でも使う。戻せない操作の前にバケット名の打ち込みを求め、ジョブは確認待ちで止め、結果のレポートは失敗だけにした）。始める前の条件のうち、4-3（解除後の保持期間）と 4-4（2 人目）が未。3 本のライフサイクルは移動だけ（失効なし）。
+  - F（DataSync）: [datasync-probe-runbook.md](s3-data-protection-2/datasync-probe-runbook.md) と `~/runbook/datasync-probe/datasync-probe.sh`。DataSync のドキュメントには Object Lock の記述が無い。今の設定（`PRESERVE`・`ALWAYS`・Enhanced）なら、ぶつかるのはチェックサムだけの見込み。本番の転送元（dcorp-inbound）から 2 ファイル（37 バイトと約 127 MB）だけをカナリアの `datasync-probe/` に転送する。未実施。
 
