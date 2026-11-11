@@ -1,7 +1,7 @@
 # S3 バケットのデータ保護 第二弾（権限設計のアップグレード）
 
 - 開始: 2026-10-20
-- 状態: **第 2 段階の予行は完了。段階 1 に向けて A〜B、段階 2・3 に向けて E・F を進めている**（2026-11-11 に伊藤が決めた。A: backend-api の S3 クライアントの確かめ、B: 段階 1 の本番の手順書、E: 書き込み元の見直し（トレイルを数週間分）、F: DataSync の試しの手順書。C（ジョブのロールを渡す操作の禁止の前倒し）・D（4-3・4-4 の判断材料）は後回し）。手順書は [canary-rehearsal-runbook.md](s3-data-protection-2/canary-rehearsal-runbook.md)。段階の正本は [worm-rollout-stages.md](s3-data-protection-2/worm-rollout-stages.md)。全体のアクションは [worm-action-list.md](s3-data-protection-2/worm-action-list.md)。権限の頂点の問題は別の案件（project:privileged-access）
+- 状態: **第 2 段階の予行は完了。段階 1 の手順書と DataSync の試しの手順書を用意した（どちらも未実施）**（2026-11-11）。次は伊藤が DataSync の試し（[datasync-probe-runbook.md](s3-data-protection-2/datasync-probe-runbook.md)）→ 4-3（解除後の保持期間）・4-4（2 人目）を決める → 段階 1（[stage1-runbook.md](s3-data-protection-2/stage1-runbook.md)）。段階の正本は [worm-rollout-stages.md](s3-data-protection-2/worm-rollout-stages.md)。全体のアクションは [worm-action-list.md](s3-data-protection-2/worm-action-list.md)。権限の頂点の問題は別の案件（project:privileged-access）
 - 所属: project:aws-data-protection（2026-10-26 に `~/docs/workstream/` から移した）
 - 前段（第一弾、完了）:
   - [走行データ消失リスクへの対応](done/raw-data-security.md)（バケットの種別と処遇、裁定の正本）
@@ -868,4 +868,13 @@
   - E（書き込み元の見直し）: [writer-survey-1111.md](s3-data-protection-2/writer-survey-1111.md)。10-30〜11-11 の 12 日分（2.2 万ファイル）。9 本に `when_required` の書き手は無い。td1-rlog・tuscenes-calibration（旧）・tuscenes-raw・denso の 3 本は書き込みなし。td1-raw の古い CLI（2.15〜2.25）と rlog のデコーダー（boto3 1.36.14）は、記号が出ない版なので版から推定（rlog のデコーダーはコードも確かめた）。古い SDK は `m/` に記号を出さないので、判定の道具に「版からの推定」を足した。
   - B（段階 1 の手順書）: [stage1-runbook.md](s3-data-protection-2/stage1-runbook.md) と `~/runbook/worm-stage/worm-stage.sh`（段階 2・3 でも使う。戻せない操作の前にバケット名の打ち込みを求め、ジョブは確認待ちで止め、結果のレポートは失敗だけにした）。始める前の条件のうち、4-3（解除後の保持期間）と 4-4（2 人目）が未。3 本のライフサイクルは移動だけ（失効なし）。
   - F（DataSync）: [datasync-probe-runbook.md](s3-data-protection-2/datasync-probe-runbook.md) と `~/runbook/datasync-probe/datasync-probe.sh`。DataSync のドキュメントには Object Lock の記述が無い。今の設定（`PRESERVE`・`ALWAYS`・Enhanced）なら、ぶつかるのはチェックサムだけの見込み。本番の転送元（dcorp-inbound）から 2 ファイル（37 バイトと約 127 MB）だけをカナリアの `datasync-probe/` に転送する。未実施。
+- 2026-11-11 のセッションの終わり。引き継ぎ:
+  - **現在地**: 第 1 段階は deploy 済み（[cdk-apps#2500](https://github.com/turingmotors/cdk-apps/pull/2500)・[cdk-apps#2537](https://github.com/turingmotors/cdk-apps/pull/2537)）。ジョブのロールのポリシーは 8 文。第 2 段階の予行（R1〜R8）は完了し、カナリアは Object Lock と既定の保持設定（30 日）が入ったまま訓練用に残した。検証用のバケット worm-probe と試験用のロールは片付けた。共有用・学習用の Notion の資料は、ローカルの原本と同じ内容（11-11 に差分で更新。共有用には安本さんのコメント 4 件が未解決のまま残る）。手元の cdk-apps は `main`。
+  - **次にやること**（11-11 に伊藤が決めた順）:
+    1. 伊藤: DataSync の試し（F）。`cd ~/runbook/datasync-probe && bash datasync-probe.sh setup` → run → rerun → cleanup。本番のタスク（03:00 JST）の前後 30 分は避ける。終わったらエージェントがログとトレイル（D4: userAgent のチェックサムの記号）を読む。
+    2. チーム: 4-3（解除後の保持期間。R8 から、短めに始めて延ばす方が安全）と 4-4（2 人目）を決める。30 日以外にするなら、先に cdk-apps の `EVENT_HOLD_DAYS` を変える PR と、`worm-stage.sh` の `HOLD_DAYS` を合わせる。
+    3. 伊藤: 段階 1（td1-rlog → tuscenes-calibration（旧）→（新））。`~/runbook/worm-stage/worm-stage.sh`。default のあと、エージェントが 1 日ほどトレイルで書き込みのエラーを見る。
+    4. エージェント: J（11-11 の 1 日分のトレイルで、13 本すべてに拒否が無いこと）。`~/runbook/trail-scan/trail-scan.py`（日付のフォルダを直して使う）か `writer-survey.py`（エラーの列も出る）。11-11 のトレイルは 11-12 の早いうちにそろう。
+  - **後回しにしたもの**: C（ジョブのロールを渡す操作の禁止の前倒し、4c-5）、D（4-3・4-4 の判断材料）、G・H（4c-1 tuscenes-annotation の自動の出力、4c-2 td1-raw の LiDAR の聞き取り）、I（規模の見積もり、I3・I6）。
+  - **注意**: トレイルを落とした scratchpad（1.2 GB）はこのセッション限り。次に使うときは `aws --profile readonly s3 sync` で落とし直す（12 日分で数分）。アップロード用の PC の古い CLI（2.15〜2.25）は版から推定しただけなので、段階 3 の前に PC の設定を確かめる。
 
