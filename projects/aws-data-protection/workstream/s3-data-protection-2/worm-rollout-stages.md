@@ -52,6 +52,8 @@
 
 ### 手順 B: カナリアで予行する
 
+手順書: [canary-rehearsal-runbook.md](canary-rehearsal-runbook.md)（2026-11-11）。
+
 カナリア（上の「対象のバケット」）に、後から Object Lock を入れて試す。カナリアは、そのあとも Object Lock を入れたまま、手順の訓練に使う。
 
 確かめること:

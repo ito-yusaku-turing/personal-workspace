@@ -1,7 +1,7 @@
 # S3 バケットのデータ保護 第二弾（権限設計のアップグレード）
 
 - 開始: 2026-10-20
-- 状態: **第 1 段階（手順 A）の PR は承認済み・マージ待ち**（[cdk-apps#2500](https://github.com/turingmotors/cdk-apps/pull/2500)。最新は `2de9dd86`、CI 通過。2026-11-10 に安本さんが承認、11-11 にマージ前の最終確認を済ませた）。対象は 9 本。次はマージ・deploy → deploy の後の確かめ → 予行（4-2）の手順書。決めごとはアクションリストの 4c。段階の正本は [worm-rollout-stages.md](s3-data-protection-2/worm-rollout-stages.md)。全体のアクションは [worm-action-list.md](s3-data-protection-2/worm-action-list.md)。権限の頂点の問題は別の案件（project:privileged-access）
+- 状態: **第 1 段階（手順 A）は deploy 済み、予行（手順 B）の手順書を書いた・実施待ち**（[cdk-apps#2500](https://github.com/turingmotors/cdk-apps/pull/2500) は 2026-11-11 05:12 UTC にマージ、05:16 に deploy、後の確かめも済み。手順書は [canary-rehearsal-runbook.md](s3-data-protection-2/canary-rehearsal-runbook.md)）。対象は 9 本。次は伊藤が予行を実施 → 結果を読む → 手順 C の前の決めごと（4-3・4-4・4c）。段階の正本は [worm-rollout-stages.md](s3-data-protection-2/worm-rollout-stages.md)。全体のアクションは [worm-action-list.md](s3-data-protection-2/worm-action-list.md)。権限の頂点の問題は別の案件（project:privileged-access）
 - 所属: project:aws-data-protection（2026-10-26 に `~/docs/workstream/` から移した）
 - 前段（第一弾、完了）:
   - [走行データ消失リスクへの対応](done/raw-data-security.md)（バケットの種別と処遇、裁定の正本）
@@ -834,3 +834,14 @@
   - ロール `original-bucket-lock-batch`・レポートの置き場 `original-bucket-lock-batch-reports-767397804933`・スタック `OriginalBucketLockBatch` は未作成（名前の衝突なし）。既存の 6 スタックはすべて `UPDATE_COMPLETE`。
   - 安本さんの追加のコメント 2 件（アップロード時の保持にも `s3:PutObjectRetention` が要る、という訂正。予行で `DenyComplianceMode` はシミュレーターで確かめる）は、どちらも直すところなし（予行のほうは段階の正本に反映済み）。
   - **残り**: 共有用の資料（Notion）の 8.1 で、レポートの置き場に 5 文すべてが入ることが読み取れない（安本さんの指摘）。ローカルを直してから、差分の置き換えで上げる（許可を得て）。
+- 2026-11-11: **第 1 段階を deploy した**（伊藤が 05:12 UTC にマージ。6 本の deploy が 05:13〜05:16 にすべて成功）。前の報告で「datalake の dev は起動しない」と書いたのは誤りで、PR が `apps/datalake/test/` を変えたので `datalake-deploy-dev` も走った（守りの文は本番のアカウントにだけ入るので、dev は変わらない）。deploy の後の確かめ（ReadOnly）:
+  1. 原本バケット 12 本とカナリアのバケットポリシーに、5 文（もとの 2 文＋3 文）がそろった。
+  2. ロール `original-bucket-lock-batch`: 信頼は S3 Batch Operations だけ（`aws:SourceAccount` つき）。インラインのポリシー 1 本・付けたポリシーなし。保持を付けられるのはカナリアと対象の 9 本の 10 本。
+  3. レポートの置き場: バージョニング有効・ライフサイクルなし・公開の遮断。ポリシーは守りの 5 文と HTTPS の強制。
+  - 7 スタックとも正常（`OriginalBucketLockBatch` は `CREATE_COMPLETE`）。
+- 2026-11-11: シミュレーター（ReadOnly で使えた）で、ジョブのロールとカナリアのバケットポリシーの判定を確かめた。すべて期待どおり（予行の手順書の S1）。4c-6 のうち `DenyComplianceMode` の判定と、ジョブのロールが例外に当たることは、これで済んだ。
+- 2026-11-11: 予行（4-2）の手順書 [canary-rehearsal-runbook.md](s3-data-protection-2/canary-rehearsal-runbook.md) と、スクリプト `~/runbook/canary-rehearsal/rehearsal.sh`（git の管理外）を書いた。R1〜R8（有効化・既定の保持設定と戻し方・FullAccess の拒否・ジョブでの付け外し・ジョブのロールの拒否・日数の延長と短縮）。気づいたこと:
+  - FullAccess は第 1 段階から `DenyLockChange` で保持を変えられないので、カナリアの保持の付け外しは、すべてジョブのロールで行う。拒まれる形を試すジョブの入力は、レポートの置き場に置く（ロールが読めるのはそこだけ）。
+  - 日数の延長・短縮（R8）は、カナリアでは試せない（ロールは 30 日以外を拒み、ほかの主体は `DenyLockChange` で拒まれる）。片付けの済んでいない worm-probe のバケットで行う。worm-probe の片付け（5-1）は R8 の 3 日後より後になる。
+  - カナリアに既定の保持設定を入れると、`expire/` の版にも保持が付き、カナリアで失効の記録を試せなくなる（D23 の副作用。手順書の注意に書いた）。
+  - DataSync（4-6）は手順書に入れていない。
