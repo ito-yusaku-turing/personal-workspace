@@ -87,7 +87,7 @@
 
 | # | やること | 担当 | 期限・条件 |
 |---|---|---|---|
-| 5-1 | 検証用のバケット `worm-probe-767397804933` の cleanup（[worm-probe-runbook.md](worm-probe-runbook.md)）。終わったらエージェントがログを読む。11-11 の予行の切り分けと R8 で版を足したので、**2026-11-14 08:53 UTC（17:53 JST）より後**。バケットポリシーは 11-11 に外した。先に試験用のロール `worm-probe-condprobe` を消す（`~/runbook/canary-rehearsal/condprobe.sh cleanup`） | 伊藤 | 2026-11-14 17:53 JST より後 |
+| 5-1 | ~~検証用のバケット `worm-probe-767397804933` の cleanup~~ → **済み**（2026-11-11 09:16 UTC、伊藤。期限の残る版は、バケットポリシーを外した状態で迂回して消した。試験用のロール 3 本・ルール 2 本・キューも消え、エージェントが ReadOnly で確かめた） | 伊藤 | 済み |
 | 5-2 | ~~denso-raw の出どころ（だれが集めたか・権利・用途）を安本さんに確かめる~~ → 不要（2026-11-10、D27。持ち主が退職して不在で、使われた形跡も無いので、対象から外した） | 伊藤 | — |
 | 5-3 | 権限を持つ人の一覧（[notion-tuscenes-prod-privilege-holders.md](../../documents/notion-tuscenes-prod-privilege-holders.md)）を Notion に上げる | エージェント（伊藤の許可を得て） | 2-1 のあと |
 

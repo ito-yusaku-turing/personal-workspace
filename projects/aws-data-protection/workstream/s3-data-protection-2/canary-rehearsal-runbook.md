@@ -2,7 +2,7 @@
 
 - 作成: 2026-11-11 ／ 伊藤（エージェントが起草）
 - 親: [S3 バケットのデータ保護 第二弾](../s3-data-protection-2.md)。段階の正本 [worm-rollout-stages.md](worm-rollout-stages.md) の「手順 B」。アクションの 4-2 と 4c-6（[worm-action-list.md](worm-action-list.md)）
-- 状態: **完了**（2026-11-11 06:07〜08:52 UTC、伊藤）。R1〜R8 と S1 の答えが出た。R5 は 1 回目にジョブのロールの誤りで止まり、[cdk-apps#2537](https://github.com/turingmotors/cdk-apps/pull/2537) を deploy して通った。カナリアは Object Lock と既定の保持設定（30 日）が入ったまま、訓練用に残す（D23）。残り: 試験用のロール `worm-probe-condprobe` の削除、worm-probe の片付け（2026-11-14 08:53 UTC より後）
+- 状態: **完了**（2026-11-11 06:07〜08:52 UTC、伊藤）。R1〜R8 と S1 の答えが出た。R5 は 1 回目にジョブのロールの誤りで止まり、[cdk-apps#2537](https://github.com/turingmotors/cdk-apps/pull/2537) を deploy して通った。カナリアは Object Lock と既定の保持設定（30 日）が入ったまま、訓練用に残す（D23）。片付けも済み（09:16 UTC。試験用のロール `worm-probe-condprobe` と worm-probe のバケットを消した）
 - 実行する人: 伊藤（`full` プロファイル＝tuscenes-prod の SSO の FullAccess）。エージェントは、ログと ReadOnly の確認で結果を読む
 - スクリプト: `~/runbook/canary-rehearsal/rehearsal.sh`（git の管理外。前回の `~/runbook/manifest-probe/` と同じ形）。ログは `~/runbook/canary-rehearsal/log/` に手順ごとに残る
 

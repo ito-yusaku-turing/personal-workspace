@@ -1,7 +1,7 @@
 # S3 バケットのデータ保護 第二弾（権限設計のアップグレード）
 
 - 開始: 2026-10-20
-- 状態: **第 2 段階の予行（手順 B）が完了した**（2026-11-11。R1〜R8 すべて答えが出た。途中でジョブのロールの誤りを [cdk-apps#2537](https://github.com/turingmotors/cdk-apps/pull/2537) で直した）。次は手順 C の前の決めごと（4-3 解除後の保持期間・4-4 2 人目・4c-1〜4c-5）と、段階 1 の前の確かめ（backend-api の S3 クライアントの設定・DataSync（4-6））。手順書は [canary-rehearsal-runbook.md](s3-data-protection-2/canary-rehearsal-runbook.md)。段階の正本は [worm-rollout-stages.md](s3-data-protection-2/worm-rollout-stages.md)。全体のアクションは [worm-action-list.md](s3-data-protection-2/worm-action-list.md)。権限の頂点の問題は別の案件（project:privileged-access）
+- 状態: **第 2 段階の予行（手順 B）が完了し、片付けも済んだ**（2026-11-11。R1〜R8 すべて答えが出た。途中でジョブのロールの誤りを [cdk-apps#2537](https://github.com/turingmotors/cdk-apps/pull/2537) で直した）。次は手順 C の前の決めごと（4-3 解除後の保持期間・4-4 2 人目・4c-1〜4c-5）と、段階 1 の前の確かめ（backend-api の S3 クライアントの設定・DataSync（4-6））。手順書は [canary-rehearsal-runbook.md](s3-data-protection-2/canary-rehearsal-runbook.md)。段階の正本は [worm-rollout-stages.md](s3-data-protection-2/worm-rollout-stages.md)。全体のアクションは [worm-action-list.md](s3-data-protection-2/worm-action-list.md)。権限の頂点の問題は別の案件（project:privileged-access）
 - 所属: project:aws-data-protection（2026-10-26 に `~/docs/workstream/` から移した）
 - 前段（第一弾、完了）:
   - [走行データ消失リスクへの対応](done/raw-data-security.md)（バケットの種別と処遇、裁定の正本）
@@ -858,4 +858,6 @@
   - 手順 C の操作（一覧をジョブに作らせ、確認待ちで止め、30 日のホールドを付ける）は、このロールの形で通る（R5）。
   - `EVENT_HOLD_DAYS` を縮める変更は、付いた版には今の期限が過ぎるまで効かない（R8）。正式な値（4-3）は、短めから始めて延ばす方が安全。
   - **残り**: 試験用のロール `worm-probe-condprobe` の削除（伊藤）。worm-probe の片付けは 2026-11-14 17:53 JST より後（5-1）。R4 の書き込みでの期限の指定がどのアクションで拒まれたかは、トレイルで見ていない（優先度は低い）。11-11 の 1 日分のトレイルの見直し（11-12）。backend-api の S3 クライアントが `when_required` でないかの確かめ（段階 1 の前）。DataSync（4-6）。
+- 2026-11-11: **片付けを済ませた**（伊藤、09:15〜09:16 UTC）。`condprobe.sh cleanup` で試験用のロール `worm-probe-condprobe` を消した。worm-probe は、期限の残る版（14 件、最長 11-14）があったが、バケットポリシーを外していたので、迂回で消し切った（`worm-probe.sh` の cleanup に `BYPASS=1` を足した。元は `~/runbook/worm-probe/tmp/worm-probe.sh.bak-20261111`）。バケット・ルール 2 本・キュー・ロール 2 本（`worm-probe-batch`・`worm-probe-denied`）が消え、残るジョブも無いことを ReadOnly で確かめた（アクションの 5-1 は済み）。カナリア・レポートの置き場・予行のキー（`rehearsal/`）は訓練用に残す（D23）。手元の cdk-apps は `main` に戻した。
+  - **次のセッションでやること**: (1) 11-11 の 1 日分のトレイルを見て、13 本すべてで拒否が無いことを確かめる（`~/runbook/trail-scan/trail-scan.py`）。(2) backend-api の S3 クライアントが `when_required` でないか（段階 1 の前）。(3) DataSync（4-6）。(4) 手順 C の前の決めごと（4-3・4-4・4c-1〜4c-5）。共有用の資料（Notion）の 8.1 の直し（安本さんの指摘）と、予行の結果の反映もまだ。
 

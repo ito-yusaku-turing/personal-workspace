@@ -2,7 +2,7 @@
 
 - 作成: 2026-10-30
 - 親: [原本バケットの WORM 化の設計](worm-design.md) の 2.1「試して確かめること」
-- 状態: **Q1〜Q13 を実行済み（Q9 は 2026-11-05 に OK を確認）。Q13 の 2 回目も 11-05 に済み。残りは片付け（11-06 11:23 JST より後）。** 結果は末尾の「結果」の表。まとめは [worm-quickwin-plan.md](worm-quickwin-plan.md) の 10 章
+- 状態: **完了・片付け済み**（2026-11-11 09:16 UTC、伊藤）。Q1〜Q13 の結果は末尾の「結果」の表。バケットは、11-11 の予行の切り分け（condprobe）で版を足し、期限が 11-14 まで残ったので、バケットポリシーを外した状態で迂回（`BYPASS=1 bash worm-probe.sh cleanup`）して消した。ルール・キュー・ロール（`worm-probe-batch`・`worm-probe-denied`）も消えたことを、エージェントが ReadOnly で確かめた
 - 2026-10-30 時点の状態（経緯として残す）: 保留。WORM は「外せない層」の本命の候補（仮決定）。Q4（コンプライアンスで解除できるか）はドキュメントで「できる」と確かめた（[option-reassessment.md](option-reassessment.md) の 7.3）。WORM を採ると決めたときに再開する。Batch Operations の CloudTrail の記録は、別のセッション（pw-1030-pr）がカナリアで確かめ済み（option-reassessment.md の 7.4）
 - 実行する人: 伊藤（`full` プロファイル＝tuscenes-prod の SSO の FullAccess）。エージェントは ReadOnly で結果を確かめる
 - **2026-11-02 の注:** Quick Win プラン（[worm-quickwin-plan.md](worm-quickwin-plan.md)）の作業 6 として再開した。この手順書の Q1〜Q6 に Q7〜Q11 を足し、順番を Quick Win に合わせたスクリプトを `~/runbook/worm-probe/worm-probe.sh`（git の管理外）に作った。Q12（ホールドが ON のまま期限の欄が過ぎた版は消せるか）も足した。ホストの WSL の AWS CLI は 2.39.3 に上げてから実行した（2.27.46 はイベントホールドを知らない）。実行はスクリプトで行い、結果はこの手順書の「結果」の表に書く
