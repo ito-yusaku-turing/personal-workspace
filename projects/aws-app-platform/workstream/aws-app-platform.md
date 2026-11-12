@@ -1,7 +1,7 @@
 # 社内の Web アプリを AWS に置く標準の型を整える
 
 - 開始: 2026-11-12
-- 状態: **型に求める機能を決めた（必須・できれば欲しい）**（2026-11-12）。次は、JADD STUDIO の関数（RPC）が Supabase の外で動くかを調べ、cdk-apps の前例（coder など）を読む
+- 状態: **下調べを終え、構成の第一案（ECS Fargate + ALB の OIDC 認証・自前の PostgREST・Aurora Serverless v2・GitHub Actions + OIDC）を出した**（2026-11-12）。次は、第一案を伊藤と確かめ、実測すること（Next.js と ALB の認証・Aurora の clone の時間）を試す
 - 所属: project:aws-app-platform
 - 似た案件: [databricks-app-hosting/workstream/databricks-app-hosting.md](../../databricks-app-hosting/workstream/databricks-app-hosting.md)（アプリを Databricks に移せるかの検討）
 
@@ -24,15 +24,17 @@
 
 ## 型に求める機能（2026-11-12、伊藤）
 
-| 区分 | 機能 | 見立て（未検証） |
+見立ては 2026-11-12 の下調べ（[documents/aws-building-blocks.md](../documents/aws-building-blocks.md)・[documents/jadd-studio3-db-dependencies.md](../documents/jadd-studio3-db-dependencies.md)）。
+
+| 区分 | 機能 | 見立て |
 |---|---|---|
-| **必須** | GitHub で main にマージしたら自動でデプロイされる | GitHub Actions + OIDC で IAM ロールを引き受け、CDK か ECS のデプロイを流す |
-| **必須** | PostgREST | AWS には同じものが無い。PostgREST（OSS）を自前で動かす（ECS Fargate など）。利用者の JWT をどう作り、PostgREST にどう検証させるかが論点 |
-| **必須** | Postgres のストアドプロシージャ（JADD STUDIO で使っているものが動くこと） | RDS / Aurora の Postgres で関数は動く。Supabase 固有のもの（`auth.uid()`・`anon` / `authenticated` / `service_role` のロール・拡張）に頼っているものは手当てが要る |
-| 必須（標準で付いてくる） | DB の定期バックアップを 7 日分 | RDS / Aurora の自動バックアップ（保持の日数を 7 日にする）。CDK の既定は 1 日なので、型で 7 日を指定する |
-| できれば欲しい | PR ごとのプレビュー | PR ごとに一時的な環境を立て、閉じたら消す。費用と後始末の作りが論点 |
-| できれば欲しい | Supabase のブランチ機能 | Aurora の複製（clone。書き込むまでデータを共有する）で DB を分け、マイグレーションを流す形が候補。プレビューと組み合わせる |
-| できれば欲しい | Point-in-time recovery（時点への復元） | RDS / Aurora では、自動バックアップの保持の期間の中なら、任意の時点に復元できる（新しい DB として作られる）。7 日のバックアップと一緒に付いてくる見込み |
+| **必須** | GitHub で main にマージしたら自動でデプロイされる | GitHub Actions + OIDC。cdk-apps の `GithubActions-CdkDeployRole`（main からだけ）と `cdk-apps-diff-role`（PR）の作りをなぞる |
+| **必須** | PostgREST | 自前の PostgREST（第一案は v14 系）を ECS Fargate で動かす。STUDIO はサーバーから service_role の固定の鍵で呼ぶだけなので、利用者ごとの JWT は要らない。RDS Proxy は挟まない（`set_config`・`LISTEN` で接続が固定される） |
+| **必須** | Postgres のストアドプロシージャ（JADD STUDIO で使っているものが動くこと） | **ほぼそのまま動く見込み**。Supabase 固有の関数・拡張は使っていない。ロール `anon`・`authenticated`・`service_role`（`BYPASSRLS`）・`authenticator` とスキーマ `extensions` を自分で作れば足りる |
+| 必須（標準で付いてくる） | DB の定期バックアップを 7 日分 | Aurora の自動バックアップ。**CDK の既定は 1 日なので、型で 7 日を明示する** |
+| できれば欲しい | PR ごとのプレビュー | PR ごとに ECS のサービスと Aurora の clone を作り、閉じたら消す。Amplify は SSO を前段に置けないので使わない |
+| できれば欲しい | Supabase のブランチ機能 | Aurora の clone（copy-on-write、15 個まで）。作るのにかかる時間は実測する。本番のデータを PR の環境に渡してよいかは別に決める |
+| できれば欲しい | Point-in-time recovery（時点への復元） | **7 日のバックアップと一緒に付いてくる**（Aurora は 5 分以内の時点まで戻せる）。1 秒の精度が要るなら AWS Backup の継続バックアップ |
 
 ## 使えなくなる機能と代わりの候補（案。2026-11-12 に洗い出し始めた）
 
@@ -48,9 +50,9 @@ databricks-app-hosting で分かった「Vercel・Supabase で使っている機
 | Vercel: ログ・関数の監視 | 調査 | CloudWatch Logs・アラーム |
 | Vercel: CDN・独自のドメイン・証明書 | 配信 | CloudFront・Route 53・ACM |
 | Vercel: OIDC で IAM ロールを引き受ける | AWS の呼び出し | タスクロール（そのまま IAM ロールを持てる） |
-| Supabase: Postgres | DB | RDS / Aurora Serverless v2 |
-| Supabase: Auth（Google OAuth など） | 利用者のログイン | ALB の OIDC 認証で社の IdP に直接つなぐ / Cognito |
-| Supabase: PostgREST（supabase-js） | DB の読み書き | **自前で PostgREST を動かす（必須）** |
+| Supabase: Postgres | DB | Aurora PostgreSQL Serverless v2（第一案。0 ACU で止まる・clone が作れる） |
+| Supabase: Auth（Google OAuth など） | 利用者のログイン | ALB の OIDC 認証で社の IdP に直接つなぐ（第一案）。Cognito は挟まない |
+| Supabase: PostgREST（supabase-js） | DB の読み書き | **自前で PostgREST を動かす（必須）**。supabase-js は `<URL>/rest/v1/` に向けて呼ぶので、そのパスを PostgREST に渡す |
 | Supabase: RLS とログインした人の JWT | 行ごとの権限 | アプリの層で権限を確かめる / 自前の JWT で RLS を続ける |
 | Supabase: Storage | ファイル | S3 + 署名付き URL |
 | Supabase: Realtime | 変更の通知 | 求める機能に入れていない（2026-11-12）。要るアプリが出たら考える |
@@ -86,6 +88,7 @@ databricks-app-hosting の「運用の精査」の観点を、AWS の型に置�
 - **対象は新しいアプリの標準の型。いまあるアプリの移設は後回し**（2026-11-12、伊藤）。
 - **Vercel と Supabase の両方を置き換え、全部の部品を AWS に入れる**（2026-11-12、伊藤）。権限・秘密・監査を AWS の仕組みでまとめて固めるため。
 - **デプロイは CI（GitHub Actions + OIDC）から行い、席とトークンを要らなくする**（2026-11-12、伊藤）。席の問題を、人数分払うのではなく、根本からなくすため。
+- **構成の第一案**（2026-11-12、下調べから。伊藤の確認はまだ）: ECS Fargate + ALB の OIDC 認証、自前の PostgREST、Aurora PostgreSQL Serverless v2、GitHub Actions + OIDC。App Runner（2026-04-30 に新規の受付を終えた）と Amplify Hosting（SSO を前段に置けない・CI から OIDC で出せない）は採らない。理由は [documents/aws-building-blocks.md](../documents/aws-building-blocks.md)。
 - **型に求める機能を、必須・できれば欲しいに分けた**（2026-11-12、伊藤。上の「型に求める機能」）。必須は main へのマージでの自動デプロイ・PostgREST・JADD STUDIO のストアドプロシージャが動くこと・7 日分のバックアップ。できれば欲しいのは PR ごとのプレビュー・ブランチ・時点への復元。
 
 ## 進捗チェックリスト
@@ -93,9 +96,12 @@ databricks-app-hosting の「運用の精査」の観点を、AWS の型に置�
 - [x] 起票する（2026-11-12）
 - [x] 背景と目的を固める（Supabase も対象。CI で席の問題をなくす。2026-11-12）
 - [x] 型に求める機能を、必須・できれば欲しいに分ける（2026-11-12）
-- [ ] JADD STUDIO のストアドプロシージャ（RPC 25 本ほど）を洗い出し、Supabase 固有のものへの依存を調べる
-- [ ] PostgREST を自前で動かす形（置き場所・利用者の JWT の作り方と検証）を決める
-- [ ] RDS か Aurora か（ブランチを Aurora の複製で作るなら Aurora）を決める
+- [x] JADD STUDIO のストアドプロシージャを洗い出し、Supabase 固有のものへの依存を調べる（2026-11-12。[documents/jadd-studio3-db-dependencies.md](../documents/jadd-studio3-db-dependencies.md)）
+- [x] 部品（ホスティング・PostgREST・DB・バックアップ・ブランチ・プレビュー）を Web で下調べし、第一案を出す（2026-11-12。[documents/aws-building-blocks.md](../documents/aws-building-blocks.md)）
+- [x] cdk-apps の前例を読む（2026-11-12。`coder` は ECS Fargate + ALB + Aurora で、認証は Coder 自身の OIDC。`github-actions` に main からだけの deploy ロールと PR 用の diff ロールがある）
+- [ ] 第一案を伊藤と確かめる（PostgREST の版、Aurora にするか）
+- [ ] 実測する: Next.js 16 の standalone を ECS Fargate + ALB の OIDC 認証の後ろで動かす / Aurora の clone にかかる時間 / ECS Express Mode と ALB の OIDC 認証を組めるか
+- [ ] 型をどの AWS アカウントに置くか、ネットワーク（VPC・ドメイン・証明書）を決める
 - [ ] 使えなくなる機能ごとに、代わり（AWS のサービス・自前）を決める。新しいアプリに要らない機能は落とす
 - [ ] 型に求めること（上の観点の優先順位、必須と任意）を決める
 - [ ] cdk-apps の前例（coder・github-actions など）を調べる
@@ -105,14 +111,26 @@ databricks-app-hosting の「運用の精査」の観点を、AWS の型に置�
 
 ## 次セッションへの引き継ぎ
 
-- 起票し、背景と目的を固めた（2026-11-12）。範囲は「新しいアプリの標準の型」で、Vercel と Supabase の両方を AWS に置き換える。
-- 一番の論点は「Vercel・Supabase でできていた機能が使えなくなる」こと。上の表の機能ごとに、代わりを検討する。表の候補はまだ確かめていない。
-- 型に求める機能を決めた（上の「型に求める機能」）。Realtime は入れていない。
-- 次は 2 つ。
-  1. JADD STUDIO のストアドプロシージャを洗い出し、Supabase 固有のもの（`auth.uid()`・Supabase のロール・拡張）への依存を調べる。jadd_studio3 の `origin/main` で見る（手元の作業ツリーは別のブランチのことがある）。
-  2. PostgREST を自前で動かす形を考える。いちばんの論点は、利用者の JWT をだれが発行し、PostgREST がどう検証するか（ALB の OIDC 認証が付ける JWT をそのまま使えるか、アプリが署名し直すか）。
-- cdk-apps の前例（coder など）も読む。
-- cdk-apps で作業するときは、そのリポジトリの `AGENTS.md` / `CLAUDE.md` に従う。
+### 現在地（2026-11-12）
+
+- 範囲: 新しいアプリの標準の型。Vercel と Supabase の両方を AWS に置き換える（伊藤）。
+- 型に求める機能を決め（上の表）、下調べを終えた。資料は 2 つ。
+  - [documents/jadd-studio3-db-dependencies.md](../documents/jadd-studio3-db-dependencies.md): STUDIO の DB は Supabase の外でもほぼそのまま動く。要るのはロールと `extensions` スキーマを作ることだけ。PostgREST は service_role の固定の鍵でサーバーからだけ呼んでいる。
+  - [documents/aws-building-blocks.md](../documents/aws-building-blocks.md): 部品ごとの公式の情報と、構成の第一案。
+- 第一案: ECS Fargate + ALB の OIDC 認証、自前の PostgREST（v14 系）、Aurora PostgreSQL Serverless v2（保持 7 日）、GitHub Actions + OIDC。**伊藤の確認はまだ**。
+
+### 次にやること
+
+1. 第一案を伊藤と確かめる。
+2. 実測する（[documents/aws-building-blocks.md](../documents/aws-building-blocks.md) の末尾の 4 つ）。どのアカウントで試すか（e2e-dev など）を先に決める。
+3. 置き場所のアカウントとネットワークを決める。
+
+### 注意
+
+- STUDIO を移すときの話（後回し）: Databricks の Lakehouse Federation が STUDIO の DB を `supabase_jadd_studio` として読んでいる。AWS に移すなら Databricks から Aurora に届く経路が要る。
+- 本番のデータを含む clone を PR の環境に渡してよいかは、別に決める。
+- cdk-apps で作業するときは、そのリポジトリの規約に従う（cdk-apps の直下には `AGENTS.md` / `CLAUDE.md` が無い。README が入口）。
+- jadd_studio3 は `origin/main` の `3cdfb6fe`（2026-11-12）で調べた。
 
 ## 関連リンク
 
