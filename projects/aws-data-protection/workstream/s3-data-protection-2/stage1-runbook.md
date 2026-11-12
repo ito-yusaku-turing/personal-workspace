@@ -2,7 +2,7 @@
 
 - 作成: 2026-11-11 ／ 伊藤（エージェントが起草）
 - 親: [S3 バケットのデータ保護 第二弾](../s3-data-protection-2.md)。段階の正本 [worm-rollout-stages.md](worm-rollout-stages.md) の「手順 C」の段階 1（td1-rlog）と段階 2（tuscenes-calibration の旧・新）。2026-11-12 に段階を並べ直し、もとの段階 1 の 3 本が段階 1・2 になった。td1-rlog を最後まで通してから、旧・新を続けて行う。アクションの 4-7
-- 状態: **段階 2（tuscenes-calibration の旧・新）は済み。段階 1（td1-rlog）は 1 回目（`calibration/`）まで済み**（2026-11-12）。td1-rlog の 2 回目は、層の比べ（11-13〜14）のあと
+- 状態: **段階 2（tuscenes-calibration の旧・新）は済み。段階 1（td1-rlog）は 1 回目（`calibration/`）まで済み、2 回目（全体）を流すところ**（2026-11-12）。層の比べは 11-13〜14
 - 実行する人: 伊藤（`full` プロファイル＝tuscenes-prod の SSO の FullAccess）。ジョブは確認待ちで止め、エージェントがログと ReadOnly で件数と中身を確かめてから流す（2 人目の確認はやめた。D33）。エージェントは、ログと ReadOnly の確認で結果を読み、書き込みのエラーをトレイルで見る
 - スクリプト: `~/runbook/worm-stage/worm-stage.sh`（git の管理外）。段階 2・3 でも同じものを使う。ログは `~/runbook/worm-stage/log/` に、バケットと手順ごとに残る
 
@@ -50,8 +50,8 @@ CAL_NEW=tuscenes-calibration-767397804933   # 段階 2（新）
 - **書き込みが止まったら:** `bash worm-stage.sh rollback $B`。既定の保持設定を外すと、すぐ書けるようになる（予行の R3）。外していたあいだの版には、入れ直したあと hold からやり直して付ける。
 - **td1-rlog では、手順 4〜6 を 2 回に分ける（層が上がらないかの確かめ。2026-11-12 に決めた）:** ホールドを付けると Intelligent-Tiering の層が Frequent Access に戻るか（＝「アクセス」と数えられるか）が、AWS のドキュメントに書かれていない（`PutObjectRetention` は、層が上がる操作の一覧にも、上がらない操作の例にも無い）。もし上がると、9 本で約 $7.5 万の追加の費用になる（Archive Instant Access 約 2,000 TB が 90 日、Infrequent Access 約 260 TB が 30 日、高い層に居る。ほとんどが td1-raw と tuscenes-raw）。td1-rlog は 21 TB がすべて Archive Instant Access で書き込みも無いので、ここで確かめる。
   1. 1 回目: `bash worm-stage.sh hold td1-rlog calibration/` → 確かめ → `run` → `verify`。`calibration/` は 26,778 件・89.7 GB（最終の書き込みは 2025-03-19）。最悪でも追加の費用は約 $3。
-  2. 1〜2 日待つ。エージェントが CloudWatch の `BucketSizeBytes`（`IntelligentTieringAIAStorage`・`IntelligentTieringFAStorage`）を、下の元の値と比べる。**Frequent Access が約 89.7 GB 増え、Archive Instant Access が同じだけ減っていれば、層が上がった**。そのときは残りを流さず、段階 4 の td1-raw・tuscenes-raw の進め方を考え直す（AWS サポートに問い合わせる、など）。
-  3. 層が上がっていなければ、2 回目: プレフィクスなしで `hold` → `run` → `verify`（すでに付いた版にもう一度付けても、日数が同じなので何も変わらない）。
+  2. ~~1〜2 日待ってから 2 回目~~ → **2026-11-12 に変えた: 待たずに、プレフィクスなしで 2 回目を流す**（伊藤）。層が上がっても td1-rlog の追加は最大で約 $750（Archive Instant Access 21 TB）で、許せる額とした。確かめは続けられる: 上がるなら td1-rlog の Frequent Access が約 21 TB 増える（読まれた分の 11.6 GB と取り違えない）。tuscenes-calibration（旧）の 1.26 TB も、確かめの 2 本目として残る。
+  3. 11-13〜14 に、エージェントが CloudWatch の `BucketSizeBytes`（`IntelligentTieringAIAStorage`・`IntelligentTieringFAStorage`）を、下の元の値と比べる。**Frequent Access が大きく増え、Archive Instant Access が同じだけ減っていれば、層が上がった**。そのときは、段階 4 の td1-raw・tuscenes-raw の進め方を考え直す（AWS サポートの人の担当者に文書での回答を頼む、など）。
   - 元の値（11-11 の値、バイト）: Frequent Access 11,579,536,878、Archive Instant Access 21,041,754,089,562、Standard 2,181,507,551、Infrequent Access なし。
   - **注意:** 11-06 → 11-07 に、Archive Instant Access から 11,579,536,878 バイト（約 11.6 GB）が Frequent Access に上がっている（誰かが読んだとみられる。読み取りはトレイルに記録していないので、誰かは分からない）。ときどき読まれるので、増えた量が 89.7 GB と合うかで判断する。この 11.6 GB は、30 日たつ 12-06 ごろに Infrequent Access に下りるはず。
   - 1 回目の一覧の件数は、`calibration/` の 26,778 件と合うかで確かめる（2026-11-12 に ReadOnly で数えた）。

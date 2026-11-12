@@ -1,7 +1,7 @@
 # S3 バケットのデータ保護 第二弾（権限設計のアップグレード）
 
 - 開始: 2026-10-20
-- 状態: **段階 2（tuscenes-calibration の旧・新）が済み、段階 1（td1-rlog）は 1 回目まで済んで層の比べを待っている**（2026-11-12）。11-13 の午後にエージェントが CloudWatch の層ごとの容量（td1-rlog と旧の 2 本）を元の値と比べ、上がっていなければ 11-14 の値も見てから、伊藤が td1-rlog の 2 回目（4,555,379 件）を流す。あわせて、既定の保持設定のあとの書き込みのエラー（とくに新への backend-api）をトレイルで見る。denso-nx-raw は犬塚さんへの確認待ち（4c-7、[denso-nx-raw-writer-review.md](s3-data-protection-2/denso-nx-raw-writer-review.md)）。手順と結果は [stage1-runbook.md](s3-data-protection-2/stage1-runbook.md)、段階の正本は [worm-rollout-stages.md](s3-data-protection-2/worm-rollout-stages.md)。全体のアクションは [worm-action-list.md](s3-data-protection-2/worm-action-list.md)。権限の頂点の問題は別の案件（project:privileged-access）
+- 状態: **段階 2 は済み。段階 1（td1-rlog）は全体のジョブが流れている**（2026-11-12 の定時。18:54 JST ごろ終わる見込み）。11-13 は、td1-rlog の `verify` → 層の比べ（td1-rlog と旧）→ トレイルの確かめ。そのあと段階 4 の並列の段取り。denso-nx-raw は犬塚さんへの確認待ち（4c-7、[denso-nx-raw-writer-review.md](s3-data-protection-2/denso-nx-raw-writer-review.md)）。手順と結果は [stage1-runbook.md](s3-data-protection-2/stage1-runbook.md)、段階の正本は [worm-rollout-stages.md](s3-data-protection-2/worm-rollout-stages.md)。全体のアクションは [worm-action-list.md](s3-data-protection-2/worm-action-list.md)。権限の頂点の問題は別の案件（project:privileged-access）
 - 所属: project:aws-data-protection（2026-10-26 に `~/docs/workstream/` から移した）
 - 前段（第一弾、完了）:
   - [走行データ消失リスクへの対応](done/raw-data-security.md)（バケットの種別と処遇、裁定の正本）
@@ -886,8 +886,17 @@
 - 2026-11-12: **段階 2 の tuscenes-calibration の旧・新に Object Lock を入れ終えた**（伊藤が実行）。旧: enable 04:59Z、default 05:25Z、271,399 件に一度で付けた（失敗 0、`Active` 310 秒＝約 875 件/秒）。新: enable 06:13Z、default 06:15Z、`backup/` の 13 件で試してから全体の 309 件（失敗 0）。**SSE-KMS の版にも KMS の権限の追加なしで付いた**。時間の 2 点から、ジョブ 1 本の速さは約 890 件/秒、決まってかかる時間はほぼ無し（一覧づくりは 27 万件まで約 30 秒）。このままなら td1-raw 約 5 日、tuscenes-raw 約 2.7 日。旧は Archive Instant Access 1.26 TB なので、層の比べの 2 本目にした（上がっても追加は約 $45）。AWS サポートの AI に層のことを聞いたが、「上がらない」は推論で、明記したドキュメントは無いと認めた。取り出しの料金が無いことは確かめられた。`PutObjectRetention` で版が増えず `LastModified` も変わらないことは、td1-rlog で実測した。
 - 2026-11-12 のセッションの終わり。引き継ぎ:
   - **11-13 の午後（エージェント、ReadOnly）**: (1) CloudWatch の `BucketSizeBytes` の層ごとの値を、td1-rlog と tuscenes-calibration（旧）の元の値（[stage1-runbook.md](s3-data-protection-2/stage1-runbook.md) の 2 章と結果の表）と比べる。Frequent Access が td1-rlog で約 89.7 GB、旧で約 1.26 TB 増えていれば層が上がった。増えていなければ 11-14 の値も見てから決める。(2) トレイルを 11-12 04:30Z 以降について読む（scratchpad の 2 日版の trail-scan を、日付のフォルダを足して使う。もとの `~/runbook/trail-scan/trail-scan.py` は 11-11 に固定）。とくに新への backend-api の書き込み（最後は 11-09）と、3 本の `InvalidRequest`。
-  - **層が上がらなければ（伊藤）**: td1-rlog の 2 回目 `hold $B`（プレフィクスなし、4,555,379 件）→ エージェントの確かめ → `run` → `verify`。時間の 3 点目を取り、td1-raw・tuscenes-raw の見積もり（ジョブ 1 本で約 5 日・約 2.7 日）と、プレフィクスで分けて流すか（I6）を決める。
+  - **td1-rlog の 2 回目（全体）は、層の結果を待たずに 11-12 に流すことにした**（伊藤。上がっても最大 約 $750）。結果から時間の 3 点目を取り、td1-raw・tuscenes-raw の見積もり（ジョブ 1 本で約 5 日・約 2.7 日）と、プレフィクスで分けて流すか（I6）を決める。
   - **層が上がったら**: 残りを流さず、td1-raw・tuscenes-raw の進め方を考え直す。AWS サポートの人の担当者に、文書での回答を頼む。
   - **段階 3（denso-nx-raw）**: 伊藤が犬塚さんに 5 問を聞く（[denso-nx-raw-writer-review.md](s3-data-protection-2/denso-nx-raw-writer-review.md)）。DataSync の試し（[datasync-probe-runbook.md](s3-data-protection-2/datasync-probe-runbook.md)）。
   - **共有用の資料**: [notion-worm-governance-rollout.md](../documents/notion-worm-governance-rollout.md) はローカルだけ直した（30 日、2 人目なし、段階の並べ直し）。Notion へは、許可を得てから差分で反映する。今日の導入の結果もまだ書いていない。
   - 伊藤のシェルの変数: `B=td1-rlog`、`CAL_OLD`・`CAL_NEW`（手順書の 2 章）。
+- 2026-11-12 の定時。追記の引き継ぎ（上の引き継ぎより、こちらが新しい）:
+  - **td1-rlog の全体のジョブ** `d50af3e2-c6ef-4009-a53f-1adefcbdba24`（4,555,379 件、一覧はジョブの数と一致。一覧づくり 06:59:59 → 07:05:18 ごろ）。`run` 08:28Z、08:59Z で 1,626,517 件・失敗 0・約 896 件/秒。09:54Z（18:54 JST）ごろ終わる見込み。
+  - **11-13 の宿題:**
+    1. 伊藤: `bash worm-stage.sh verify $B`（td1-rlog）。エージェントが結果を手順書の結果の表に書く（時間の 3 点目: `Active` の秒と速さ）。
+    2. エージェント: 層の比べ（td1-rlog は Frequent Access が約 21 TB、旧は約 1.26 TB 増えていれば上がった）。上がっていなければ 11-14 の値も見る。
+    3. エージェント: トレイルを 11-12 04:30Z 以降について読む（2 日版の trail-scan は scratchpad にあったので作り直す。もとの `~/runbook/trail-scan/trail-scan.py` の日付のフォルダを 11/12・11/13 にする）。とくに新への backend-api の書き込みと、3 本の `InvalidRequest`。
+    4. 段階 4 の並列の段取り（[worm-rollout-stages.md](s3-data-protection-2/worm-rollout-stages.md) の段階 4 の注）: プレフィクスごとの件数の数え方（S3 Inventory か `s3 ls`）、`worm-stage.sh` の複数プレフィクス対応、AWS サポートへの問い合わせ（層の文書での回答と、速さの差）。
+    5. 伊藤: 犬塚さんへの 5 問（段階 3）。
+    6. 伊藤の許可を得て、Notion の共有用の資料に今日の決めたこと・結果を差分で反映する。
