@@ -36,6 +36,7 @@ tuscenes-prod（767397804933）の S3 原本バケットを、消失や破壊か
   - [workstream/s3-data-protection-2/datasync-probe-runbook.md](./workstream/s3-data-protection-2/datasync-probe-runbook.md): DataSync を Object Lock のバケット（カナリア）に向けて試す手順書と結果の表（2026-11-11。D1〜D4）
   - [workstream/s3-data-protection-2/stage1-runbook.md](./workstream/s3-data-protection-2/stage1-runbook.md): 第 2 段階の段階 1（tuscenes-calibration の新・旧、td1-rlog）に Object Lock を入れる手順書と結果の表（2026-11-11）
   - [workstream/s3-data-protection-2/writer-survey-1111.md](./workstream/s3-data-protection-2/writer-survey-1111.md): 対象の 9 本の書き込み元の見直し（2026-10-30〜11-11 のトレイル。書き手・SDK・チェックサムの判定）
+  - [workstream/s3-data-protection-2/denso-nx-raw-writer-review.md](./workstream/s3-data-protection-2/denso-nx-raw-writer-review.md): denso-nx-raw（段階 3）の書き込み元の精査（2026-11-12）。持ち主（犬塚さん）・DataSync のタスクの設定と Object Lock との関係・手で置いたもの・持ち主に確かめること
   - [workstream/s3-data-protection-2/worm-rollout-stages.md](./workstream/s3-data-protection-2/worm-rollout-stages.md): **導入の段階の正本**（2026-11-09）。部品を置く → Object Lock を入れる → 抜け穴を塞ぐ、の 3 段階。共有用の資料の 5.1 と、cdk-apps の各 PR の本文の元
   - [workstream/s3-data-protection-2/pr-step-a.md](./workstream/s3-data-protection-2/pr-step-a.md): cdk-apps の PR の本文（第 1 段階・手順 A）。ブランチ `feat/original-bucket-worm-step-a`
   - [workstream/s3-data-protection-2/breakglass-design-draft.md](./workstream/s3-data-protection-2/breakglass-design-draft.md): BreakGlass の設計の叩き台（内部の検討の記録。チーム向けは上の提案）（2026-10-29）

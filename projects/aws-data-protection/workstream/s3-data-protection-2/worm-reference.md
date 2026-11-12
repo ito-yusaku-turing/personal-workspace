@@ -197,7 +197,11 @@ aws s3api put-object-retention --bucket B --key K \
 
 - この件数は古い版も含むとみられる。ただし、バージョニングを入れたのは 2026-10-20 で、LiDAR の間引き（2026-08〜09）はその前なので、古い版はほとんど無い。今の版だけに絞っても、件数はほぼ減らない。
 - 既存の版にかける費用の見込み: Batch Operations の 1 件あたりの料金で約 $650、`PutObjectRetention` のリクエスト（PUT の料金、1,000 件あたり $0.005）で約 $3,250。**計 約 $3,900。** td1-raw と tuscenes-raw で 9 割を占める。
-- 未確認: `PutObjectRetention` の料金が、Intelligent-Tiering の低頻度層のオブジェクトでも PUT の料金で済むか。
+- ~~未確認: `PutObjectRetention` の料金が、Intelligent-Tiering の低頻度層のオブジェクトでも PUT の料金で済むか。~~ **済む**（2026-11-12。Intelligent-Tiering には取り出しの料金が層を問わず無い。AWS サポートの AI の答えで、ドキュメントにも書かれている）。
+- 未確認（2026-11-12）: `PutObjectRetention` が Intelligent-Tiering の「アクセス」と数えられ、層が Frequent Access に戻るか。AWS のドキュメント（[intelligent-tiering-overview](https://docs.aws.amazon.com/AmazonS3/latest/userguide/intelligent-tiering-overview.html)）の、層が上がる操作（`GetObject`・`PutObject`・`RestoreObject`・`CompleteMultipartUpload`・`CopyObject`・`UploadPartCopy`・Batch Replication）にも、上がらない操作の例（`HeadObject`・`GetObjectTagging`・`PutObjectTagging`・`ListObjects` 系など。「例であって、すべてではない」）にも無い。Object Lock と Batch Operations のページにも記述が無い。9 本にアーカイブの層（オプトイン）の設定は無い。td1-rlog で確かめる（stage1-runbook.md）。
+  - 2026-11-12 に AWS サポートへ問い合わせ、AI の窓口から「数えられない。層は戻らず、アクセスの無い日数もリセットされない。Batch Operations の `S3PutObjectRetention`・`S3PutObjectLegalHold` も同じ」と回答があった。ただし根拠は「アクセスに数える操作の一覧に無い」「タグ付けと同じくメタデータの更新だから」という推論で、ドキュメントにそう書いてあるわけではない（こちらの読みと同じ）。解除（`EventHold: OFF`）、`null` の版、最新でない版についての答えも無い。**仕様の確定とはみなさず、td1-rlog の実測で決める**。
+  - 続けて聞いたところ、AI の窓口は「明記したドキュメントは無く、推論である」と認めた。解除・`null` の版・最新でない版も、同じく推論で「変わらないはず」。CloudWatch の値は 1 日 1 回で、届くのは best-effort なので、「変化が無い」と言うには 2〜3 日みるのがよい、との答え。仕様として確かめるなら、人の担当者に文書での回答を頼む。
+  - 実測（2026-11-12、ReadOnly）: ホールドを付けた td1-rlog の `calibration/` は、版が 26,778 件のまま（新しい版も削除マーカーもできていない）、`LastModified` もいちばん新しいもので 2025-03-19 のまま。**`PutObjectRetention` では版は増えず、`LastModified` も変わらない**。
 
 ## 7. 出典
 

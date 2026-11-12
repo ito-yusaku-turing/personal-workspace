@@ -76,26 +76,33 @@
 
 | 段階 | バケット | 理由 |
 |---|---|---|
-| 1 | tuscenes-calibration（新・旧）、td1-rlog | 書き込みが止まっている。件数が少ない |
-| 2 | denso-taxi-processed、denso-taxi-video、denso-nx-raw、tuscenes-annotation | denso の 3 本は Azure から DataSync で書き込まれる。tuscenes-annotation は自動の処理（perception-detection・localization）が毎日書く |
-| 3 | td1-raw、tuscenes-raw | 対象の 9 本の版の数の 9 割を占める |
+| 1 | td1-rlog | 12 日間の書き込みが 0 件。最初の 1 本として、手順を最後まで通す（2026-11-12、伊藤） |
+| 2 | tuscenes-calibration（旧）→（新） | 旧は書き込み 0 件。新は backend-api だけ（12 日間で 13 件、チェックサムあり）で、SSE-KMS。段階 1 に続けて入れる |
+| 3 | denso-nx-raw | 書き込みは 0 件だが、DataSync のタスクが毎日動いている。書き込みのジョブを精査し、作った人（Inuzuka さん）に確かめてから入れる |
+| 4 | 残りの 5 本（denso-taxi-processed、denso-taxi-video、tuscenes-raw、tuscenes-annotation、td1-raw） | 段階 3 までが済んだら、まとめて進める。それぞれの前に要るものは下の「段ごとの前に」 |
+
+2026-11-12 に並べ直した（伊藤）。それまでは 3 段階（1: calibration の新・旧と td1-rlog、2: denso の 3 本と tuscenes-annotation、3: td1-raw と tuscenes-raw）だった。並べ直した理由: 書き込みの見直し（[writer-survey-1111.md](writer-survey-1111.md)）で、tuscenes-annotation は td1-raw に次いで書き込みが多く（12 日間で約 49 万件）、tuscenes-raw は書き込みが 0 件と分かり、旧の段階 2・3 の分け方が実際の重さと合わなかった。重さには、既定の保持設定で書き込みを止めるおそれ（書き込みの多さ）と、ジョブの費用と時間（版の数）の 2 つの軸がある。
 
 各バケットでの作業:
 
 1. Object Lock を有効にし、既定の保持設定（ガバナンスモード、イベントホールド、解除後の保持期間 30 日）を CLI で入れる。**有効にする操作は戻せない。**
 2. 1 日ほど、書き込み元のエラーを見る。
-3. S3 Batch Operations のジョブで、最新の版にイベントホールドを付ける。対象の一覧はジョブに作らせ、確認待ちで止めて、件数と中身を 2 人で確かめてから流す。
+3. S3 Batch Operations のジョブで、最新の版にイベントホールドを付ける。対象の一覧はジョブに作らせ、確認待ちで止めて、エージェントが件数と中身（プレフィクス・操作）を確かめてから流す（2026-11-12 に 2 人目の確認をやめた。D33）。
 4. 付いた件数を確かめる。
 
 段ごとの前に決める・確かめること（2026-11-10 に分かったもの）:
 
-- 段階 1: tuscenes-calibration（新）は、JADD STUDIO の確定版のリリース（backend-api の Lambda、boto3 1.42、条件付き書き込み `IfNoneMatch`）が書く。予行で、Object Lock のバケットでもこの書き方が通るか確かめる。
-- 段階 2: tuscenes-annotation には、人手のラベルのほかに自動の処理の出力が毎日書かれる。既定の保持設定はバケット全体に効くので、自動の出力にも保持を付けるかを先に決める（アクション 4c-1）。
-- 段階 3: td1-raw の LiDAR の間引きの残りと `LidarDeleter` の扱いを先に決める（アクション 4c-2）。
+- 段階 2: tuscenes-calibration（新）は、JADD STUDIO の確定版のリリース（backend-api の Lambda、boto3 1.42、条件付き書き込み `IfNoneMatch`）が書く。予行で、Object Lock のバケットでもこの書き方が通るか確かめる（予行の R2 で確かめた）。
+- 段階 3: denso-nx-raw の DataSync のタスク（`azure-mlops1-dcorp-inbound-daily`）の設定と、ほかの書き手の有無を精査し、作った人に確かめる。DataSync の試し（[datasync-probe-runbook.md](datasync-probe-runbook.md)）もこの前に済ませる。
+- 段階 4: denso-taxi の 2 本は、DataSync のスケジュールが止まっている（再開する前に、段階 3 の結果を当てはめる）。tuscenes-annotation には、人手のラベルのほかに自動の処理の出力が毎日書かれる。既定の保持設定はバケット全体に効くので、自動の出力にも保持を付けるかを先に決める（アクション 4c-1）。
+- 段階 4: tuscenes-annotation には TeamE2E の人が手で書くので、チェックサムを付けない道具（s5cmd など）を使わないよう、先にチームに知らせる。
+- 段階 4: td1-raw の LiDAR の間引きの残りと `LidarDeleter` の扱いを先に決める（アクション 4c-2）。アップロード用の PC の古い CLI の設定（`when_required` にしていないか）も確かめる。
+- 段階 4: td1-raw・tuscenes-raw は版の数が多い（計約 5.9 億、費用の 9 割）。ジョブはプレフィクスで小さく流してから全体を流す（I6）。
+- 段階 1 で、ホールドを付けると Intelligent-Tiering の層が上がるかを確かめる（ドキュメントに記述が無い。上がると 9 本で約 $7.5 万の追加の費用）。td1-rlog の `calibration/` だけに先に付け、CloudWatch の層ごとの容量を見てから残りを流す（[stage1-runbook.md](stage1-runbook.md) の手順 2 の下の注）。上がったら、段階 4 の td1-raw・tuscenes-raw の前に進め方を考え直す。
 
-`tuscenes-calibration-767397804933` だけは SSE-KMS（AWS 管理のキー `aws/s3`）で暗号化されている。カナリアでは確かめられないので、段階 1 で、このバケットは少ない件数で先に流す。
+`tuscenes-calibration-767397804933` だけは SSE-KMS（AWS 管理のキー `aws/s3`）で暗号化されている。カナリアでは確かめられないので、段階 2 で、このバケットは少ない件数で先に流す。
 
-- **誰が:** 伊藤（FullAccess）。ジョブの設定は、伊藤ともう 1 人で確かめる。
+- **誰が:** 伊藤（FullAccess）。ジョブの件数と中身は、確認待ちのあいだにエージェントが確かめる。
 - **終わった条件:** 段階ごとに数日、書き込みのエラーが無い。9 本の最新の版に、イベントホールドが付いている。
 
 ## 第 3 段階: 抜け穴を塞ぐ（通知・手順 D）
