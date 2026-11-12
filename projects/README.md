@@ -20,6 +20,7 @@
 - [information-resource-inventory/workstream/vercel-accounts.md](./information-resource-inventory/workstream/vercel-accounts.md): Vercel。席を全員分払う方針（月 $750〜810 の見積もり）。次は経理に予算を相談する
 - [information-resource-inventory/workstream/supabase-db-access.md](./information-resource-inventory/workstream/supabase-db-access.md): Supabase の DB への直接の接続経路。起票した（vercel-accounts からの派生）
 - [databricks-app-hosting/workstream/databricks-app-hosting.md](./databricks-app-hosting/workstream/databricks-app-hosting.md): アプリを Databricks に移せるかの検討（社内専用・オレゴン）。次は最小版の STUDIO を置いたときの運用の精査
+- [aws-app-platform/workstream/aws-app-platform.md](./aws-app-platform/workstream/aws-app-platform.md): 新しい社内の Web アプリを AWS に置く標準の型（CDK・SSO・CI/CD）。databricks-app-hosting の類似案件
 
 ## 待ち・保留
 
@@ -30,6 +31,7 @@
 
 ## 案件
 
+- [aws-app-platform/](./aws-app-platform/README.md): 社内の Web アプリを AWS に置く標準の型（CDK・SSO・CI/CD）
 - [aws-data-protection/](./aws-data-protection/README.md): S3 原本バケットの保護
 - [databricks-app-hosting/](./databricks-app-hosting/README.md): 社内の Web アプリを Databricks（Apps・Lakebase）に移せるかの検討
 - [gaming-data-collection/](./gaming-data-collection/README.md): BeamNG の MOD と資料

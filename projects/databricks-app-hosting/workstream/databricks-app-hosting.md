@@ -161,4 +161,5 @@
 - [information-resource-inventory/workstream/vercel-accounts.md](../../information-resource-inventory/workstream/vercel-accounts.md): 派生元。Vercel の席の要件・トークンが漏れたときの影響・席の数と費用の試算
 - [information-resource-inventory/workstream/supabase-db-access.md](../../information-resource-inventory/workstream/supabase-db-access.md): Supabase の DB への直接の接続経路
 - [project:idp-broker](../../idp-broker/README.md): 社内アプリの認証の入口（IdP）の選定。Databricks の SSO を入口にする場合は関係する
+- [aws-app-platform/workstream/aws-app-platform.md](../../aws-app-platform/workstream/aws-app-platform.md): 類似案件。新しい社内の Web アプリを AWS に置く標準の型（2026-11-12 に起票）
 - リポジトリ: `/usr/app/jadd_studio3`・`/usr/app/fleet-ops`
