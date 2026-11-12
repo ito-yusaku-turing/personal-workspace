@@ -6,4 +6,4 @@
 
 ## workstream/ — 進行中の作業記録
 
-- [workstream/aws-app-platform.md](./workstream/aws-app-platform.md): **社内の Web アプリを AWS に置く標準の型を整える**。背景と目的、使えなくなる機能と代わりの候補、検討の観点、社内の前例
+- [workstream/aws-app-platform.md](./workstream/aws-app-platform.md): **社内の Web アプリを AWS に置く標準の型を整える**。背景と目的、型に求める機能（必須・できれば欲しい）、使えなくなる機能と代わりの候補、検討の観点、社内の前例
