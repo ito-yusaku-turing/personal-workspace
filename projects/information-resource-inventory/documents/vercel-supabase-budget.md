@@ -208,6 +208,11 @@ Viewer に移せそうな 6 名を移せれば、席は 26 で $120 減る（本
 ## 確かめること
 
 - [ ] **Supabase の転送の出どころと過去の水準**: Usage の Egress を開き、プロジェクトごと・日ごとの量を見る。あわせて Billing → Invoices で直近 3 か月の請求額を見て、転送が毎月この水準か、今月だけ多いのかを確かめる。上振れの上限は、これで決め直す。
+  - 2026-11-13 に分かったこと: **出どころは backend-prod**（`lvngtemehmcxemnurgwb`）。先月（10 月のサイクル）の転送の料金は backend-prod が $2,457、jadd-studio-prod が $228（伊藤がダッシュボードで確認）。
+  - 原因の候補は、Databricks の `open_loop_scenario_evaluation_loader`。10 分ごとに `supabase_backend_prod.public.scenario_run` を外部のカタログ経由で全件読んでいた。山本さん（yamashush）がすでに 2 回手を打っている。
+    - [mono-e2e#6345](https://github.com/turingmotors/mono-e2e/pull/6345)（10-15 merge）: scenario_run の読み込みを 1 回にまとめた。PR の本文によると、それでも約 280 GB/日（約 $750/月）が残っていた。
+    - [mono-e2e#6430](https://github.com/turingmotors/mono-e2e/pull/6430)（10-19 merge）: scenario_run を Delta の mirror に差分で同期するようにした。見込みは「1 日数 GB」で、1 日 1 回の全件の洗い替えが約 1.6 GB。prod で mirror を読めるかは、PR の時点では確かめていない。
+  - ところが、いまのサイクル（11-02 ごろから）でも、組織の全体で約 425 GB/日（4,678 GB ÷ 11 日）が出ている。#6430 が prod で効いていないか、ほかに読んでいるもの（10 分ごとの `jadd_studio_leaderboard_metadata_cache` が読む model・experiment、backend-api など）がある。**backend-prod の日ごとの転送を 10-15・10-19 の前後で見て確かめる**。
 - [ ] Supabase の Branching のブランチが、どのプロジェクトで何のために動いているか。
 - [ ] Vercel の請求書（毎月 17 日のサイクル）と、上の請求の API からの集計が合うか。
 - [ ] 2026-11-13 に、伊藤のトークンでチームの API を叩くと 403 が返った（`"saml": true`・`"enforced": false`。SAML で入り直すよう求められた）。**チームに SAML SSO が設定されたなら、add-on の $300/月がかかっている**おそれがある。11-08 までの請求には SAML の行は無かった。
