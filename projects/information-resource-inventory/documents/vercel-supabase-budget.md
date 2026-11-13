@@ -89,13 +89,41 @@
 | Image Optimization | 回 | 0 | 0 | 4〜5 | — | 0 | （同上） | 変換 $0.0661/千 |
 
 - 単価は、Vercel の関数が動くリージョン（東京）の値。Fast Origin Transfer は東京が $0.27/GB で、iad1（$0.06/GB）の 4.5 倍。
-- **Build CPU Minutes は、Git 連携に移すと増える**（[vercel-accounts.md](../workstream/vercel-accounts.md) の見立てでは、月 1.3 万〜3.3 万 CPU 分の増加）。ビルドの計算機は Turbo（30 vCPU）。
+- **Build CPU Minutes は、Git 連携に移すと増える**（[vercel-accounts.md](../workstream/vercel-accounts.md) の見立てでは、月 1.3 万〜3.3 万 CPU 分の増加）。jadd-studio3 のビルドの計算機は Turbo（30 vCPU）。下の「インスタンスの大きさの設定と、その分の料金」。
 - **Function Storage と Deployment Storage は 10-23 から課金が始まった**。デプロイを重ねるほど増える（jadd-studio3 は 30 日で 223 回）。古いデプロイを消す設定が無ければ、増え続けるおそれがある。
 - Drains Volume は 10-01 から出ている（jadd-studio3 のログの転送）。11 月は 10 月の 2.3 倍のペース。
 - Observability Events は Observability Plus の課金。プロジェクトごとに外せる。
 - CDN Requests の含まれる量: 料金のページは「10M / month included」、Pro プランのページは Flat Rate CDN の最小の段階を「1 million CDN requests and 1 TB」と書いている。いまの 233 万回は、1M なら超える。それでも請求は $0 なので、10M が正しいと見られる（推測）。
 - Pro の使用量のクレジット $20 は、上の課金される項目のすべてに、最初の 1 単位から効く。月をまたいで繰り越さない。
 - Spend Management（On-Demand Budget）: 新しいチームの既定は $200。上限に達しても止まらないが、「Pause Production Deployments」をオンにすると本番が止まる（503）。`turing-inc` の設定は確かめていない。
+
+### インスタンスの大きさの設定と、その分の料金
+
+Vercel で大きさを選べるのは、ビルドの計算機（Build Machine）と関数の大きさ（Function CPU / Memory）の 2 つ。設定は 11-06 に取ったプロジェクトの一覧（`resourceConfig`）、料金は請求の API の 8〜10 月の平均（クレジット前）。
+
+ビルドの計算機（料金は「ビルドの時間 × vCPU の数」）:
+
+| プロジェクト | 設定 | Build CPU Minutes | 月額 |
+|---|---|---|---|
+| jadd-studio3 | **Turbo**（30 vCPU） | 5,480 CPU 分 | **$15.74**（8 月 $15.38・9 月 $11.48・10 月 $20.35） |
+| road-curvature-map | Turbo | 0（この期間はビルドしていない） | $0 |
+| ほか 10 件 | 既定 | 約 1,930 CPU 分 | 約 $4.3（大半は biz-fleet-ops の $2.36） |
+| **合計** | | 7,411 CPU 分 | **$20.07** |
+
+- 公式の単価は 1 vCPU 分 $0.0035（Standard 4 vCPU $0.014/分・Enhanced 8 vCPU $0.028/分・Turbo 30 vCPU $0.105/分）。実績は 1 CPU 分 $0.0025〜0.0030 で、公式より少し安い（理由は確かめていない）。
+- jadd-studio3 は、組み上げを GitHub Actions で済ませて上げているだけ（prebuilt）なのに、1 回約 30 CPU 分（Turbo で約 1 分）かかっている。Standard に下げれば月 $10 以上減りそう（推測）。
+- Git 連携に移すと組み上げも Vercel の上で走るので、Turbo のままだと月 +$40〜100（計画に含めた）。Standard に下げれば、ビルドは遅くなるが増分は小さくなる（推測）。
+
+関数の大きさ:
+
+| プロジェクト | 設定 | Fluid Provisioned Memory |
+|---|---|---|
+| jadd-studio3 | **Performance**（既定の Standard より大きい） | **$18.11**（全体の 87%） |
+| ほか | 既定 | 約 $2.9 |
+
+- メモリは「割り当てた GB × 時間」で課金されるので、Performance の分だけ増える。Standard に下げたときの減り方は、割り当ての比を公式の値で確かめていないので出していない。下げると遅くなる・メモリが足りなくなるおそれがある。
+- Fluid Active CPU（jadd-studio3 で $11.49）は実際に使った CPU 時間で課金され、設定の大きさでは直接は増えない。
+- どちらの設定を下げるかは、jadd_studio3 の担当と相談して決める（まだ決めていない）。見積もりは、いまの設定のままで計算した。
 
 **いまの構成での月額**（10/17 からの 19 席・使用量は 3 か月の平均）: 基本 $20 ＋ 追加の席 18 × $20 ＝ $380、使用量 $93.83 − $20 ＝ $73.83 で、**約 $455**。
 
