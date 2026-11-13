@@ -60,7 +60,7 @@
 | 4-3 | 解除後の保持期間の正式な値を決める（共有用の資料の 6.2）。**済み**: 2026-11-12、30 日で固定（チームで合意済み。D32） | チーム | 手順 C の前 |
 | 4-4 | ~~ジョブの設定を確かめる 2 人目を決める（共有用の資料の 6.2）~~。**取り下げ**: 2026-11-12、2 人目の確認をやめ、確認待ちのあいだにエージェントが件数と中身を確かめる形にした（D33） | チーム | 手順 C の前 |
 | 4-5 | 通知の受け手を決める（共有用の資料の 6.2） | チーム | 4-9 の前（メールの宛先が要る） |
-| 4-6 | 段階 2 の前の確かめ: DataSync を予行用のバケットに向けて試す、Databricks の volume の場所 。tuscenes-annotation の書き込み元（perception-detection・localization のロール）がチェックサムを付けているか  → 2026-11-11: 9 本の書き込み元をトレイルの 12 日分で見直した（[writer-survey-1111.md](writer-survey-1111.md)。`when_required` の書き手は無し）。backend-api は記号とコードで確かめた。DataSync の手順書を書いた（[datasync-probe-runbook.md](datasync-probe-runbook.md)、未実施） | 伊藤とエージェント | 段階 2 の前 |
+| 4-6 | 段階 2 の前の確かめ: DataSync を予行用のバケットに向けて試す、Databricks の volume の場所 。tuscenes-annotation の書き込み元（perception-detection・localization のロール）がチェックサムを付けているか  → 2026-11-11: 9 本の書き込み元をトレイルの 12 日分で見直した（[writer-survey-1111.md](writer-survey-1111.md)。`when_required` の書き手は無し）。backend-api は記号とコードで確かめた。DataSync の手順書を書いた（[datasync-probe-runbook.md](datasync-probe-runbook.md)）。→ 2026-11-13: S3 に記録されたチェックサムから DataSync が SHA256 を付けて書くと分かったので、試しは行わない（伊藤） | 伊藤とエージェント | 段階 2 の前 |
 | 4-7 | 手順 C（段階 1〜4 の順に各バケットへ導入。2026-11-12 に並べ直した: 1 td1-rlog、2 tuscenes-calibration の旧・新、3 denso-nx-raw、4 残りの 5 本）。**11-12: 段階 2 は済み、段階 1 は 1 回目まで** | 伊藤 | 4-2・4-3 のあと |
 | 4-9 | 通知の PR（ルール A・B・C。ルール B に `CreateJob`・`UpdateJobStatus` を足す（I5））。レポートの置き場を、書き込み系のデータイベントのトレイル（`TRAIL_TARGET_BUCKETS`）に足す（[cdk-apps#2500](https://github.com/turingmotors/cdk-apps/pull/2500) のレビュー）。original-bucket-audit のテストを CI で走らせる workflow も、このあたりの PR で足す（同）。前に、EventBridge の有効化が CDK の定義とぶつからないか・どの CloudTrail の証跡に頼っているかを確かめる | エージェントが起草、伊藤が PR を作る | 4-5 のあと、4-8 の前 |
 | 4-8 | 手順 D の PR（FullAccess を例外から外す（`DenyLockChange` は 11-10 に 4-1 へ前倒し、D31）・ジョブのロールを渡す操作と変更の禁止・deploy の経路を守る SCP の 4 文（X1〜X3・X5）） | エージェントが起草、伊藤が PR を作る | 4-7 と 2-3・3-5 のあと |
@@ -82,7 +82,7 @@
 | 4c-4 | GitHub 側の 3 点（承認のあとの push で承認が外れない、PR を経ない Integration の例外、`packages/original-bucket-guard` の CODEOWNERS）を直すか決める | 伊藤 | 4c-3 と一緒に |
 | 4c-5 | ジョブのロールを渡す操作の禁止（SCP）も前倒しするかを決める。前倒ししないと、第 3 段階まではジョブを作れる主体がこのロールで解除のジョブを作れる（共有用の資料の Q2） | 伊藤 | 4-7 の前 |
 | 4c-6 | 予行（4-2）で足した確かめ（手順書の R2・R4・R6・R8・S1。S1 の `DenyComplianceMode` の判定と、ジョブのロールが例外に当たることは 11-11 にシミュレーターで済み）: 30 日以外の日数・固定の期限が拒まれること、ジョブのロールが `DenyLockChange` の例外に当たること、`DenyComplianceMode` の判定（シミュレーター）、ホールド中の日数の延長・短縮の振る舞い。tuscenes-calibration（新）の書き手（backend-api の条件付き書き込み `IfNoneMatch`）が Object Lock のバケットで通ること | 伊藤とエージェント | 4-2 のとき |
-| 4c-7 | denso-nx-raw（段階 3）の前の確かめ: 書き込みのジョブ（DataSync のタスク `azure-mlops1-dcorp-inbound-daily` の設定・スケジュール・ほかの書き手）を精査し、作った人（Inuzuka さん）に確かめる。11-12: 精査は済み（[denso-nx-raw-writer-review.md](denso-nx-raw-writer-review.md)）。書き手は DataSync だけ（10-14 以降は転送 0 件）。犬塚さんへの確認が残り | エージェントが精査、伊藤が確かめる | 段階 3 の前 |
+| 4c-7 | denso-nx-raw（段階 3）の前の確かめ: 書き込みのジョブ（DataSync のタスク `azure-mlops1-dcorp-inbound-daily` の設定・スケジュール・ほかの書き手）を精査し、作った人（Inuzuka さん）に確かめる。11-12: 精査は済み（[denso-nx-raw-writer-review.md](denso-nx-raw-writer-review.md)）。書き手は DataSync だけ（10-14 以降は転送 0 件）。11-13: 犬塚さんの答えは「予定は無いが再開の可能性はある」。転送元の Azure は意図して空にしてある（[mono-turing-infra#772](https://github.com/turingmotors/mono-turing-infra/pull/772)）。DataSync の心配はないと判断した → **済み** | エージェントが精査、伊藤が確かめる | 段階 3 の前 |
 
 ### 5. そのほか
 

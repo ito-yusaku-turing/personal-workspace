@@ -17,7 +17,7 @@ personal-workspace は、**特定のプロジェクトに依存しない個人�
 personal-workspace/
 ├── bin/         # 一覧のコマンド（now.sh・list-workstream.sh）。下記「取り組み中の一覧」
 ├── docker/      # devbox（エージェント用の作業環境）。説明は docs/development-environment.md
-├── docs/        # 開発環境・GitHub 認証・個人プリファレンス・Git 運用の文書
+├── docs/        # 開発環境・GitHub 認証・個人プリファレンス・Git 運用の文書と、外部資料の目録（external-sources.md）
 ├── projects/    # 案件ごとの資料置き場（下記「projects/（案件ごとの資料）」）
 │   ├── README.md                 # projects/ 全体の目録と、取り組み中の workstream の並び
 │   ├── aws-data-protection/      # project:aws-data-protection。S3 原本バケットの保護
@@ -140,6 +140,7 @@ devbox は、`docker/config/repos.conf` に登録したリポジトリを **`/us
 | `jadd_studio3` | `/usr/app/jadd_studio3` | JADD STUDIO 3（走行実験データの評価・可視化。Next.js）。チーム開発 |
 | `jadd_studio3-alpha` | `/usr/app/jadd_studio3-alpha` | jadd_studio3 の並行開発用クローン（レビュー用にも使う） |
 | `jadd-studio-signage` | `/usr/app/jadd-studio-signage` | JADD STUDIO の展示用サイネージ |
+| `digital-signage` | `/usr/app/digital-signage` | 展示用のサイネージ（Next.js） |
 | `video-streaming-encoder` | `/usr/app/video-streaming-encoder` | 映像配信用のエンコーダ |
 | `drivers-app3` | `/usr/app/drivers-app3` | ドライバーズアプリ（Next.js + Prisma） |
 | `drivers-app-mono` | `/usr/app/drivers-app-mono` | ドライバーズアプリのモノレポ |
@@ -148,10 +149,13 @@ devbox は、`docker/config/repos.conf` に登録したリポジトリを **`/us
 | `mono-e2e` | `/usr/app/mono-e2e` | E2E 自動運転チームの ML モノレポ（backend-api と db-models の正本） |
 | `jadd-cli` | `/usr/app/jadd-cli` | JADD の CLI ツール（mono-e2e の `packages/jadd-cli` が正本） |
 | `cdk-apps` | `/usr/app/cdk-apps` | AWS CDK のモノレポ |
+| `mono-turing-infra` | `/usr/app/mono-turing-infra` | GCP・AWS・Azure のインフラ（Terragrunt）。GPU クラスタ、DENSO のデータの受け口（Azure）など |
 | `identity` | `/usr/app/identity` | ID 基盤（Okta ほか）の Terraform |
 | `databricks-jobs` | `/usr/app/databricks-jobs` | Databricks 上で動くジョブのコード |
 | `product-map` | `/usr/app/product-map` | 社内プロダクトの地図（資料と観測データ） |
 | `gaming-data-collection` | `/usr/app/gaming-data-collection` | ゲームを使ったデータ収集 |
+
+ほかのリポジトリ・Notion・公式の文書の、どこに何が書いてあるかは [`docs/external-sources.md`](docs/external-sources.md)（外部資料の目録）に並べる。調べもので外部の資料が役に立ったら、そこに 1 行足す。
 
 ## 既定の自律範囲（personal-workspace）
 

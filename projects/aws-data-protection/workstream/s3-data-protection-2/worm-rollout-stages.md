@@ -85,15 +85,28 @@
 
 各バケットでの作業:
 
-1. Object Lock を有効にし、既定の保持設定（ガバナンスモード、イベントホールド、解除後の保持期間 30 日）を CLI で入れる。**有効にする操作は戻せない。**
+1. Object Lock を有効にし、既定の保持設定（ガバナンスモード、イベントホールド、解除後の保持期間 15 日。2026-11-13 に 30 日から変えた。D34）を CLI で入れる。**有効にする操作は戻せない。**
 2. 1 日ほど、書き込み元のエラーを見る。
-3. S3 Batch Operations のジョブで、最新の版にイベントホールドを付ける。対象の一覧はジョブに作らせ、確認待ちで止めて、エージェントが件数と中身（プレフィクス・操作）を確かめてから流す（2026-11-12 に 2 人目の確認をやめた。D33）。
-4. 付いた件数を確かめる。
+3. S3 Batch Operations のジョブで、最新の版にイベントホールドを付ける。対象の一覧はジョブに作らせ、確認待ちで止めて、件数と中身（プレフィクス・操作）を確かめてから流す（2026-11-12 に 2 人目の確認をやめた。D33）。2026-11-13 から、この確かめはスクリプト（`worm-stage.sh apply`）が行い、通れば人を待たずに流す。件数の範囲（`EXPECT`）は、エージェントが ReadOnly で見積もって渡す。バケットごとに 1 本で、バケットどうしは並列に流す。
+4. 付いた件数を確かめる（`apply` が最後に verify まで行う。エージェントが出力とトレイルを読む）。
+
+**段階 3・4 の結果（2026-11-13、伊藤が実行）:** 段階 4 は、Intelligent-Tiering の層が上がらない前提で、書き込みの無い 3 本を段階 3 と同じ日に入れた（`default` のあとの 1 日の様子見は、書き込みが無いので省いた）。バケット名の打ち込みは、承認済みの一覧（`worm-stage.sh` の `APPROVED`）で省いた。
+
+| バケット | enable・default（15 日） | すでにある版のホールド |
+|---|---|---|
+| denso-nx-raw | 07:54:39Z・07:54:47Z | `apply`（ジョブ `b159f91a-cd0f-47bb-b46c-913fae555ee5`）。187,833 件、失敗 0、08:05Z に済み。見本 20 件とも `GOVERNANCE ON 15` |
+| denso-taxi-processed | 07:54:54Z・07:55:03Z | `DETACH=1` の `apply`（ジョブ `71c8149c-0b12-4a90-b03f-446347658f22`、08:17Z）。一覧づくりの途中。`EXPECT=10137617:11376659` |
+| denso-taxi-video | 07:55:11Z・07:55:20Z | 同（ジョブ `cf1c9692-f0ed-48ff-b4aa-2939c1c58829`）。`EXPECT=17725105:19891507` |
+| tuscenes-raw | 07:55:26Z・07:55:35Z | 同（ジョブ `186e879f-1391-420e-ae3f-676d18bd57c1`）。`EXPECT=184972196:207579909` |
+
+`EXPECT` は、CloudWatch の `NumberOfObjects`（11-12、全版）を上限に、その 90% を下限にした（バージョニングは 10-20 からで古い版は少ない。denso-taxi は 6% を数えて推した値も CloudWatch に近かった）。denso-taxi-video・tuscenes-raw のポリシーの `Sid` の無い文は、ほかのアカウントに読むことだけを許す文（ReadOnly で確かめた）。
+
+**td1-raw は、e2e-dev で先に試す（2026-11-13、アップロード用の PC を管理する徳弘さんと合意）。** e2e-dev の `td1-raw-471112873671` に、バージョニング（それまで入っていなかった）・Object Lock・既定の保持設定（ガバナンス・イベントホールド・**1 日**）を入れた（伊藤、e2e-dev の Full。e2e-dev には守りの 5 文も ReadOnly のプロファイルも無い）。ここに本番の 6 つの CLI の版（2.15.58・2.16.9・2.23.7・2.25.8・2.38.5・2.40.1。11-11〜13 のトレイルで数えた）で書いてもらい、チェックサムが必須の状態で書けるかを確かめる。本命は 2.15・2.16（2 日で約 8,300 件。チェックサムが既定になる前の版）。e2e-dev のこのバケットには、別アカウント（582491218614）の `jetson-aws-access-role` も `PutObject` できる（ポリシーの `AllowOtaJetsonRead`）ので、既定の保持設定を入れているあいだは、その書き込みが拒まれうる。本番の td1-raw は、この結果と 4c-2（LiDAR にもホールドを付けるか）を見てから入れる。
 
 段ごとの前に決める・確かめること（2026-11-10 に分かったもの）:
 
 - 段階 2: tuscenes-calibration（新）は、JADD STUDIO の確定版のリリース（backend-api の Lambda、boto3 1.42、条件付き書き込み `IfNoneMatch`）が書く。予行で、Object Lock のバケットでもこの書き方が通るか確かめる（予行の R2 で確かめた）。
-- 段階 3: denso-nx-raw の DataSync のタスク（`azure-mlops1-dcorp-inbound-daily`）の設定と、ほかの書き手の有無を精査し、作った人に確かめる。DataSync の試し（[datasync-probe-runbook.md](datasync-probe-runbook.md)）もこの前に済ませる。
+- 段階 3: denso-nx-raw の DataSync のタスク（`azure-mlops1-dcorp-inbound-daily`）の設定と、ほかの書き手の有無を精査し、作った人に確かめる。→ **済み（2026-11-13）**。DataSync は書き込みにチェックサム（SHA256）を付けていると S3 の記録から分かったので、**DataSync の試し（[datasync-probe-runbook.md](datasync-probe-runbook.md)）は行わない**（伊藤の判断）。denso-taxi の 2 本も同じ（[denso-nx-raw-writer-review.md](denso-nx-raw-writer-review.md)）。
 - 段階 4: denso-taxi の 2 本は、DataSync のスケジュールが止まっている（再開する前に、段階 3 の結果を当てはめる）。tuscenes-annotation には、人手のラベルのほかに自動の処理の出力が毎日書かれる。既定の保持設定はバケット全体に効くので、自動の出力にも保持を付けるかを先に決める（アクション 4c-1）。
 - 段階 4: tuscenes-annotation には TeamE2E の人が手で書くので、チェックサムを付けない道具（s5cmd など）を使わないよう、先にチームに知らせる。
 - 段階 4: td1-raw の LiDAR の間引きの残りと `LidarDeleter` の扱いを先に決める（アクション 4c-2）。アップロード用の PC の古い CLI の設定（`when_required` にしていないか）も確かめる。
@@ -101,6 +114,8 @@
   - **時間（2026-11-12 に測った）:** ジョブ 1 本は件数によらず約 890 件/秒（2.7 万・27 万・455 万件で同じ）。一覧づくりは 455 万件で約 5 分 20 秒（約 1.4 万件/秒）。1 本で流すと tuscenes-raw 約 2.9 日、td1-raw 約 5.3 日。
   - **並列にする:** 同時に動かせるジョブはアカウントあたり 6 本（[batch-ops](https://docs.aws.amazon.com/AmazonS3/latest/userguide/batch-ops.html)）。優先度は速さを変えない。AWS のブログでは 1 本で 10 億件を Active 約 24 時間（約 11,600 件/秒）で流した例があり、890 件/秒は 1 本の上限ではないかもしれない。re:Post では「速さはプレフィクスの分け方による」との答え。td1-rlog の 890 件/秒はプレフィクスあたりの PUT 3,500 件/秒より低く、失敗も 0 件なので、S3 の側の上限ではなく、ジョブ 1 本が送る量で決まっているとみる（推論）。
   - **段階 4 の最初に測る:** 重ならないプレフィクス（td1-raw は `collect/`・`control/`・`core/`・`journal/`・`swaglog/`・`troubleshooting/`、その下は車両。tuscenes-raw は `1.0/`・`2.0/`・`2.1/`・`2.2/`・`unit_test/`）で 2〜3 本を同時に流し、合計の速さを見る。伸びるなら 6 本まで増やす（6 本で約 5,300 件/秒なら、2 本の計約 6 億件が約 1.3 日）。分けるには、プレフィクスごとの件数が要る（S3 Inventory を伊藤が設定するか、`s3 ls` で数える。td1-raw は数時間かかる）。`worm-stage.sh hold` はプレフィクスを 1 つしか取らないので、複数を取るように直すか、1 本ずつ作る。AWS サポートの人の担当者に、速さの差の理由も聞く。
+  - **2026-11-13 の判断（伊藤）: 1 つのバケットの中では分けず、バケットごとに 1 本で並列に流す。** 過去のデータなので急がない（td1-raw の約 5.3 日を受け入れる）。分けて手順を複雑にする価値は無い。上の「段階 4 の最初に測る」（プレフィクスで分けて速さを見る）は行わない。流し方は `worm-stage.sh apply`（起動 1 回で hold → 確かめ → run → verify。11-13 に足した）。
+  - **同時に 6 本を超えたときの扱い（2026-11-13 に AWS サポートの AI bot に聞いた）:** 上限は「Active の 6 本」で、`Preparing`・`Suspended`・`Ready` は数えない。7 本目は `Ready` で待ち、空きができると自動で `Active` に移る。`Suspended`・`Ready` に期限は無い。終わったジョブ（`Complete` など）は 90 日後に消える。**ただし、どれも文書の同じ文（[batch-ops](https://docs.aws.amazon.com/AmazonS3/latest/userguide/batch-ops.html)・[job status](https://docs.aws.amazon.com/AmazonS3/latest/userguide/batch-ops-job-status.html)）からの推論で、7 本目の `UpdateJobStatus` がエラーにならないかは文書に無い、と bot 自身が書いている**。リージョンごとか否かも推論（すべて us-west-2 なので関係しない）。今回の対象は残り 6 本で、バケットごとに 1 本なら上限ちょうどに収まる。もし 7 本目の流す要求が拒まれても、`apply` は 5 回やり直して止まるだけで、ジョブは確認待ちのまま残る（あとで同じコマンドで続きから）。2 回目（速さ・層）の答え: 同時に動くジョブが速さを分け合うかは文書に無い。1 本の速さを上げる設定も無く、上げるならジョブを分けるしかない（どちらも文書に無いことの言い換え）。層は「上がらない」。理由は、Intelligent-Tiering の文書の「アクセスに当たる操作」の一覧（[intelligent-tiering-overview](https://docs.aws.amazon.com/AmazonS3/latest/userguide/intelligent-tiering-overview.html)。GetObject・PutObject・CopyObject など）に `PutObjectRetention` が無いこと。当たらない操作の一覧は「a sample, not a definitive list」なので、文書に名前は出ない（エージェントが原文で確かめた）。実測（CloudWatch の層ごとの容量）で確かめるのは変わらない。
 - 段階 1 で、ホールドを付けると Intelligent-Tiering の層が上がるかを確かめる（ドキュメントに記述が無い。上がると 9 本で約 $7.5 万の追加の費用）。2026-11-12 に、td1-rlog（21 TB）と tuscenes-calibration（旧、1.26 TB）の全体に付けた（どちらも Archive Instant Access。上がっても 2 本で最大 約 $800 で、許せる額とした）。11-13〜14 に CloudWatch の層ごとの容量を元の値と比べる（[stage1-runbook.md](stage1-runbook.md) の手順 2 の下の注）。**段階 3・4 は、この結果を見てから進める**。上がったら、段階 4 の td1-raw・tuscenes-raw の前に進め方を考え直す。
 
 `tuscenes-calibration-767397804933` だけは SSE-KMS（AWS 管理のキー `aws/s3`）で暗号化されている。カナリアでは確かめられないので、段階 2 で、このバケットは少ない件数で先に流す。

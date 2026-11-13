@@ -2,7 +2,7 @@
 
 - 作成: 2026-11-11 ／ 伊藤（エージェントが起草）
 - 親: [S3 バケットのデータ保護 第二弾](../s3-data-protection-2.md)。アクションの 4-6（[worm-action-list.md](worm-action-list.md)）。段階 2（denso の 3 本）の前提
-- 状態: **未実施**
+- 状態: **行わないことにした**（2026-11-13、伊藤。S3 に記録されたチェックサムから、DataSync が SHA256 を付けて書いていると分かったため。[denso-nx-raw-writer-review.md](denso-nx-raw-writer-review.md)）。手順は、必要になったときのために残す
 - 実行する人: 伊藤（`full` プロファイル＝tuscenes-prod の SSO の FullAccess）。エージェントは、ログと ReadOnly の確認で結果を読む
 - スクリプト: `~/runbook/datasync-probe/datasync-probe.sh`（git の管理外）。ログは `~/runbook/datasync-probe/log/` に手順ごとに残る
 

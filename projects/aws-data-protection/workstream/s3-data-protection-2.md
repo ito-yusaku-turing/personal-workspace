@@ -1,7 +1,7 @@
 # S3 バケットのデータ保護 第二弾（権限設計のアップグレード）
 
 - 開始: 2026-10-20
-- 状態: **段階 2 は済み。段階 1（td1-rlog）は全体のジョブが流れている**（2026-11-12 の定時。18:54 JST ごろ終わる見込み）。11-13 は、td1-rlog の `verify` → 層の比べ（td1-rlog と旧）→ トレイルの確かめ。そのあと段階 4 の並列の段取り。denso-nx-raw は犬塚さんへの確認待ち（4c-7、[denso-nx-raw-writer-review.md](s3-data-protection-2/denso-nx-raw-writer-review.md)）。手順と結果は [stage1-runbook.md](s3-data-protection-2/stage1-runbook.md)、段階の正本は [worm-rollout-stages.md](s3-data-protection-2/worm-rollout-stages.md)。全体のアクションは [worm-action-list.md](s3-data-protection-2/worm-action-list.md)。権限の頂点の問題は別の案件（project:privileged-access）
+- 状態: **9 本のうち 7 本に Object Lock を入れた**（2026-11-13）。td1-rlog・tuscenes-calibration の旧・新・denso-nx-raw は既存の版のホールドも 15 日で済み。denso-taxi の 2 本と tuscenes-raw は一覧づくりの途中で、次は朝に `apply` を打って流し始める。td1-raw は e2e-dev（`td1-raw-471112873671`）でアップロード用の PC の試しを先に行う。tuscenes-annotation は伊藤が再確認する。手順と結果は [stage1-runbook.md](s3-data-protection-2/stage1-runbook.md) と [worm-rollout-stages.md](s3-data-protection-2/worm-rollout-stages.md) の「段階 3・4 の結果」。全体のアクションは [worm-action-list.md](s3-data-protection-2/worm-action-list.md)。権限の頂点の問題は別の案件（project:privileged-access）
 - 所属: project:aws-data-protection（2026-10-26 に `~/docs/workstream/` から移した）
 - 前段（第一弾、完了）:
   - [走行データ消失リスクへの対応](done/raw-data-security.md)（バケットの種別と処遇、裁定の正本）
@@ -900,3 +900,17 @@
     4. 段階 4 の並列の段取り（[worm-rollout-stages.md](s3-data-protection-2/worm-rollout-stages.md) の段階 4 の注）: プレフィクスごとの件数の数え方（S3 Inventory か `s3 ls`）、`worm-stage.sh` の複数プレフィクス対応、AWS サポートへの問い合わせ（層の文書での回答と、速さの差）。
     5. 伊藤: 犬塚さんへの 5 問（段階 3）。
     6. 伊藤の許可を得て、Notion の共有用の資料に今日の決めたこと・結果を差分で反映する。
+- 2026-11-13: **解除後の保持期間を 30 日から 15 日に変えた**（チームの合意。D34）。既定の保持設定を 3 本とカナリアで 15 日にし（02:23Z、伊藤）、ジョブのロールの日数を 15 にした（[cdk-apps#2563](https://github.com/turingmotors/cdk-apps/pull/2563)、02:44Z に deploy）。カナリアで縮める付け直しを試し、付け直した時点で期限が「その時刻＋30 日」に固まり、解除しても縮まないと分かった（学習用の資料の N1〜N3）。そのうえで、すでに付いた版も 15 日に付け直すことにした。新 309 件・旧 271,399 件は済み（失敗 0、verify は `GOVERNANCE ON 15`）。td1-rlog は `apply` で流している。
+- 2026-11-13: **`worm-stage.sh` に `apply` を足した**（hold → 確かめ → run → verify を起動 1 回で。確かめが外れたら流さない。途中で止まっても続きから。`DETACH=1`）。確かめの部分は ReadOnly で、新・旧と td1-rlog の 11-12 の一覧で試した（455 万件の流し読みで 17 秒）。**段階 4 は、1 つのバケットの中では分けず、バケットごとに 1 本で並列に流す**（伊藤の判断。過去のデータで急がない）。
+- 2026-11-13: **AWS サポートの AI に、同時に動かせるジョブと層のことを聞いた**。上限は Active の 6 本で、7 本目は `Ready` で待つ（推論。拒まれても `apply` は止まるだけ）。層は「上がらない」（Intelligent-Tiering の文書の「アクセスに当たる操作」の一覧に `PutObjectRetention` が無い。当たらない操作の一覧は例示。エージェントが原文を確かめた）。実測の層の比べは続ける。詳しくは worm-rollout-stages.md の段階 4 の注。
+- 2026-11-13: **トレイルの確かめ（11-12 04:30Z〜11-13 06:21Z）**: Object Lock の 3 本に、ジョブのロール以外の操作と拒否は無し。拒否はカナリアの 1 件（30 日を付けようとしてロールに拒まれる、狙いどおりの試し）だけ。td1-raw の `InternalError`・`IncompleteBody`・`NoSuchUpload` はアップロード PC の転送の途切れで、Object Lock とは関係ない。新への backend-api の書き込みはまだ来ていない（チェックサムの要る書き込みが通るかは、まだ実地で見ていない）。
+- 2026-11-13: **td1-rlog の 15 日への付け直しが `apply` で済んだ**（4,555,379 件、失敗 0）。**denso-nx-raw（段階 3）に入れ終えた**（187,833 件、失敗 0）。denso-nx-raw は mono-turing-infra の資料（[mono-turing-infra#772](https://github.com/turingmotors/mono-turing-infra/pull/772)）で、転送元の Azure が意図して空にされたことが分かり、DataSync は S3 に記録されたチェックサム（すべて SHA256）から心配なしと判断した（[denso-nx-raw-writer-review.md](s3-data-protection-2/denso-nx-raw-writer-review.md)）。DataSync の試しは行わない。
+- 2026-11-13: **段階 4 のうち denso-taxi の 2 本と tuscenes-raw に Object Lock と既定の保持設定（15 日）を入れ、`DETACH=1` の `apply` で一覧づくりを始めた**（層は上がらない前提。伊藤の判断）。`worm-stage.sh` に承認済みの一覧（`APPROVED`）を足し、一覧にあるバケットは打ち込みを省くようにした。外部資料の目録（[docs/external-sources.md](../../../docs/external-sources.md)）を作った。
+- 2026-11-13: **td1-raw は e2e-dev で先に試す**（徳弘さんと合意）。`td1-raw-471112873671` にバージョニング・Object Lock・既定の保持設定（1 日）を入れた。試しはこれから（worm-rollout-stages.md の「段階 3・4 の結果」）。
+- 2026-11-13 のセッションの終わり。引き継ぎ:
+  1. **朝いちばん: 3 本の `apply` を打つ**（`cd ~/homes/jadd-studio/runbook/worm-stage` で、denso-taxi-processed `EXPECT=10137617:11376659`、denso-taxi-video `EXPECT=17725105:19891507`、tuscenes-raw `EXPECT=184972196:207579909`。`DETACH=1` を付ければ流し始めて抜ける）。出力をエージェントが読む。tuscenes-raw は一覧づくりに数時間かかるので、まだ `Preparing` なら昼にもう一度。
+  2. **e2e-dev の試し**: 伊藤の PC で、チェックサムなしが拒まれ、既定の書き込みが `GOVERNANCE ON 1` になるかを先に見る。そのあと徳弘さんに 6 つの CLI の版で書いてもらう。**既定の保持設定を入れたまま夜を越したので、Jetson の書き込みが拒まれていないかを最初に確かめる**（外すコマンドは `{"ObjectLockEnabled":"Enabled"}` で置き換える）。
+  3. 層の比べ（11-13 の値。td1-rlog・tuscenes-calibration の旧）。
+  4. トレイルの確かめ: td1-rlog の付け直し（06:45Z〜）、denso-nx-raw の付け直し、4 本の enable・default のあとの書き込み（どれも書き込みは無い見込み）。
+  5. 記録: 段階 3・4 の結果の表を、流し終えたら埋める。
+  6. 残り: tuscenes-annotation（伊藤が再確認。4c-1、TeamE2E への周知）、td1-raw（e2e-dev の結果と 4c-2）。11-28 ごろにカナリアの `default.txt` で付け直しのあとの期限の動きを確かめる。Notion への反映（許可を取ってから）。
