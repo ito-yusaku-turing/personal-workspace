@@ -1,7 +1,7 @@
 # Vercel のアカウントの棚卸しと SSO 化の検討
 
 - 開始: 2026-11-05
-- 状態: **経理への申請用に、Vercel の予算を見積もった**（2026-11-13。現状 $407、計画 $755〜815、上振れの上限 約 $1,230（50 席）。[documents/vercel-supabase-budget.md](../documents/vercel-supabase-budget.md)）。Supabase は申請の対象から外した。次は伊藤が経理に相談する（月 $1,250）。そのあと席を足し、jadd_studio3・fleet-ops を Git 連携に移して共有アカウントを消す
+- 状態: **経理への申請用に、Vercel の予算を見積もった**（2026-11-13。現状 $407、計画 $755〜815、上振れの上限 約 $1,030（40 席）。[documents/vercel-supabase-budget.md](../documents/vercel-supabase-budget.md)）。Supabase は申請の対象から外した。次は伊藤が経理に相談する（月 $1,050）。そのあと席を足し、jadd_studio3・fleet-ops を Git 連携に移して共有アカウントを消す
 - 所属: project:information-resource-inventory
 
 Vercel のアカウント（組織・チームのメンバーと、その権限）を棚卸しし、社の IdP（Okta / Google Workspace）による SSO に寄せられるかを検討する。
@@ -412,7 +412,7 @@ fleet-ops（Git 連携はつながっている）:
 - [x] 席を足すか、BLOCKED を受け入れるかを決める（全員分の席を払う。2026-11-10）
 - [x] 請求の実績から費用を見積もる（2026-11-10。月 $750〜810）
 - [x] 経理への申請用に、Vercel と Supabase の予算を見積もる（2026-11-13。現状・計画・上振れの上限）
-- [ ] 経理に予算を相談する（Vercel だけ。上振れの上限に合わせて月 $1,250）
+- [ ] 経理に予算を相談する（Vercel だけ。上振れの上限に合わせて月 $1,050）
 - [ ] 席の無いコミットの作者をチームに足す
 - [ ] 選んだ案に切り替え、共有アカウントを消す（2027-01-20 より前に）
 - [x] 調査用の PAT を用意する（チームに絞り、期限は 7 日。GET だけ使う。終わったら無効にする）
@@ -430,7 +430,7 @@ fleet-ops（Git 連携はつながっている）:
 
 ## 次セッションへの引き継ぎ
 
-**2026-11-13 の締め**: 申請は Vercel だけに絞った（月 $1,250。上振れの席は 50）。Supabase は、転送の出どころが backend-prod（先月 $2,457）で、Databricks の同期の対策（[mono-e2e#6430](https://github.com/turingmotors/mono-e2e/pull/6430)）が本番で効いているか未確認のまま、手を止めた。記録は見積もりの資料の「参考: Supabase」にある。
+**2026-11-13 の締め**: 申請は Vercel だけに絞った（月 $1,050。上振れの席は 40）。Supabase は、転送の出どころが backend-prod（先月 $2,457）で、Databricks の同期の対策（[mono-e2e#6430](https://github.com/turingmotors/mono-e2e/pull/6430)）が本番で効いているか未確認のまま、手を止めた。記録は見積もりの資料の「参考: Supabase」にある。
 
 **2026-11-13**: 申請用の見積もりを [documents/vercel-supabase-budget.md](../documents/vercel-supabase-budget.md) にまとめた。Vercel は請求の実績から（8〜10 月の平均 $407。11-10 の表のうち 10 月の $424 は誤りで、正しくは $437.40）、Supabase は構成と公式の単価から計算した（$432 ＋ 使用量）。残り: Supabase の請求書で使用量と add-on を確かめる。11-13 に伊藤のトークンでチームの API を叩くと 403（`saml: true`）が返った。SAML SSO が設定されたか確かめる（されていれば add-on で $300/月）。調査用の PAT はチームの範囲では使えなくなったので、無効にしてファイルを消す。
 
