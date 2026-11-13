@@ -24,7 +24,7 @@ AWS から取った一次情報は、その時点の写しなので git では�
 
 ## documents/ — 決めたこと・手順
 
-- [documents/vercel-supabase-budget.md](./documents/vercel-supabase-budget.md): **Vercel と Supabase の予算の見積もり**（申請用、2026-11-13）。現状の費用の構成と、12 か月の上振れの上限（合わせて月 約 $1,930）
+- [documents/vercel-supabase-budget.md](./documents/vercel-supabase-budget.md): **Vercel の予算の見積もり**（申請用、2026-11-13）。現状の費用の構成・従量課金の項目ごとの数量・12 か月の上振れの上限（月 約 $1,030）。Supabase の使用量と転送の調べは参考として残す
 - [documents/supabase-org-account-policy.md](./documents/supabase-org-account-policy.md): **Supabase の組織のアカウントの方針**（2026-11-05）。SSO は入れない、MFA は必須、要らない人は外す。運用で知っておくことと棚卸しのやり方
 
 ## 関連する資料（ほかの project）
