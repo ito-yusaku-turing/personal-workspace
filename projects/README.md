@@ -11,13 +11,13 @@
 
 注力している順に並べる。1件は `- [<project-id>/workstream/<名前>.md](./<同じパス>): 一言メモ` の1行にする。状態そのものは各 workstream の `- 状態:` 行に書き、ここには写さない。
 
-- [aws-data-protection/workstream/s3-data-protection-2.md](./aws-data-protection/workstream/s3-data-protection-2.md): WORM のガバナンスモードでの導入。第 1 段階の PR（[cdk-apps#2500](https://github.com/turingmotors/cdk-apps/pull/2500)）の承認待ち。対象は 9 本
+- [aws-data-protection/workstream/s3-data-protection-2.md](./aws-data-protection/workstream/s3-data-protection-2.md): WORM のガバナンスモードでの導入。9 本のうち 3 本に入れ終え、15 日への付け直しと段階 4 の準備をしている
 - [privileged-access/workstream/apex-privileges.md](./privileged-access/workstream/apex-privileges.md): 権限の頂点の群の把握と管理。CorpIT に 1 回目の聞き取りをした。次は止めてある循環の詳細を聞く
 - [tern-ios-auth/workstream/tern-backend-api.md](./tern-ios-auth/workstream/tern-backend-api.md):
 - [m2m-auth/workstream/m2m-auth.md](./m2m-auth/workstream/m2m-auth.md):
 - [information-resource-inventory/workstream/aws-resource-inventory.md](./information-resource-inventory/workstream/aws-resource-inventory.md): tuscenes-prod の総ざらい
 - [idp-broker/workstream/idp-auth0-role-division.md](./idp-broker/workstream/idp-auth0-role-division.md):
-- [information-resource-inventory/workstream/vercel-accounts.md](./information-resource-inventory/workstream/vercel-accounts.md): Vercel。席を全員分払う方針。申請用に Supabase と合わせて見積もった（上振れの上限で月 約 $1,950）。次は経理に予算を相談する
+- [information-resource-inventory/workstream/vercel-accounts.md](./information-resource-inventory/workstream/vercel-accounts.md): Vercel。席を全員分払う方針。申請用に Supabase と合わせて見積もった。Supabase の転送が大きく（月 約 $1,120）、出どころを確かめてから経理に相談する
 - [information-resource-inventory/workstream/supabase-db-access.md](./information-resource-inventory/workstream/supabase-db-access.md): Supabase の DB への直接の接続経路。起票した（vercel-accounts からの派生）
 - [databricks-app-hosting/workstream/databricks-app-hosting.md](./databricks-app-hosting/workstream/databricks-app-hosting.md): アプリを Databricks に移せるかの検討（社内専用・オレゴン）。次は最小版の STUDIO を置いたときの運用の精査
 - [aws-app-platform/workstream/aws-app-platform.md](./aws-app-platform/workstream/aws-app-platform.md): 新しい社内の Web アプリを AWS に置く標準の型。Vercel と Supabase を置き換え、CI で席の問題をなくす。databricks-app-hosting の類似案件

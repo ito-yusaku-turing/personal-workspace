@@ -1,7 +1,7 @@
 # Vercel のアカウントの棚卸しと SSO 化の検討
 
 - 開始: 2026-11-05
-- 状態: **経理への申請用に、Vercel と Supabase の予算を見積もった**（2026-11-13。[documents/vercel-supabase-budget.md](../documents/vercel-supabase-budget.md)）。次は Supabase の請求の実績をダッシュボードで確かめ、伊藤が経理に相談する（上振れの上限で月 約 $1,950）。そのあと席を足し、jadd_studio3・fleet-ops を Git 連携に移して共有アカウントを消す
+- 状態: **経理への申請用に Vercel と Supabase の予算を見積もったが、Supabase の転送（Egress）が月 12.7 TB・約 $1,120 の換算と分かり、暫定**（2026-11-13。[documents/vercel-supabase-budget.md](../documents/vercel-supabase-budget.md)）。次は転送の出どころ（プロジェクト・日ごと）と過去の請求を確かめ、上振れの上限を決め直してから経理に相談する（暫定で月 約 $3,650）
 - 所属: project:information-resource-inventory
 
 Vercel のアカウント（組織・チームのメンバーと、その権限）を棚卸しし、社の IdP（Okta / Google Workspace）による SSO に寄せられるかを検討する。
@@ -412,7 +412,8 @@ fleet-ops（Git 連携はつながっている）:
 - [x] 席を足すか、BLOCKED を受け入れるかを決める（全員分の席を払う。2026-11-10）
 - [x] 請求の実績から費用を見積もる（2026-11-10。月 $750〜810）
 - [x] 経理への申請用に、Vercel と Supabase の予算を見積もる（2026-11-13。現状・計画・上振れの上限）
-- [ ] 経理に予算を相談する（Vercel と Supabase を合わせ、上振れの上限で月 約 $1,950）
+- [ ] Supabase の転送の出どころと過去の水準を確かめ、上振れの上限を決め直す
+- [ ] 経理に予算を相談する（Vercel と Supabase を合わせ、上振れの上限で暫定 月 約 $3,650）
 - [ ] 席の無いコミットの作者をチームに足す
 - [ ] 選んだ案に切り替え、共有アカウントを消す（2027-01-20 より前に）
 - [x] 調査用の PAT を用意する（チームに絞り、期限は 7 日。GET だけ使う。終わったら無効にする）
