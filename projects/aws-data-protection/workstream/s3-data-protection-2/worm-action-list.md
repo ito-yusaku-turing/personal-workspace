@@ -76,7 +76,7 @@
 
 | # | やること | 担当 | 期限・条件 |
 |---|---|---|---|
-| 4c-1 | tuscenes-annotation の自動の出力（`object_detection/auto_label/`・`lane_master_kun/`・`localization/`。開発用の試し出力を含む）にも保持を付けるかを決める。付けたくなければ、出力先を分けるか、既定の保持設定を使わずジョブで人手のラベルだけに付ける（[remaining-buckets-review.md](remaining-buckets-review.md)、共有用の資料の 6.2） | チーム（perception-detection・localization の担当に聞く） | 段階 2 で tuscenes-annotation に入れる前 |
+| 4c-1 | tuscenes-annotation の自動の出力（`object_detection/auto_label/`・`lane_master_kun/`・`localization/`。開発用の試し出力を含む）にも保持を付けるかを決める。付けたくなければ、出力先を分けるか、既定の保持設定を使わずジョブで人手のラベルだけに付ける（[remaining-buckets-review.md](remaining-buckets-review.md)、共有用の資料の 6.2）。**→ 済み（11-16、D36）: 自動の出力も含めて、バケット全体に付ける**（17 日間で通常の削除が 0 件。[tuscenes-annotation-owner-survey.md](tuscenes-annotation-owner-survey.md)）。関係者には入れる前に知らせる。共有用の資料にはまだ書いていない | チーム（perception-detection・localization の担当に聞く） | 段階 2 で tuscenes-annotation に入れる前 |
 | 4c-2 | td1-raw の LiDAR の間引きの残り（約 1.3〜1.6 PiB）を、入れる前に終えるか、保持の対象から外すかを決める。`LidarDeleter`（FullAccess に開いたまま）の扱いも。**→ 済み（11-16、D35）: LiDAR も含めて付ける。`LidarDeleter` は TODO 16 のまま**。共有用の資料にはまだ書いていない | 伊藤 | 段階 3 で td1-raw に入れる前 |
 | 4c-3 | deploy の経路（cfn-exec-role）を、9 本のバケットポリシーの変更から締め出すかを決める（共有用の資料の Q3。①バケットポリシー／②SCP） | 伊藤（安本さんと） | 4-8 の前 |
 | 4c-4 | GitHub 側の 3 点（承認のあとの push で承認が外れない、PR を経ない Integration の例外、`packages/original-bucket-guard` の CODEOWNERS）を直すか決める | 伊藤 | 4c-3 と一緒に |

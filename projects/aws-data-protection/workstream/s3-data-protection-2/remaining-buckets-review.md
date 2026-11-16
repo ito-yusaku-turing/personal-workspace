@@ -4,7 +4,7 @@ denso-raw・gaming-data-collection を外したあと（D26・D27）、残りの
 
 ## 結論
 
-**2026-11-10 の決定（D30）:** 外していた tuscenes-annotation（人手のラベル）を、安本さんの意見を受けて対象に戻した。対象は 9 本。自動の処理（物体検出・車線の自動ラベル、位置推定の毎晩の出力。開発用の試し出力を含む）も毎日書いているので、既定の保持設定でそれらにも保持が付く。扱いは未決。
+**2026-11-10 の決定（D30）:** 外していた tuscenes-annotation（人手のラベル）を、安本さんの意見を受けて対象に戻した。対象は 9 本。自動の処理（物体検出・車線の自動ラベル、位置推定の毎晩の出力。開発用の試し出力を含む）も毎日書いているので、既定の保持設定でそれらにも保持が付く。→ 2026-11-16 に、それらも含めて付けると決めた（D36。[tuscenes-annotation-owner-survey.md](tuscenes-annotation-owner-survey.md)）。
 
 **2026-11-10 の決定（D28）:** Inuzuka さんへの聞き取りを受けて、denso-taxi-video・denso-taxi-processed・denso-nx-raw を正式に対象とした。要確認は td1-rlog と tuscenes-calibration（旧）の 2 本になった。
 

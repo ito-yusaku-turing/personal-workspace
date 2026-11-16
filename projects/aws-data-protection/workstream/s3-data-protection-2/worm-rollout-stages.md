@@ -110,7 +110,7 @@
 
 - 段階 2: tuscenes-calibration（新）は、JADD STUDIO の確定版のリリース（backend-api の Lambda、boto3 1.42、条件付き書き込み `IfNoneMatch`）が書く。予行で、Object Lock のバケットでもこの書き方が通るか確かめる（予行の R2 で確かめた）。
 - 段階 3: denso-nx-raw の DataSync のタスク（`azure-mlops1-dcorp-inbound-daily`）の設定と、ほかの書き手の有無を精査し、作った人に確かめる。→ **済み（2026-11-13）**。DataSync は書き込みにチェックサム（SHA256）を付けていると S3 の記録から分かったので、**DataSync の試し（[datasync-probe-runbook.md](datasync-probe-runbook.md)）は行わない**（伊藤の判断）。denso-taxi の 2 本も同じ（[denso-nx-raw-writer-review.md](denso-nx-raw-writer-review.md)）。
-- 段階 4: denso-taxi の 2 本は、DataSync のスケジュールが止まっている（再開する前に、段階 3 の結果を当てはめる）。tuscenes-annotation には、人手のラベルのほかに自動の処理の出力が毎日書かれる。既定の保持設定はバケット全体に効くので、自動の出力にも保持を付けるかを先に決める（アクション 4c-1）。
+- 段階 4: denso-taxi の 2 本は、DataSync のスケジュールが止まっている（再開する前に、段階 3 の結果を当てはめる）。tuscenes-annotation には、人手のラベルのほかに自動の処理の出力が毎日書かれる。既定の保持設定はバケット全体に効くので、自動の出力にも保持を付けるかを先に決める（アクション 4c-1）。→ 11-16 に、自動の出力も含めて付けると決めた（D36。17 日間で通常の削除が 0 件）。
 - 段階 4: tuscenes-annotation には TeamE2E の人が手で書くので、チェックサムを付けない道具（s5cmd など）を使わないよう、先にチームに知らせる。
 - 段階 4: td1-raw の LiDAR の間引きの残りと `LidarDeleter` の扱いを先に決める（アクション 4c-2）。アップロード用の PC の古い CLI の設定（`when_required` にしていないか）も確かめる。
 - 段階 4: td1-raw・tuscenes-raw は版の数が多い（計約 5.9 億、費用の 9 割）。ジョブはプレフィクスで小さく流してから全体を流す（I6）。
