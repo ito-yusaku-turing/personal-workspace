@@ -1,7 +1,7 @@
 # S3 バケットのデータ保護 第二弾（権限設計のアップグレード）
 
 - 開始: 2026-10-20
-- 状態: **9 本すべてに Object Lock と既定の保持設定（15 日）を入れた**（2026-11-16。最後は tuscenes-annotation（D36））。既存の版のホールドは 4 本が済み、denso-taxi の 2 本と tuscenes-raw はジョブが流れている（11-16 夕方〜11-17 未明に終わる見込み）。td1-raw と tuscenes-annotation は一覧づくりの途中（ジョブ `2cbfac5e-…`・`1b59211d-…`）。td1-raw の `apply` の続きは 11-17 夕方か 11-18。手順と結果は [stage1-runbook.md](s3-data-protection-2/stage1-runbook.md) と [worm-rollout-stages.md](s3-data-protection-2/worm-rollout-stages.md) の「段階 3・4 の結果」。全体のアクションは [worm-action-list.md](s3-data-protection-2/worm-action-list.md)。権限の頂点の問題は別の案件（project:privileged-access）
+- 状態: **9 本すべてに Object Lock と既定の保持設定（15 日）を入れた**（2026-11-16。最後は tuscenes-annotation（D36））。既存の版のホールドは 4 本が済み、denso-taxi の 2 本と tuscenes-raw はジョブが流れている（11-16 夕方〜11-17 未明に終わる見込み）。td1-raw と tuscenes-annotation もジョブを流している（11-16 08:50Z・08:59Z〜。td1-raw は 20:40Z ごろに終わる見込み）。denso-taxi の 2 本はジョブが済み、verify 待ち。手順と結果は [stage1-runbook.md](s3-data-protection-2/stage1-runbook.md) と [worm-rollout-stages.md](s3-data-protection-2/worm-rollout-stages.md) の「段階 3・4 の結果」。全体のアクションは [worm-action-list.md](s3-data-protection-2/worm-action-list.md)。権限の頂点の問題は別の案件（project:privileged-access）
 - 所属: project:aws-data-protection（2026-10-26 に `~/docs/workstream/` から移した）
 - 前段（第一弾、完了）:
   - [走行データ消失リスクへの対応](done/raw-data-security.md)（バケットの種別と処遇、裁定の正本）
@@ -924,11 +924,12 @@
 - 2026-11-16: **tuscenes-annotation の関係者と削除の頻度を調べた**（エージェント、ReadOnly。[tuscenes-annotation-owner-survey.md](s3-data-protection-2/tuscenes-annotation-owner-survey.md)）。10-30〜11-15 の 17 日間で削除は 0 件。人手のラベル（Appen・Linker Vision）への書き込みも 0 件で、書き込みは自動の出力と開発者の手によるものだけ。ヒアリングの候補はイバイさん・川村さん・塚本さん・安本さん（4c-1）。
 - 2026-11-16: **4c-1 を決めた（D36）: tuscenes-annotation にも、自動の出力を含めてバケット全体に Object Lock と既定の保持設定を入れる**（伊藤）。17 日間で通常の削除が 0 件だったため。関係者（イバイさん・川村さん・塚本さん・安本さん）へは、入れる前の周知にする。共有用の資料（6.2）への反映はまだ。
 - 2026-11-16: **tuscenes-annotation に Object Lock を入れた**（伊藤。enable 07:59:38Z、default 07:59:53Z、ガバナンス・15 日）。書き手の道具（Boto3 1.43・aws-sdk-js 3.1104・aws-cli 2.38〜2.39）はどれもチェックサムを既定で付ける版。default のあと 08:15Z までは書き込みが無かった（UTC 07〜08 時はふだんから少なく、書き込みの大半は 18〜22Z の毎晩の処理）。ホールドの一覧づくりを始めた（`DETACH=1` の `apply`、ジョブ `1b59211d-c250-426b-bccc-b200b54ca31d`、`EXPECT=16200000:18500000`）。
+- 2026-11-16: **td1-raw と tuscenes-annotation のジョブを流し始めた**（伊藤、`apply`。確かめはすべて OK）。td1-raw は 386,847,623 件（08:50:42Z〜、約 9,100 件/秒で tuscenes-raw の 2 倍強）、tuscenes-annotation は 18,007,627 件（08:59:30Z〜）。denso-taxi-processed（04:49Z）・denso-taxi-video（07:38Z）のジョブは失敗 0 で済み、verify はまだ。tuscenes-annotation は default のあと 08:55Z まで書き込みが無かった。
 - 2026-11-16 の引き継ぎ:
-  1. **denso-taxi の 2 本・tuscenes-raw**: 流し終えたら、伊藤が同じ `apply` を打って verify まで進める（denso-taxi-processed は 05:00Z ごろ、denso-taxi-video は 07:50Z ごろ、tuscenes-raw は 11-17 の 15:20Z ごろに終わる見込み。tuscenes-raw は約 4,000 件/秒で、ほかの 2 本の約 4.6 倍速い）。出力をエージェントが読み、段階 3・4 の結果の表を埋める。
-  2. **td1-raw**: 一覧ができたら、伊藤が `DETACH=1 EXPECT=348160919:387500000 bash worm-stage.sh apply td1-raw-767397804933` を打つ（11-17 夕方か 11-18 の見込み。バケット名の打ち込みが要る）。tuscenes-raw の速さが出れば、流すのは 1 日ほど。
+  1. **verify（伊藤が `bash worm-stage.sh apply <バケット>` を打つ）**: denso-taxi の 2 本はジョブが済んでいて、いつでも打てる。tuscenes-raw は 11-16 の 15:30Z ごろ、td1-raw は 20:40Z ごろ（約 9,100 件/秒）、tuscenes-annotation は流し始めたばかり（08:59Z〜）に終わる見込み。出力をエージェントが読み、段階 3・4 の結果の表を埋める。
+  2. **td1-raw**: 08:50Z に流し始めた（上の 1 で verify）。
   3. **td1-raw の書き込みの見張り**: default のあと 03:39Z までは拒否 0。古い CLI（2.15・2.16）の書き込みはまだ見ていない。トレイルの読み取りは scratchpad の `ts/scan.py`（日付のフォルダは 11/16 に固定。ジョブの記録でファイルが大きく、30 分で約 1 GB を落とす）。CloudWatch の要求のメトリクス（td1-raw は `FilterId=basic`）の 4xx は、読み取りの 404 を含むので拒否の判断には使えない。
-  4. **会社全体への共有用の資料**: [notion-worm-company-guide.md](../documents/notion-worm-company-guide.md) の下書きを、伊藤と推敲した（11-16）。完遂した後の姿で書く。技術の細部・日々の作業・これから・FAQ・他社のデータの話・チーム名は入れない。日付は「2026年11月16日」の形、「当社」は冒頭だけ。Notion への作成は次のセッションで（許可を取ってから。親ページの指定が無ければ MLOps 1チームのドキュメント置き場）。tuscenes-annotation の導入日の欄は、入れたら埋める。
+  4. **会社全体への共有用の資料**: [notion-worm-company-guide.md](../documents/notion-worm-company-guide.md) の下書きを、伊藤と推敲した（11-16）。完遂した後の姿で書く。技術の細部・日々の作業・これから・FAQ・他社のデータの話・チーム名は入れない。日付は「2026年11月16日」の形、「当社」は冒頭だけ。Notion への作成は次のセッションで（許可を取ってから。親ページの指定が無ければ MLOps 1チームのドキュメント置き場）。tuscenes-annotation の導入日の欄は 2026年11月16日 で埋めた。
   5. **このあとのフェーズ（11-16 に整理、伊藤の確認待ち）**: 1 第 2 段階の仕上げ（ホールドの verify、td1-raw、tuscenes-annotation）→ 2 共有（会社全体の資料、MLOps 向けの資料の Notion への反映。後者は 11-11 から古い: 30 日→15 日、段階の並べ直し、結果）→ 3 第 3 段階の通知の PR（受け手を決める）→ 4 権限の絞り込みの PR と組織のポリシー（AWSAdministratorAccess を持つ人への相談を先に始める）→ 5 削除の手順書（D35 の流れ。ジョブのロールにタグ付けの権限を足す PR。急がない）。
-  6. **tuscenes-annotation**: 一覧ができたら、伊藤が同じ `apply` を打って流す。11-17 朝に、毎晩の処理（18〜22Z）の書き込みに拒否が無いかをエージェントがトレイルで見る（止まっていたら `rollback`）。
+  6. **tuscenes-annotation**: 08:59Z に流し始めた（上の 1 で verify）。11-17 朝に、毎晩の処理（18〜22Z）の書き込みに拒否が無いかをエージェントがトレイルで見る（止まっていたら `rollback`）。
   7. **残り**: e2e-dev の `td1-raw-471112873671` の既定の保持設定（1 日）を外すか（Jetson の書き込みが拒まれうる）。徳弘さんの試しの結果の詳細の受け取り。11-28 ごろにカナリアの付け直しのあとの期限の確かめ。Notion の共有用の資料への反映（許可を取ってから）。
