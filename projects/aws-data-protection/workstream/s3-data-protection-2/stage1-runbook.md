@@ -2,7 +2,7 @@
 
 - 作成: 2026-11-11 ／ 伊藤（エージェントが起草）
 - 親: [S3 バケットのデータ保護 第二弾](../s3-data-protection-2.md)。段階の正本 [worm-rollout-stages.md](worm-rollout-stages.md) の「手順 C」の段階 1（td1-rlog）と段階 2（tuscenes-calibration の旧・新）。2026-11-12 に段階を並べ直し、もとの段階 1 の 3 本が段階 1・2 になった。td1-rlog を最後まで通してから、旧・新を続けて行う。アクションの 4-7
-- 状態: **段階 1（td1-rlog）・段階 2（tuscenes-calibration の旧・新）とも、ホールドを付け終えた**（td1-rlog の verify は 2026-11-13）。**2026-11-13 に 3 本とも 15 日へ付け直した**（D34）。残りは層の比べ（11-13 の値が出るのを待っている）
+- 状態: **段階 1（td1-rlog）・段階 2（tuscenes-calibration の旧・新）とも、ホールドを付け終えた**（td1-rlog の verify は 2026-11-13）。**2026-11-13 に 3 本とも 15 日へ付け直した**（D34）。**層の比べも済み（2026-11-16）: 層は上がっていない**
 - 実行する人: 伊藤（`full` プロファイル＝tuscenes-prod の SSO の FullAccess）。ジョブは確認待ちで止め、エージェントがログと ReadOnly で件数と中身を確かめてから流す（2 人目の確認はやめた。D33）。エージェントは、ログと ReadOnly の確認で結果を読み、書き込みのエラーをトレイルで見る
 - スクリプト: `~/runbook/worm-stage/worm-stage.sh`（git の管理外）。段階 2・3 でも同じものを使う。ログは `~/runbook/worm-stage/log/` に、バケットと手順ごとに残る
 
@@ -55,6 +55,7 @@ CAL_NEW=tuscenes-calibration-767397804933   # 段階 2（新）
   3. 11-13〜14 に、エージェントが CloudWatch の `BucketSizeBytes`（`IntelligentTieringAIAStorage`・`IntelligentTieringFAStorage`）を、下の元の値と比べる。**Frequent Access が大きく増え、Archive Instant Access が同じだけ減っていれば、層が上がった**。そのときは、段階 4 の td1-raw・tuscenes-raw の進め方を考え直す（AWS サポートの人の担当者に文書での回答を頼む、など）。
   - 元の値（11-11 の値、バイト）: Frequent Access 11,579,536,878、Archive Instant Access 21,041,754,089,562、Standard 2,181,507,551、Infrequent Access なし。
   - **注意:** 11-06 → 11-07 に、Archive Instant Access から 11,579,536,878 バイト（約 11.6 GB）が Frequent Access に上がっている（誰かが読んだとみられる。読み取りはトレイルに記録していないので、誰かは分からない）。ときどき読まれるので、増えた量が 89.7 GB と合うかで判断する。この 11.6 GB は、30 日たつ 12-06 ごろに Infrequent Access に下りるはず。
+  - **結果（2026-11-16、エージェントが ReadOnly で確かめた）: 層は上がっていない。** td1-rlog は 11-09〜11-15 の毎日の値が、Frequent Access 11.58 GB・Archive Instant Access 21,041.75 GB・Standard 2.18 GB のまま変わらない（ホールドは 11-12 に 2 回、11-13 に 15 日への付け直し）。tuscenes-calibration（旧）も Archive Instant Access 1,256.08 GB のまま。denso-nx-raw（11-13 に付けた）も Frequent Access 5.16 GB のままで、Infrequent Access → Archive Instant Access への移りは付ける前（11-09〜11）に起きたもの。Intelligent-Tiering はアクセスされた版を Frequent Access に戻すので、`PutObjectRetention` はアクセスに数えられていないとみる。
   - 1 回目の一覧の件数は、`calibration/` の 26,778 件と合うかで確かめる（2026-11-12 に ReadOnly で数えた）。
 - **SSE-KMS の tuscenes-calibration（新）:** 手順 4 で、まず小さいプレフィクスに絞る（例: `bash worm-stage.sh hold $B calibration_results/`）。通ったら、プレフィクスなしで全体を流す（すでに付いた版にもう一度付けても、日数が同じなので何も変わらない）。カナリアは SSE-S3 なので、KMS の振る舞いは予行で確かめていない。
 - **一覧は作った時点の写し:** 手順 3 のあとに手順 4 を行う（既定の保持設定を入れたあとに書かれた版は、既定から保持が付く）。
