@@ -14,9 +14,9 @@
 第二弾を閉じた時点で残っているもの。片付いたら消す。
 
 - [ ] 共有用の資料を Notion に反映する（書き込む前に許可を取る）。
-  - MLOps 向け（[notion-worm-governance-rollout.md](../documents/notion-worm-governance-rollout.md)）。11-11 から古い。30 日 → 15 日（D34）、段階の並べ直し、D35・D36、導入の結果
+  - MLOps 向け（[notion-worm-governance-rollout.md](../documents/notion-worm-governance-rollout.md)）。**ローカルの原本は 2026-11-17 に今の状態へ直した**（15 日、第 2 段階の結果、11-13〜17 の決定、通知の案）。Notion への反映はまだ（伊藤の指示待ち）
   - 会社全体向け（[notion-worm-company-guide.md](../documents/notion-worm-company-guide.md)）。新しく作る（親ページの指定が無ければ MLOps 1チームのドキュメント置き場）
-- [ ] tuscenes-annotation の関係者（イバイさん・川村さん・塚本さん・安本さん）へのお知らせを送ったか確かめる。
+- [x] ~~tuscenes-annotation の関係者（イバイさん・川村さん・塚本さん・安本さん）へのお知らせを送ったか確かめる。~~ → お知らせは要らない（2026-11-17、伊藤）。
 - [ ] td1-raw の古い CLI（2.15・2.16）の書き込みが、既定の保持設定の下で拒まれていないかをトレイルで見る。tuscenes-annotation の夜の処理は 11-17 に見て、拒否 0（第二弾の 11-17 の記録）。
 - [ ] e2e-dev の `td1-raw-471112873671` の既定の保持設定（1 日）を外すか決める。徳弘さんの試しの結果の詳細を受け取る。
 - [ ] 2026-11-28 ごろ、カナリアの `default.txt` で、付け直しのあとの期限の動きを確かめる。
