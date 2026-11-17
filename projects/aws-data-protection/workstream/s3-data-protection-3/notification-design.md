@@ -240,14 +240,14 @@ cdk-apps にも、SNS のメールの購読（`EmailSubscription`）を作るコ
 ### 9.1 1 段目: Slack への経路をカナリアで試す（2026-11-17、伊藤の決定）
 
 - **2 段に分ける。** 1 段目は Slack 用の SNS・Amazon Q Developer の設定・カナリアだけのルール B。メンションと届き方を確かめ、結果を仕様に入れてチームの合意を取る。2 段目でルール A〜E を全バケットに広げる。**メールは今回のスコープから外す**。
-- 起草: cdk-apps のブランチ `original-bucket-audit-slack`（commit `0cce70ea`。`/usr/app/cdk-apps` でチェックアウトしている。まだ push していない）。スタック `OriginalBucketNotify`（`lib/notify-stack.ts`）。
+- 起草: cdk-apps のブランチ `original-bucket-audit-slack`（commit `0cce70ea`、[cdk-apps#2614](https://github.com/turingmotors/cdk-apps/pull/2614)）。スタック `OriginalBucketNotify`（`lib/notify-stack.ts`）。
   - チャンネルの設定は、ガードレールを省くと `AdministratorAccess` が既定で付く（aws-cdk-lib の `SlackChannelConfiguration` の既定）。すべてを拒むガードレールを付け、ロールには何も付けない。
   - トピックは、ほかのアカウントからの発行を拒む（CDK がルールの送り先に付ける許可は条件なしのため）。
   - **直したこと**: Amazon Q Developer でも、トピックに `sns:Publish` できる主体は偽の通知を流せる。bot token と違い、トピックのポリシーで「このスタックのルールからだけ」に絞れる。1 段目は手でメンションを試すために絞らず、2 段目で絞る。
 - **伊藤がすること（PR の前）**:
   1. `#aws_security_alert` を公開で作り、Amazon Q Developer（旧 AWS Chatbot）のアプリを招待する。
   2. チャンネルの ID（`C…`）と、ユーザーグループ `@mlops1` の ID（`S…`）を控える。`lib/config.ts` に入れる。→ 済み（11-17。チャンネル `C0CJ6HNC21K`、`@mlops1` は `S087DHX478B`）。
-  3. push して PR を作り、マージする（main への push で `original-bucket-audit-deploy` が走る）。
+  3. PR（[cdk-apps#2614](https://github.com/turingmotors/cdk-apps/pull/2614)、11-17 にエージェントが作った）をマージする（main への push で `original-bucket-audit-deploy` が走る）。
 - **deploy の後に試すこと**（FullAccess）:
   1. 入力の変換の `<!subteam^…>` を、EventBridge が受け付けたか（deploy が通れば受け付けた）。
   2. 手で 3 通を発行する。`<!subteam^ID>`・`<@!subteam^ID>`（Zenn の記法）・`<@自分のユーザー ID>`（文書にある形）。`@mlops1` のメンバーに通知が届くか（メンションの一覧に載るか）を見る。
