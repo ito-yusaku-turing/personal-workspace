@@ -115,6 +115,7 @@
 - 2026-11-17（夜）: [cdk-apps#2614](https://github.com/turingmotors/cdk-apps/pull/2614) のレビュー（別のセッション）の指摘を直した（commit `60818efd`）。トピックへの EventBridge からの発行をこのルールの ARN で絞った、拾う操作に Delete の対とレプリケーション・公開のブロック・暗号化を足した、文面の「拒否」を「エラー」にして主体の type・invokedBy を足した、テストを bin と同じ一覧で作る形にした。DLQ と再試行は 2 本目。
   - **設計の誤りを直した**: 管理イベントの証跡 `aws-controltower-BaselineCloudTrail` は組織の証跡ではなく、tuscenes-prod の中にある。止められないかを管理アカウントの側で確かめる（伊藤）。PR では説明だけ。
   - 次: 伊藤が PR を読み直し、マージする。直しの後の `cdk diff` はまだ取っていない。
+- 2026-11-17（夜）: [cdk-apps#2614](https://github.com/turingmotors/cdk-apps/pull/2614) の Copilot の指摘 2 件を直した（`66bdba72`）。トピックへの発行は、`aws:SourceArn` の条件をやめて、ルールの専用のロールで発行し `events.amazonaws.com` の直接の発行を条件なしで拒む形にした。ガードレールの IAM の説明を英語にした（日本語が通る例がアカウントに無い）。Copilot のコメントへの返信はしていない。
 
 ## 関連リンク
 
