@@ -184,7 +184,7 @@ cdk-apps にも、SNS のメールの購読（`EmailSubscription`）を作るコ
 |---|---|---|
 | **Lambda から `chat.postMessage`（Slack のアプリの bot token）** | cdk-apps の多く（cache-builder・feature-cache-builder・garuda の自動削除と警報・tesla-fleet-client・tern-api・skypilot・scenario-test・closed-loop・train3dgs・azure-data-sync など）。SNS（警報）か EventBridge から Lambda を起こす | Secrets Manager（`<アプリ>/slack-bot-token` など 12 件）か SSM の SecureString。アプリごとに専用の Slack のアプリを作る例が増えている（Garuda Auto Delete・Train3DGS Notifier）。azure-data-sync は model-converter の token を借りている |
 | Incoming Webhook | databricks-jobs の `cost_monitoring`（`#aws_cost_monitoring` の毎日のコストの報告）、video-training-converter、mono-turing-infra の alertmanager（`#gc1-alerts`） | Secrets Manager・ExternalSecret。**databricks-jobs は webhook の URL をコードに直書きしている**（下の注） |
-| Amazon Q Developer（旧 AWS Chatbot） | `tuscenes-notification` → `#dev_system_info` の 1 件だけ。CDK の外で作ったもの（ロールが `service-role/aws-chatbot-role`） | 認証情報なし。ガードレールは `ReadOnlyAccess` と `AWSLambdaInvocation` で、チャンネルから AWS の読み取りと Lambda の起動ができる |
+| Amazon Q Developer（旧 AWS Chatbot） | `tuscenes-notification` → `#dev_system_info` の 1 件だけ。CDK の外で作ったもの（ロールが `service-role/aws-chatbot-role`） | 認証情報なし。ガードレールは `ReadOnlyAccess` と `AWSLambdaInvocation` で、チャンネルから AWS の読み取りと Lambda の起動ができる。**使われていない**（2026-11-17）: `#dev_system_info` はアーカイブ済みで、最後の通知は 2025-04-09（伊藤）。購読するトピック 2 本のうち `tuScenesEvents-…` は消えていて、`tuscenes-…`（スタック `tuscenes`）は 90 日間発行 0。設定は `ENABLED` のまま残る（片付けの候補。持ち主は別） |
 | メンション | tesla-fleet-client は、決めた警報が `ALARM` になったときだけ `@channel` を付ける。cache-builder は依頼した人を Slack のユーザーに引いてメンションする | — |
 
 **この設計への示唆**
