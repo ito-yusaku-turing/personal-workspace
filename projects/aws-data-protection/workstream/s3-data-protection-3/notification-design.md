@@ -11,7 +11,7 @@
 - 形は 11-04 の下書きのまま。**ルール A**（ホールドの解除）・**ルール B**（バケットの設定の変更）・**ルール C**（通知の部品の変更）を EventBridge に置き、SNS からメールで届ける。置き場は cdk-apps の `apps/original-bucket-audit` の新しいスタック。
 - 届け方（4 章、11-17 の伊藤の方針）: **メールは注意を要する通知だけ**（`mlops1@`）、**Slack は `#aws_security_alert` に注意と定期の両方**を流し、注意にはメンションを付ける。
 - 11-04 から足すもの: ジョブの作成と状態の変更（I5、決定済み）、**ルール D**（古い版の削除と、拒まれた鍵の操作。案）、**ルール E**（ジョブのロールと deploy の経路の IAM の変更。us-east-1 に置く。案）、トレイルの止め方の通知。見張り（L12）は 11-17 に見送った（5 章）。
-- 2026-11-17 に確かめた前提: 通知に要る EventBridge の有効化は、Object Lock の 9 本のうち 8 本で未。既存のルールとぶつかるものは無い（tuscenes-raw の古いルールは止めてある）。管理イベントの通知は、管理アカウントの組織の証跡に頼っていて、tuscenes-prod の中からは止められない。
+- 2026-11-17 に確かめた前提: 通知に要る EventBridge の有効化は、Object Lock の 9 本のうち 8 本で未。既存のルールとぶつかるものは無い（tuscenes-raw の古いルールは止めてある）。管理イベントの通知は、Control Tower の証跡 `aws-controltower-BaselineCloudTrail` に頼る。**この証跡は tuscenes-prod の中にある（組織の証跡ではない）**。止められないかは、管理アカウントの側で確かめる（3.3。11-17 に前提を直した）。
 
 ## 1. 何を通知するか（台帳への当てはめ）
 
@@ -36,7 +36,7 @@ L14（ふつうの削除・上書き）は検知（毎時の報告、柱 4）で
 us-west-2（tuscenes-prod）
   S3 のイベント（9 本とカナリア。EventBridge を有効にする）
     ルール A: Object Retention Updated・ON でない ──▶ ロググループ ──▶ 警報（1 分に 1 件以上）──┐
-  CloudTrail の管理イベント（組織の証跡が届ける）                                                │
+  CloudTrail の管理イベント（Control Tower の証跡が届ける）                                                │
     ルール B: 12 本とカナリアの設定の変更、ジョブの作成と状態の変更 ─────────────────────────┤
     ルール C: 通知の部品の変更、original-bucket-audit の証跡の変更 ─────────────────────────┤
   CloudTrail のデータイベント（original-bucket-audit の証跡が届ける）                            ├─▶ SNS ─▶ メール
@@ -72,7 +72,10 @@ us-east-1（tuscenes-prod）                                                    
 下書きの 3.4 に、次を足す。
 
 - **original-bucket-audit の証跡の変更**: `StopLogging`・`DeleteTrail`・`PutEventSelectors`・`PutInsightSelectors`・`UpdateTrail`。ルール D はこの証跡のデータイベントに頼るため。
-- **管理イベントの証跡は止められない。** tuscenes-prod で管理イベントを記録しているのは Control Tower の組織の証跡（`aws-controltower-BaselineCloudTrail`、管理アカウント 617808723336 の持ち物）だけで、`original-bucket-audit` はデータイベントだけを記録する（11-17、`get-event-selectors`）。ルール B・C・E が頼るのは組織の証跡で、止められるのは管理アカウントの側（L4・L20）だけ。下書きの 3.6 の 1 つ目の問いは、これで答えが出た（推論。届く経路はカナリアで確かめる）。
+- **管理イベントの証跡は、tuscenes-prod の中にある**（2026-11-17 に直した。前は「管理アカウントの組織の証跡なので、tuscenes-prod の中からは止められない」と書いていたが、誤り）。tuscenes-prod で管理イベントを記録しているのは Control Tower の証跡 `aws-controltower-BaselineCloudTrail` だけで、`original-bucket-audit` はデータイベントだけを記録する（11-17、`get-event-selectors`）。この証跡は `IsOrganizationTrail: False`・ホームは us-west-2・全リージョン（11-17、`describe-trails`。[cdk-apps#2614](https://github.com/turingmotors/cdk-apps/pull/2614) のレビューで分かった）。
+  - ルール B・C・E は、この証跡に頼る。止められると、まとめて黙る。
+  - Control Tower の予防のガードレール（組織のポリシー）が `aws-controltower-*` の証跡の変更を禁じているのがふつうだが、メンバーのアカウントからは確かめられない。**管理アカウントの側で確かめる**（伊藤の判断、11-17）。禁じていなければ、この証跡の `StopLogging`・`DeleteTrail`・`UpdateTrail`・`PutEventSelectors` をルール C に足す。
+  - [cdk-apps#2614](https://github.com/turingmotors/cdk-apps/pull/2614) では、説明だけして手当てしない。
 
 ### 3.4 ルール D（古い版の削除・拒まれた鍵の操作。新しい案）
 

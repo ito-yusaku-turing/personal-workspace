@@ -112,6 +112,9 @@
 - 2026-11-17 05:54Z: **第二弾の td1-raw の verify が済み、第二弾を閉じた**（9 本すべてのホールドが verify 済み）。`done/` に移し、リンクを直した。
 - 2026-11-17（夕方）: [cdk-apps#2614](https://github.com/turingmotors/cdk-apps/pull/2614) の本文の冒頭を直した（WORM 化の続きで、監視の Slack への通知の最初の例。監視ごとにスタックを分ける想定）。「認証情報を持たない」を「秘密を持たない・投稿は AWS の API と IAM を通る」に直し、FullAccess も今は投稿できることを書いた（本文と、コードの説明の commit `1db934be`）。新しい論点: Slack の設定を作れる主体の絞り込み（手順 D）。
   - 次: 別のセッションで PR のレビューをかける（伊藤）。
+- 2026-11-17（夜）: [cdk-apps#2614](https://github.com/turingmotors/cdk-apps/pull/2614) のレビュー（別のセッション）の指摘を直した（commit `60818efd`）。トピックへの EventBridge からの発行をこのルールの ARN で絞った、拾う操作に Delete の対とレプリケーション・公開のブロック・暗号化を足した、文面の「拒否」を「エラー」にして主体の type・invokedBy を足した、テストを bin と同じ一覧で作る形にした。DLQ と再試行は 2 本目。
+  - **設計の誤りを直した**: 管理イベントの証跡 `aws-controltower-BaselineCloudTrail` は組織の証跡ではなく、tuscenes-prod の中にある。止められないかを管理アカウントの側で確かめる（伊藤）。PR では説明だけ。
+  - 次: 伊藤が PR を読み直し、マージする。直しの後の `cdk diff` はまだ取っていない。
 
 ## 関連リンク
 
