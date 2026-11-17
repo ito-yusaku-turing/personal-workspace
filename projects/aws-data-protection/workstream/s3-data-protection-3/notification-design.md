@@ -1,0 +1,196 @@
+# 原本バケットの通知の設計（第三弾の柱 1）
+
+- 作成: 2026-11-17 ／ 伊藤（エージェントが起草）
+- 親: [S3 バケットのデータ保護 第三弾](../s3-data-protection-3.md)
+- 状態: **案**。8 章の「決めること」は伊藤の確認待ち
+- 土台: [worm-quickwin-design.md](../s3-data-protection-2/worm-quickwin-design.md) の 3 章（2026-11-04 の通知の下書き）。仕組みの説明はそちらを正本にし、ここには 11-04 から変わったことと、台帳（[loophole-ledger.md](loophole-ledger.md)）への当てはめを書く
+
+**要点**
+
+- 台帳のうち、通知で区分 A・B にするのは L1・L2・L4・L5・L10・L12（と、塞がない場合の L13）。今はどれも区分 C。
+- 形は 11-04 の下書きのまま。**ルール A**（ホールドの解除）・**ルール B**（バケットの設定の変更）・**ルール C**（通知の部品の変更）を EventBridge に置き、SNS からメールで届ける。置き場は cdk-apps の `apps/original-bucket-audit` の新しいスタック。
+- 届け方（4 章、11-17 の伊藤の方針）: **メールは注意を要する通知だけ**（`mlops1@`）、**Slack は `#aws_security_alert` に注意と定期の両方**を流し、注意にはメンションを付ける。
+- 11-04 から足すもの: ジョブの作成と状態の変更（I5、決定済み）、**ルール D**（古い版の削除と、拒まれた鍵の操作。案）、**ルール E**（ジョブのロールと deploy の経路の IAM の変更。us-east-1 に置く。案）、**見張り**（L12。案）、トレイルの止め方の通知。
+- 2026-11-17 に確かめた前提: 通知に要る EventBridge の有効化は、Object Lock の 9 本のうち 8 本で未。既存のルールとぶつかるものは無い（tuscenes-raw の古いルールは止めてある）。管理イベントの通知は、管理アカウントの組織の証跡に頼っていて、tuscenes-prod の中からは止められない。
+
+## 1. 何を通知するか（台帳への当てはめ）
+
+| 台帳 | 抜け穴 | 通知 | 通知の後の区分 |
+|---|---|---|---|
+| L1 | deploy の経路（cfn-exec-role）でのバケットの設定の変更 | ルール B | A |
+| L2 | AWSAdministratorAccess（完全削除用の権限） | ルール B（設定の変更）・ルール A（解除）・ジョブ（I5）・ルール D（古い版の削除） | A（名簿の確定が前提。アクション 2-1） |
+| L3 | FullAccess（暫定の例外） | L2 と同じ通知が効く | 手順 D で塞ぐ。それまでは B |
+| L4 | root・管理アカウントのバケットポリシーの削除 | ルール B（`DeleteBucketPolicy`） | A |
+| L5 | ジョブのロールでのホールドの解除 | ルール A・ジョブ（I5）・ルール E（ロールの変更） | A |
+| L6〜L9・L19 | 例外を名乗る道（X1〜X3・X5） | 最後のバケットの設定の変更はルール B で気づく。ロールの変更はルール E | 手順 D で塞ぐ。それまでは B |
+| L10 | 既存の CDK のスタックの更新（X4） | ルール B | B |
+| L11 | GitHub の側の素通り | L1 と同じ（最後の変更はルール B で気づく） | 実質 B（台帳の「決めること」3） |
+| L12 | 通知の仕組みを外してから書き換える | ルール C ＋ 見張り（5 章） | B |
+| L13 | 監査ログのバケットの中身を消す | ルール D をログのバケットにも当てるか、守りを入れて塞ぐ（6 章） | 塞ぐ か B |
+
+L14（ふつうの削除・上書き）は検知（毎時の報告、柱 4）で扱い、通知の対象にしない。
+
+## 2. 全体の形
+
+```text
+us-west-2（tuscenes-prod）
+  S3 のイベント（9 本とカナリア。EventBridge を有効にする）
+    ルール A: Object Retention Updated・ON でない ──▶ ロググループ ──▶ 警報（1 分に 1 件以上）──┐
+  CloudTrail の管理イベント（組織の証跡が届ける）                                                │
+    ルール B: 12 本とカナリアの設定の変更、ジョブの作成と状態の変更 ─────────────────────────┤
+    ルール C: 通知の部品の変更、original-bucket-audit の証跡の変更 ─────────────────────────┤
+  CloudTrail のデータイベント（original-bucket-audit の証跡が届ける）                            ├─▶ SNS ─▶ メール
+    ルール D: 古い版の削除、拒まれた鍵の操作 ──▶ ロググループ ──▶ 警報 ──────────────────────┤        （Slack は後で）
+  見張り: 毎日カナリアで事象を起こし、届かなければ鳴らす ──────────────────────────────────┤
+                                                                                              │
+us-east-1（tuscenes-prod）                                                                    │
+    ルール E: ジョブのロール・deploy の経路のロールの IAM の変更 ──▶ SNS（us-east-1）─▶ メール ┘
+```
+
+- ルール A と D は件数が跳ねうる（Batch Operations で億の単位）ので、11-04 の下書きのとおり、ロググループに記録して警報でまとめる。B・C・E は件数が少ないので、SNS に直接送る（入力の変換で 1 通にまとめる）。
+- 12 本の対象の一覧は `config.ts` の `ORIGINAL_BUCKET_NAMES` を使う。ルール A の対象は `LOCK_TARGET_BUCKETS`（カナリアと 9 本）。新しい一覧（11-04 の下書きの `ALERT_TARGET_BUCKETS`）は作らない。
+
+## 3. ルール（11-04 の下書きからの差分）
+
+### 3.1 ルール A（ホールドの解除）
+
+下書きの 3.2 のまま。対象は 9 本とカナリア。
+
+- **EventBridge の有効化が要るのは 8 本**（2026-11-17、ReadOnly で `get-bucket-notification-configuration` を見た）。有効なのはカナリア・td1-raw・tuscenes-model だけ。下書きの 3.6 の 3 つ目の問いは、これで答えが出た。
+- 有効にすると、8 本のすべての作成・削除のイベントが default のバスに流れる。それを受ける既存のルールは、止めてある `tuscenes-NewTripEventRule…`（tuscenes-raw の `metadata.json`）だけ（11-17 に S3 のイベントを受けるルールを全部見た）。datalake の `eventBridgeEnabled: false, // cleaning 処理に必要` のコメントは、この PR で経緯の分かる形に直す（第二弾の TODO 25 の残り）。
+- 有効化は、監査のスタックと同じく、バケットを読み込んで `enableEventBridgeNotification()` で足す（Databricks の通知を消さない）。
+
+### 3.2 ルール B（バケットの設定の変更・ジョブ）
+
+下書きの 3.3 に、次を足す。
+
+- **ジョブの作成と状態の変更**（I5、決定済み）: `CreateJob`・`UpdateJobStatus`・`UpdateJobPriority`。`requestParameters.bucketName` が無いので、バケットで絞らず、アカウントのすべてのジョブを拾う（ジョブは少ない）。伊藤が流すジョブも鳴るが、区分 A の「使ったら通知が届く」そのもの。
+- **対象を 12 本とカナリアに、ジョブのレポートの置き場とログのバケットを足す**（L13 と、ジョブの記録を消す道）。
+- `PutBucketObjectLockConfiguration`（既定の保持設定）は 11-04 から入っている。11-13 の 15 日への付け直しのような操作も鳴る。
+
+### 3.3 ルール C（通知の部品の変更）
+
+下書きの 3.4 に、次を足す。
+
+- **original-bucket-audit の証跡の変更**: `StopLogging`・`DeleteTrail`・`PutEventSelectors`・`PutInsightSelectors`・`UpdateTrail`。ルール D はこの証跡のデータイベントに頼るため。
+- **管理イベントの証跡は止められない。** tuscenes-prod で管理イベントを記録しているのは Control Tower の組織の証跡（`aws-controltower-BaselineCloudTrail`、管理アカウント 617808723336 の持ち物）だけで、`original-bucket-audit` はデータイベントだけを記録する（11-17、`get-event-selectors`）。ルール B・C・E が頼るのは組織の証跡で、止められるのは管理アカウントの側（L4・L20）だけ。下書きの 3.6 の 1 つ目の問いは、これで答えが出た（推論。届く経路はカナリアで確かめる）。
+
+### 3.4 ルール D（古い版の削除・拒まれた鍵の操作。新しい案）
+
+11-04 の下書きに無い。L2・L3 の「保護されていない版の削除」と、乗っ取りの下調べに気づくため。
+
+| 拾うもの | 条件 | ねらい |
+|---|---|---|
+| 版を指定した削除 | `DeleteObject` で `requestParameters.versionId` がある（成否を問わない） | 例外の主体が古い版を消した・消そうとした |
+| 拒まれた鍵の操作 | `PutObjectRetention`・`PutObjectLegalHold` で `errorCode` がある | ジョブのロール以外が鍵を触ろうとした |
+| 迂回の試み | `x-amz-bypass-governance-retention` を付けた要求（`requestParameters` の欄はカナリアで確かめる） | `DenyGovernanceBypass` に拒まれた試み |
+
+- 元は `original-bucket-audit` の証跡（12 本とカナリアの書き込み系のデータイベント）。EventBridge に届くかは、カナリアで確かめる（Q11 で確かめたのは管理イベントだけ）。
+- **ジョブの `PutObjectRetention`（成功）は拾わない**（億の単位で出る）。成功した解除はルール A で拾う。
+- `DeleteObjects`（まとめての削除）は、CloudTrail の記録に版の ID が出るかを確かめてから決める。
+- ライフサイクルでの失効は CloudTrail に出ないので、ここでは拾えない（L17。ライフサイクルの変更はルール B で拾う）。
+
+### 3.5 ルール E（IAM の変更。新しい案）
+
+ジョブのロール（L5）と deploy の経路のロール（L8・L9）の変更を拾う。手順 D の SCP で塞ぐまでのあいだの気づきになり、塞いだ後も拒まれた試みを拾える。
+
+- IAM のイベントは **us-east-1 の default のバスにしか届かない**ので、このルールと SNS のトピックだけは us-east-1 に置く（同じアプリの別のスタック）。
+- 拾う操作: `UpdateAssumeRolePolicy`・`PutRolePolicy`・`AttachRolePolicy`・`DetachRolePolicy`・`DeleteRolePolicy`・`DeleteRole`・`CreateRole`（名前で絞る）。対象は `original-bucket-lock-batch`、`cdk-hnb659fds-*`、GitHub Actions の deploy のロール。
+
+## 4. 届け方（2026-11-17、伊藤の方針）
+
+### 4.1 方針
+
+伊藤の方針（2026-11-17）:
+
+- **メールには、注意を要する通知だけを流す。** 宛先は `mlops1@turing-motors.com` が有力。
+- **Slack には、新しいチャンネル `#aws_security_alert` を作り、注意を要する通知と定期的な見張りの情報の両方を流す。** `#aws_cost_monitoring` に倣う。
+- **Slack で注意を要する通知には、メンションを付ける。** `@here` か、個人名・チーム名。
+
+これを、通知を 2 つの重さに分ける形にする。
+
+| 重さ | 中身 | メール（`mlops1@`） | Slack（`#aws_security_alert`） |
+|---|---|---|---|
+| **注意** | ルール A〜E のすべて、警報が鳴ったこと、見張りが届かないこと | 送る | 送る。メンションを付ける |
+| **定期** | 見張りが届いたこと（毎日）。後で、毎時の報告（柱 4）・ジョブの進みなど | 送らない | 送る。メンションを付けない |
+
+- 見張りの「届いた」を毎日 Slack に流すことで、**チャンネルに毎日 1 件が来ないこと自体が、人の目にも異常として見える**（5 章の判定を補う）。
+- ルール B のジョブの作成と状態の変更は、伊藤が流すジョブでも鳴る。件数が少ないので注意のまま送る（区分 A の「使ったら通知が届く」）。うるさければ、ジョブのロールで作ったものだけを定期に下げる。
+
+### 4.2 形
+
+```text
+ルール A〜E・警報・見張り（EventBridge）
+  ├─ 入力の変換（人が読む文）──────────────▶ SNS「注意・メール」──▶ mlops1@
+  └─ 入力の変換（カスタム通知の JSON）────▶ SNS「Slack」──▶ Amazon Q Developer ──▶ #aws_security_alert
+                                                  ▲
+見張りの「届いた」（毎日、定期）──────────────────┘
+```
+
+- **トピックは、メール用と Slack 用に分ける。** Slack 用の SNS には、Amazon Q Developer のカスタム通知の JSON を送る（メンションはこの中に書く）。同じトピックにメールを付けると、メールにその JSON がそのまま届くため。EventBridge のルール 1 つに送り先を 2 つ付け、送り先ごとに入力の変換を変える。
+- **警報（ルール A・D・見張り）も EventBridge を通す。** 警報の SNS への直接の通知は Slack で決まった形になり、メンションを入れられない。警報の状態の変化（`CloudWatch Alarm State Change`）を EventBridge のルールで受け、上と同じく 2 つの送り先に送る。8 章の 6（OK のときに送るか）は、このルールの条件で決まる。
+- メールの 1 通の中身は「いつ・誰が（ARN）・何を（eventName）・どのバケットに・拒まれたか（errorCode）」。警報の通知には、Logs Insights のクエリの例を付ける。
+- ルール E（us-east-1）も、us-east-1 に同じ 2 つのトピックを置く（SNS から Amazon Q Developer へは、同じリージョンでなくてよい）。
+
+### 4.3 メール
+
+- **宛先は `mlops1@turing-motors.com`**（8 章の 1）。
+- **グループのアドレスなので、購読をやめる操作を守る。** SNS のメールには「購読をやめる」のリンクが付き、受け取った人のだれか 1 人が押すと、グループ全体への通知が止まる。購読の確認を `aws sns confirm-subscription --authenticate-on-unsubscribe true` で行い、やめるのに AWS の認証が要る形にする（下書きの 3.5 のまま）。CDK の `EmailSubscription` は確認のメールを送るだけなので、確認は伊藤が CLI で行う手順にする。
+- 長くは頂点の群の外へ移す（requirements.md の 7.5.2 の 7）。`mlops1@` のグループのメンバーを、Workspace の管理者が変えられることは受け入れる（区分の上は L20 の範囲）。
+- **2026-11-17 に ReadOnly で見たところ、tuscenes-prod のコストアノマリーの購読（`mlops-team`、毎日、10% 以上）の宛先は `mlops1@` ではなく、`#aws_cost_monitoring` のチャンネルのメールアドレス（`aws_cost_monitoring-…@turing-motors.slack.com`）だった。** `mlops1@` に届いているのは、別のアカウント（管理アカウントなど）の購読かもしれない。既存の事例として見るときに確かめる。
+
+### 4.4 Slack
+
+- **Amazon Q Developer in chat applications（旧 AWS Chatbot）で送る。** tuscenes-prod では、Slack のワークスペース `Turing`（`T02B2T6EWNL`）がすでに承認済みで（`ENABLED`）、`tuscenes-notification` の設定が `#dev_system_info` に送っている（2026-11-17、ReadOnly）。11-04 の下書きで心配したワークスペースの承認は、もう要らない。新しく要るのは、`#aws_security_alert` のチャンネルの設定 1 つ（CDK の `SlackChannelConfiguration`。チャンネルの ID が要る）と、チャンネルへのアプリの招待。
+- **チャンネルの設定には、通知だけを許す。** この設定のロールとガードレールのポリシーは、Slack からの AWS の操作（コマンド）に効く。通知に権限は要らないので、ロールに何も付けず、ガードレールも空の形（通知だけ）にする。
+- **メンション**: カスタム通知は、Slack のユーザー ID でのメンションに対応している（[custom-notifs](https://docs.aws.amazon.com/chatbot/latest/adminguide/custom-notifs.html)）。`@here`（`<!here>`）やユーザーグループ（`<!subteam^…>`）が効くかは文書に無い。チャンネルを作ったら、カナリアで 3 つを試して決める（7 章）。試す前の推奨は、**ユーザーグループか個人**（`@here` は、そのときにアクティブな人にしか届かない）。
+- **チャンネルの公開・非公開**は 8 章の 7。
+- **Slack の経路を外す操作もルール C で拾う。** チャンネルの設定の削除・変更（`chatbot.amazonaws.com` の `DeleteSlackChannelConfiguration`・`UpdateSlackChannelConfiguration`）と、Slack 用のトピックの購読の削除。どのリージョンの EventBridge に届くかは確かめる（7 章）。メールは Slack とは別の経路なので、片方を外されても、もう片方で気づける。
+
+## 5. 見張り（L12）
+
+ルール C は「通知の部品を外す操作」を拾うが、最後の 1 つ（SNS のトピックの削除など）を外す操作は届かない。また、ルールの条件の書き換えで、特定のイベントだけを落とされても気づけない。そこで、**本物と同じ経路を通る事象を毎日起こし、届かなければ鳴らす**。
+
+- **起こす事象**: カナリアで、ルール A・B・D のそれぞれに当たる操作を 1 日 1 回。例: カナリアの見張り用の版のホールドを外して付け直す（A）、カナリアのバケットのタグの付け直しのような無害な設定の変更（B。ルール B の eventName に足す）、カナリアの見張り用の版の削除を試みて拒まれる（D）。起こす主体は、EventBridge Scheduler と小さい Lambda（カナリアにだけ届く権限）。
+- **届いたかの判定**は、2 案。
+  - (a) 同じアカウントの警報: 見張りの事象がルールに当たった件数（`MatchedEvents`）が 26 時間 0 件なら鳴らす（欠けたデータを「超えた」とみなす）。作るのは簡単。ただし、アカウントの中で外せる主体は、警報も外せる（ルール C が拾う）。
+  - (b) 別のアカウントで判定する: 見張りの事象を Control Tower の監査用のアカウントなどのバスに送り、そちらで (a) と同じ警報を持つ。tuscenes-prod の中から外せない。管理アカウント側の作業と CorpIT の了承が要る。
+  - 推奨: **まず (a) を通知の PR に入れ、(b) は project:privileged-access と合わせて後で検討する**。(a) でも、うっかり壊したとき・ルールの条件を間違えたときには気づける。
+
+## 6. ログのバケット（L13）
+
+監査ログのバケット（`original-bucket-audit-logs-*`）は、古い版を 1 日で消す設定（`noncurrentVersionExpiration: 1 日`）で、ふつうの削除の権限があれば中身を実質消せる（W11）。
+
+- 案 1（塞ぐ）: 原本バケットと同じ守りのバケットポリシー（`packages/original-bucket-guard`）を当て、古い版の期限を延ばす（例 30 日）。通知の PR に入れられる。費用は古い版の保存の分（トレイルのファイルは 1 日に数十 GB。期限を延ばすと、上書き・削除の分だけ増える。実際は上書きしないので、ほぼ増えない見込み）。
+- 案 2（B にする）: ルール B・D の対象にログのバケットを足すだけ。
+- 推奨: **案 1 と案 2 の両方**（塞いだうえで、設定の変更も通知する）。
+
+## 7. 確かめること（PR の後、カナリアで）
+
+- [ ] 8 本の EventBridge の有効化の後、ルール A が解除（`OFF`）だけを拾い、`ON` を拾わない（ジョブを流しても鳴らない）。
+- [ ] ルール B の実際の eventName（`PutBucketLifecycle` か `PutBucketLifecycleConfiguration` か など）。カナリアで 1 回ずつ鳴らす。
+- [ ] ジョブの作成と状態の変更が、`AWS API Call via CloudTrail` として届く（eventSource が `s3.amazonaws.com` か）。
+- [ ] ルール D のデータイベントが EventBridge に届く。`DeleteObjects` の記録に版の ID が出るか。迂回の要求の欄。
+- [ ] ルール E が us-east-1 で届く。
+- [ ] 警報の `MatchedEvents` が、送り先がロググループのときに出る（下書きの 3.6 の 2 つ目）。
+- [ ] 見張りが 26 時間止まると鳴る。
+- [ ] Slack のメンション: ユーザー ID・`<!here>`・ユーザーグループ（`<!subteam^…>`）のどれが効くか。
+- [ ] Amazon Q Developer の設定の変更が、どのリージョンの EventBridge に届くか（ルール C）。
+- [ ] `--authenticate-on-unsubscribe true` で確認したメールの購読が、メールのリンクから外せないこと。
+
+## 8. 決めること
+
+| # | 決めること | 推奨 |
+|---|---|---|
+| 1 | 通知の受け手（アクション 4-5） | 方針は 4 章（11-17、伊藤）。メールは `mlops1@turing-motors.com`、Slack は `#aws_security_alert`（新設）。残るのは、メンションの相手（4.4）と、`mlops1@` のメンバーの確認 |
+| 2 | ルール D（古い版の削除・拒まれた鍵の操作）を入れるか | 入れる。L2・L3 の「消した」に気づける唯一の通知 |
+| 3 | ルール E（IAM の変更、us-east-1）を入れるか | 入れる。手順 D の SCP より前に入るので、塞ぐまでの気づきになる |
+| 4 | 見張りの判定を (a) 同じアカウントで始めるか | (a) で始め、(b) は後で検討 |
+| 5 | ログのバケットを通知の PR で塞ぐか（L13） | 塞ぐ（案 1）うえで通知もする（案 2） |
+| 6 | 警報が戻ったとき（OK）にも送るか（I5 の未決） | 送らない。戻ったことは、受け手がロググループで確かめる |
+| 7 | `#aws_security_alert` を公開にするか、非公開にするか | 非公開。だれが見ているかを決めて把握でき、ARN などの中身を必要な人に限れる。Amazon Q Developer は、招待すれば非公開のチャンネルにも送れる |
+| 8 | Slack で注意の通知にメンションする相手 | ユーザーグループ（例: MLOps 1 チーム）か個人。`@here` は試してから |
+
+## 9. 次
+
+8 章が決まったら、cdk-apps の PR を起草する（アクション 4-9。エージェントが起草、伊藤が PR を作る）。PR に一緒に入れるもの: レポートの置き場をトレイルの対象に足す（[cdk-apps#2500](https://github.com/turingmotors/cdk-apps/pull/2500) のレビュー）、original-bucket-audit のテストを CI で走らせる workflow、datalake の `eventBridgeEnabled: false` のコメントの直し。

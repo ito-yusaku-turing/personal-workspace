@@ -46,6 +46,7 @@ tuscenes-prod（767397804933）の S3 原本バケットを、消失や破壊か
   - `workstream/s3-data-protection-2/stage2-verify/cdk/cdk.out/`: ステージ 2 の検証用スタック（`S2vProbeStack`）の合成結果。CDK のソースは移す前から残っていない
 - [workstream/s3-data-protection-3.md](./workstream/s3-data-protection-3.md): **S3 バケットのデータ保護 第三弾（抜け穴の把握と塞ぎ・監視）**。残った抜け穴を区分 A（意図して残す）・B（監視する）・C（監視されていない）に分け、通知・手順 D・掃除・検知で C を減らす（2026-11-16 起票）
   - [workstream/s3-data-protection-3/loophole-ledger.md](./workstream/s3-data-protection-3/loophole-ledger.md): **抜け穴の台帳**（2026-11-16、案）。L1〜L21 の今の区分と第三弾の後の目標、手当て、決めること
+  - [workstream/s3-data-protection-3/notification-design.md](./workstream/s3-data-protection-3/notification-design.md): **通知の設計**（2026-11-17、案）。柱 1。ルール A〜E・見張り・ログのバケットの守りと台帳への当てはめ、11-04 の下書きからの差分、決めること
 - [workstream/tuscenes-stack-cleanup.md](./workstream/tuscenes-stack-cleanup.md): **古いスタック tuscenes を片付ける**。アーカイブ済みの tuscenes-pipeline が残したスタック（ルール・Lambda・IAM ユーザー・バケット 5 本）。第二弾の TODO 23 の調査で見つかった。積んでいる
 - [workstream/aws-root-credentials.md](./workstream/aws-root-credentials.md): **メンバーアカウントの root の認証情報を消す**。tuscenes-prod の root（パスワード有効・MFA なし）の削除を CorpIT に依頼する
 

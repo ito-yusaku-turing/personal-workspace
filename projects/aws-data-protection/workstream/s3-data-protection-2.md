@@ -942,5 +942,6 @@
 - 2026-11-17 01:04Z: **tuscenes-raw と tuscenes-annotation の verify が済んだ**（伊藤）。どちらも失敗 0・失敗の内訳は空・見本 20 件とも `GOVERNANCE ON 15`。00:56Z の td1-raw は 364,518,325 / 386,847,623 件（94%）、失敗 0。速さは約 2,000 件/秒に落ちていて、04:00Z ごろに終わる見込み。
 - 2026-11-17 の引き継ぎ:
   1. **td1-raw の verify（伊藤）**: `EXPECT=348160919:387500000 bash worm-stage.sh apply td1-raw-767397804933`（`Active` のうちに打てば、終わるまで待って verify する）。出力をエージェントが読み、表を埋めて、第二弾を `done/` へ移す。
-  2. tuscenes-annotation の毎晩の処理（11-16 18〜22Z）の書き込みに拒否が無いかを、トレイルで見る（11-16 の引き継ぎの 6。まだ見ていない）。
+  2. ~~tuscenes-annotation の毎晩の処理の書き込みに拒否が無いかを、トレイルで見る~~ → 済み（下の 11-17 の記録）。
   3. そのほかは 11-16 の引き継ぎの 4・5・7 のまま。
+- 2026-11-17: **tuscenes-annotation の毎晩の処理（11-16 17:00〜22:59Z）の書き込みに、拒否は無かった**（エージェント、ReadOnly。トレイル約 26 GB を流し読み）。書き込みは 59,829 件（PutObject 58,777・マルチパート 189 本）で、`AccessDenied` は 0 件。エラーは `InternalError`（S3 の一時的なエラー）の 2 件だけで、17:00:34Z の 1 件は 1 秒後に同じキーへの書き込みが通った。20:28:14Z の 1 件（LocalizationNightly の Boto3）はキーが長く、抽出で切ったため同じキーの再試行を突き合わせられていない（Boto3 は 500 を既定でやり直す）。書き手は LocalizationNightly（Boto3 1.43・aws-sdk-js 3.1104）と PerceptionDetection（aws-cli 2.39.4・aws-sdk-js 3.1104）。夜に書かれた版を見本 3 件で見て、`GOVERNANCE ON 15`。
