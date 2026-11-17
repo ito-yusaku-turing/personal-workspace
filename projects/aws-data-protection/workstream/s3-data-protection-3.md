@@ -110,6 +110,8 @@
 - 2026-11-17（午後）: Slack は Amazon Q Developer で送ると決めた（伊藤。メンションが効かなければ替える）。メールは今回のスコープから外す。通知は 2 段に分け、1 段目（Slack への経路・カナリアだけのルール B）を cdk-apps のブランチ `original-bucket-audit-slack` に起草した（`0cce70ea`、[cdk-apps#2614](https://github.com/turingmotors/cdk-apps/pull/2614)）。
   - 次: 伊藤が `#aws_security_alert` を作り、チャンネルと `@mlops1` の ID を `lib/config.ts` に入れて PR にする。deploy の後に試すことは設計の 9.1。
 - 2026-11-17 05:54Z: **第二弾の td1-raw の verify が済み、第二弾を閉じた**（9 本すべてのホールドが verify 済み）。`done/` に移し、リンクを直した。
+- 2026-11-17（夕方）: [cdk-apps#2614](https://github.com/turingmotors/cdk-apps/pull/2614) の本文の冒頭を直した（WORM 化の続きで、監視の Slack への通知の最初の例。監視ごとにスタックを分ける想定）。「認証情報を持たない」を「秘密を持たない・投稿は AWS の API と IAM を通る」に直し、FullAccess も今は投稿できることを書いた（本文と、コードの説明の commit `1db934be`）。新しい論点: Slack の設定を作れる主体の絞り込み（手順 D）。
+  - 次: 別のセッションで PR のレビューをかける（伊藤）。
 
 ## 関連リンク
 
