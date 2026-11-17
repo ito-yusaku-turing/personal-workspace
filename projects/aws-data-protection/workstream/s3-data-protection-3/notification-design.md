@@ -149,6 +149,37 @@ us-east-1（tuscenes-prod）                                                    
 - **チャンネルは公開**（2026-11-17、伊藤の案）。エンジニアならだれでも見られるようにする。通知には主体の ARN・バケット・キーが載るが、社内の公開のチャンネルに載せてよい範囲とみる（認証情報は載らない）。
 - **Slack の経路を外す操作もルール C で拾う。** チャンネルの設定の削除・変更（`chatbot.amazonaws.com` の `DeleteSlackChannelConfiguration`・`UpdateSlackChannelConfiguration`）と、Slack 用のトピックの購読の削除。どのリージョンの EventBridge に届くかは確かめる（7 章）。メールは Slack とは別の経路なので、片方を外されても、もう片方で気づける。
 
+### 4.5 社内の慣例（2026-11-17 に調べた）
+
+メールと Slack に送る仕組みが、今どうなっているか。AWS は tuscenes-prod を ReadOnly で、コードは cdk-apps・mono-turing-infra・databricks-jobs・mono-e2e・identity を読んだ。
+
+**メール**
+
+| 仕組み | どこで | 宛先 |
+|---|---|---|
+| Cost Anomaly Detection の購読（AWS のサービスが自分で送る） | 管理アカウント（210332786925） | `mlops@`（Google グループ `mlops1@` を通る） |
+| 同上 | tuscenes-prod（`mlops-team`） | `#aws_cost_monitoring` のチャンネルのメールアドレス |
+| SNS のメールの購読 | tuscenes-prod（us-west-2・us-east-1・ap-northeast-1） | **0 件**。SNS の購読は SQS（Databricks の auto-ingest など）と Lambda だけ |
+
+cdk-apps にも、SNS のメールの購読（`EmailSubscription`）を作るコードは無い。**SNS からグループのアドレスにメールを送るのは、社内では初めて**になる。
+
+**Slack**
+
+| 仕組み | 使っているところ | 認証情報 |
+|---|---|---|
+| **Lambda から `chat.postMessage`（Slack のアプリの bot token）** | cdk-apps の多く（cache-builder・feature-cache-builder・garuda の自動削除と警報・tesla-fleet-client・tern-api・skypilot・scenario-test・closed-loop・train3dgs・azure-data-sync など）。SNS（警報）か EventBridge から Lambda を起こす | Secrets Manager（`<アプリ>/slack-bot-token` など 12 件）か SSM の SecureString。アプリごとに専用の Slack のアプリを作る例が増えている（Garuda Auto Delete・Train3DGS Notifier）。azure-data-sync は model-converter の token を借りている |
+| Incoming Webhook | databricks-jobs の `cost_monitoring`（`#aws_cost_monitoring` の毎日のコストの報告）、video-training-converter、mono-turing-infra の alertmanager（`#gc1-alerts`） | Secrets Manager・ExternalSecret。**databricks-jobs は webhook の URL をコードに直書きしている**（下の注） |
+| Amazon Q Developer（旧 AWS Chatbot） | `tuscenes-notification` → `#dev_system_info` の 1 件だけ。CDK の外で作ったもの（ロールが `service-role/aws-chatbot-role`） | 認証情報なし。ガードレールは `ReadOnlyAccess` と `AWSLambdaInvocation` で、チャンネルから AWS の読み取りと Lambda の起動ができる |
+| メンション | tesla-fleet-client は、決めた警報が `ALARM` になったときだけ `@channel` を付ける。cache-builder は依頼した人を Slack のユーザーに引いてメンションする | — |
+
+**この設計への示唆**
+
+- **Slack の慣例は「Lambda ＋ bot token」**。メンション（`<!subteam^…>`）は `chat.postMessage` なら Slack の仕様どおりに効き、文面も自由に作れる。一方で、bot token を読める主体（Secrets Manager の読み取りを持つ FullAccess など）は、偽の通知を流せ、token を消せば Slack を黙らせられる。Lambda と秘密もルール C の対象に足す必要がある。11-04 の下書きは、外せる主体を減らすために「Lambda と Secrets Manager の鍵は使わない」とした。
+- **Amazon Q Developer は、認証情報を持たず部品が少ない**が、社内の例は 1 件だけで、メンションのユーザーグループへの対応が分からない（4.4）。
+- どちらにするかは 8 章の 9。
+
+**注（別件）: databricks-jobs の `cost_monitoring/aws-cost-monitoring.py` に、Slack の Incoming Webhook の URL が直書きされ、git の履歴に残っている**（2025-05-07 から）。URL を知っていればだれでも、そのチャンネルに投稿できる。webhook の作り直しと、秘密の置き場（Databricks の secret scope など）への移し替えを、持ち主（安本さん）に伝える。
+
 ## 5. 見張り（L12）
 
 **2026-11-17、伊藤の判断で見送った（今回は過剰なケア）。** ルール C で、通知の部品を外す操作の多くは拾える。残るのは、最後の 1 つ（SNS のトピックの削除など）を外す操作と、ルールの条件の書き換えで特定のイベントだけを落とされる場合で、L12 のこの部分は区分 C に残る。
@@ -189,6 +220,7 @@ us-east-1（tuscenes-prod）                                                    
 | 6 | ~~警報が戻ったとき（OK）にも送るか（I5 の未決）~~ | → **送らない**（11-17、伊藤） |
 | 7 | ~~`#aws_security_alert` を公開にするか、非公開にするか~~ | → **公開**（11-17、伊藤の案。エンジニアならだれでも見られる） |
 | 8 | ~~Slack で注意の通知にメンションする相手~~ | → **`@mlops1`**（11-17、伊藤の案。効くかはカナリアで試す） |
+| 9 | Slack に送る仕組み: Amazon Q Developer か、Lambda ＋ bot token（社内の慣例）か | 4.5 を見て決める |
 
 ## 9. 次
 
