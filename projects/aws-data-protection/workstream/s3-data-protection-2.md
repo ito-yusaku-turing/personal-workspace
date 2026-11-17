@@ -1,7 +1,7 @@
 # S3 バケットのデータ保護 第二弾（権限設計のアップグレード）
 
 - 開始: 2026-10-20
-- 状態: **9 本すべてに Object Lock と既定の保持設定（15 日）を入れた**（2026-11-16。最後は tuscenes-annotation（D36））。既存の版のホールドは 6 本が済み（denso-taxi の 2 本は 11-16 に verify）、tuscenes-raw はジョブが流れている（11-16 の 15:30Z ごろに終わる見込み）。td1-raw と tuscenes-annotation もジョブを流している（11-16 08:50Z・08:59Z〜。td1-raw は 20:40Z ごろに終わる見込み）。手順と結果は [stage1-runbook.md](s3-data-protection-2/stage1-runbook.md) と [worm-rollout-stages.md](s3-data-protection-2/worm-rollout-stages.md) の「段階 3・4 の結果」。全体のアクションは [worm-action-list.md](s3-data-protection-2/worm-action-list.md)。権限の頂点の問題は別の案件（project:privileged-access）
+- 状態: **9 本すべてに Object Lock と既定の保持設定（15 日）を入れ、既存の版のホールドのジョブは 8 本が失敗 0 で済んだ**（2026-11-17 00:30Z）。残る td1-raw は 93% で流れている（11-17 03:00Z ごろの見込み）。tuscenes-raw・tuscenes-annotation・td1-raw の verify（伊藤）が済めば第二弾を閉じる。手順と結果は [stage1-runbook.md](s3-data-protection-2/stage1-runbook.md) と [worm-rollout-stages.md](s3-data-protection-2/worm-rollout-stages.md) の「段階 3・4 の結果」。全体のアクションは [worm-action-list.md](s3-data-protection-2/worm-action-list.md)。権限の頂点の問題は別の案件（project:privileged-access）
 - 所属: project:aws-data-protection（2026-10-26 に `~/docs/workstream/` から移した）
 - 前段（第一弾、完了）:
   - [走行データ消失リスクへの対応](done/raw-data-security.md)（バケットの種別と処遇、裁定の正本）
@@ -938,3 +938,8 @@
   - **9 本すべてのホールドの verify が済んだら、第二弾を閉じる**（`done/` に移す）。残りの作業（Notion への反映・関係者へのお知らせ・e2e-dev の後始末・11-28 のカナリアの確かめなど）は、第三弾の「第二弾から引き継いだもの」で進める。
   - 導入の第 3 段階（通知・手順 D）と、掃除（TODO 12〜16）・検知（ステージ 2 の毎時の報告）は第三弾で行う: [s3-data-protection-3.md](s3-data-protection-3.md)。残った抜け穴は台帳（[loophole-ledger.md](s3-data-protection-3/loophole-ledger.md)）で区分 A・B・C に分ける。
   - 07:32Z の時点のジョブ（ReadOnly）: tuscenes-raw は約 4,200 件/秒で 15:10〜15:30Z ごろ、td1-raw は 20:40Z ごろに終わる見込み。再開の `apply` にも `EXPECT` が要る（上の引き継ぎの 2）。
+- 2026-11-17 00:30Z: **ジョブの状態を ReadOnly で確かめた（エージェント）**。tuscenes-raw（205,501,508 件、11-16 20:02Z に済み）と tuscenes-annotation（18,007,627 件、11-16 13:08Z に済み）は `Complete`・失敗 0。td1-raw は `Active` で 361,401,972 / 386,847,623 件（93.4%）・失敗 0。直近の速さが約 2,900 件/秒に落ちていて、03:00Z ごろに終わる見込み（11-16 の 20:40Z の見込みより遅い）。9 本とも、バージョニング `Enabled`・既定の保持設定 `GOVERNANCE`・15 日で、各バケットの先頭 3 件の最新の版が `GOVERNANCE ON 15`。表は worm-rollout-stages.md の「段階 3・4 の結果」。
+- 2026-11-17 の引き継ぎ:
+  1. **verify（伊藤）**: tuscenes-raw（`EXPECT=184972196:207579909`）と tuscenes-annotation（`EXPECT=16200000:18500000`）はいつでも打てる。td1-raw（`EXPECT=348160919:387500000`）はジョブが済んでから。出力をエージェントが読み、表を埋める。3 本が済んだら第二弾を `done/` へ移す。
+  2. tuscenes-annotation の毎晩の処理（11-16 18〜22Z）の書き込みに拒否が無いかを、トレイルで見る（11-16 の引き継ぎの 6。まだ見ていない）。
+  3. そのほかは 11-16 の引き継ぎの 4・5・7 のまま。
