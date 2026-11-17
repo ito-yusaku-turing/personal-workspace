@@ -103,7 +103,7 @@ us-east-1（tuscenes-prod）                                                    
 伊藤の方針（2026-11-17）:
 
 - **メールには、注意を要する通知だけを流す。** 宛先は `mlops@turing-motors.com`（コストアノマリーに揃える。Google グループ `mlops1@` を通って配られる）。
-- **Slack には、新しいチャンネル `#aws_security_alert` を作り、注意を要する通知と定期的な見張りの情報の両方を流す。** `#aws_cost_monitoring` に倣う。
+- **Slack には、新しいチャンネル `#aws_security_alert` を作り、注意を要する通知と定期的なモニタリングの情報の両方を流す。** `#aws_cost_monitoring` に倣う。
 - **Slack で注意を要する通知には、メンションを付ける。** 相手は Slack のユーザーグループ `@mlops1`。
 - **`#aws_security_alert` は公開のチャンネルにする。** エンジニアならだれでも見られるようにする。
 - **どれも伊藤の個人の案で、チームの合意はまだ。** 仕様が固まったら、チームに共有して合意を取る。
@@ -120,7 +120,7 @@ us-east-1（tuscenes-prod）                                                    
 ### 4.2 形
 
 ```text
-ルール A〜E・警報・見張り（EventBridge）
+ルール A〜E・警報（EventBridge）
   ├─ 入力の変換（人が読む文）──────────────▶ SNS「注意・メール」──▶ mlops@（→ Google グループ mlops1@）
   └─ 入力の変換（カスタム通知の JSON）────▶ SNS「Slack」──▶ Amazon Q Developer ──▶ #aws_security_alert
 ```
