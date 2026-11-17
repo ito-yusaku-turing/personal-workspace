@@ -234,7 +234,7 @@ cdk-apps にも、SNS のメールの購読（`EmailSubscription`）を作るコ
 ### 9.1 1 段目: Slack への経路をカナリアで試す（2026-11-17、伊藤の決定）
 
 - **2 段に分ける。** 1 段目は Slack 用の SNS・Amazon Q Developer の設定・カナリアだけのルール B。メンションと届き方を確かめ、結果を仕様に入れてチームの合意を取る。2 段目でルール A〜E を全バケットに広げる。**メールは今回のスコープから外す**。
-- 起草: cdk-apps のブランチ `original-bucket-audit-slack`（commit `b05ef98a`。worktree は scratchpad の `cdk-slack`、まだ push していない）。スタック `OriginalBucketNotify`（`lib/notify-stack.ts`）。
+- 起草: cdk-apps のブランチ `original-bucket-audit-slack`（commit `b05ef98a`。`/usr/app/cdk-apps` でチェックアウトしている。まだ push していない）。スタック `OriginalBucketNotify`（`lib/notify-stack.ts`）。
   - チャンネルの設定は、ガードレールを省くと `AdministratorAccess` が既定で付く（aws-cdk-lib の `SlackChannelConfiguration` の既定）。すべてを拒むガードレールを付け、ロールには何も付けない。
   - トピックは、ほかのアカウントからの発行を拒む（CDK がルールの送り先に付ける許可は条件なしのため）。
   - **直したこと**: Amazon Q Developer でも、トピックに `sns:Publish` できる主体は偽の通知を流せる。bot token と違い、トピックのポリシーで「このスタックのルールからだけ」に絞れる。1 段目は手でメンションを試すために絞らず、2 段目で絞る。
