@@ -266,4 +266,5 @@ cdk-apps にも、SNS のメールの購読（`EmailSubscription`）を作るコ
 
   3. カナリアで、ルール B を鳴らす。`aws s3api put-bucket-versioning --bucket original-bucket-canary-767397804933 --versioning-configuration Status=Enabled`（もう有効なので、何も変わらない）。通知が来るか、`errorCode` が無いときに「拒否」の欄がどう出るか、を見る。
   4. チャンネルの設定の作成（`CreateSlackChannelConfiguration`）が、どのリージョンの CloudTrail に出たか（ルール C の置き場所。7 章）。
+  5. 3 で通知が届かなかったら: ルールの `FailedInvocations` のメトリクスと、トピックのポリシーで拒まれていないかを見る。トピックのポリシーは、送り元の ARN（`aws:SourceArn`）がこのルールでない発行を拒む（無いときも拒む）。EventBridge が SNS への発行にこのキーを付けない場合、自分のルールの通知まで落ちる（付くはずだが未確認。DLQ はまだ無いので、落ちても黙って途切れる）。[cdk-apps#2614](https://github.com/turingmotors/cdk-apps/pull/2614) の再レビューの注意。
 - 結果で決めること: メンションの書き方（効かなければ、メンバーのユーザー ID を並べる形か、Lambda と bot token か）。
