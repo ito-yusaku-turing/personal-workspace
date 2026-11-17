@@ -57,7 +57,7 @@ tuscenes-prod（767397804933、us-west-2）に、CloudFormation のスタック 
 
 ### SNS
 
-- `tuscenes-TopicBFC7AF6E-zRkyCVGXCdFs`。購読は AWS Chatbot（https）だけ。Chatbot がどの Slack のチャンネルにつながっているかは確かめていない。
+- `tuscenes-TopicBFC7AF6E-zRkyCVGXCdFs`。購読は AWS Chatbot（https）だけ。つなぎ先は下の「スタックの外にあって、関係するもの」の Amazon Q Developer（旧 AWS Chatbot）の設定 `tuscenes-notification`（us-west-2）（2026-11-17 に分かった）。直近 90 日の発行は 0 件（2026-11-17）。
 
 ### S3 バケット（5 本。どれも `DeletionPolicy: Retain`）
 
@@ -77,7 +77,7 @@ tuscenes-prod（767397804933、us-west-2）に、CloudFormation のスタック 
 - **tuscenes-tmp の S3 の通知（2026-10-28 に棚卸しで分かった）**: `2.1/` の下の `.json`・`.csv` の作成（`s3:ObjectCreated:*`、Id `1`・`2`）で、このスタックの `tuscenes-CleaningJob-Function` を起動する。どのスタックも持っていない（バケットは cdk-apps の Datalake が持つが、通知は持たない）。手で付けたか、昔のスタックの名残とみられる。Lambda の呼び出しは直近 90 日で 0 回なので、今は誰もそこに書いていない。ただし tuscenes-tmp は Databricks から今も読まれている（外部ロケーションのロールの最終利用 2026-10-27）ので、**`2.1/` に書けば cleaning の job（SageMaker）が動く状態**にある。出典: [AWS リソースの棚卸し](../../information-resource-inventory/workstream/aws-resource-inventory/cleanup-candidates.md) の C1-1。
 - スタック `tuscenes-cicd`（ロール `tuscenes-cicd-GithubActionsRole…`）: `tuscenes-*`・`alphaspp-*` の GitHub Actions 用。最後の利用は 2026-03-27 の [turingmotors/tuscenes-processor](https://github.com/turingmotors/tuscenes-processor) の CI（main への push。ECR への push とシークレットの読み取り）で、このリポジトリもアーカイブ済み。このスタックとは別に片付けられる。出典は同じく棚卸しの S10。
 - 前身のバケット `alphaspp-raw`・`alphaspp-data`（スタック `alphaspp-pipeline` は削除済み）。
-- AWS Chatbot の設定（SNS の購読先）。
+- **Amazon Q Developer（旧 AWS Chatbot）の設定 `tuscenes-notification`（us-west-2）**（2026-11-17、ReadOnly）: SNS の購読先。`#dev_system_info` に送る設定で、**チャンネルはアーカイブ済み、最後の通知は 2025-04-09**（伊藤が Slack で確かめた）。状態は `ENABLED` のまま。購読するトピックは、このスタックの `tuscenes-TopicBFC7AF6E-…` と、もう消えた `tuScenesEvents-TopicBFC7AF6E-5cFxqTBqdiEF` の 2 本。CDK の外で作ったもの（ロール `service-role/aws-chatbot-role`）で、ガードレールは `ReadOnlyAccess` と `AWSLambdaInvocation`。チャンネルがアーカイブから戻されると、そこから AWS の読み取りと Lambda の起動ができる。**残骸なので、片付けの対象にする**（2026-11-17 伊藤）。スタックを消しても、この設定とロール `aws-chatbot-role`・ポリシー `AWSLambdaInvocation` は残るので、別に消す（ほかの設定から使われていないことを確かめてから。2026-11-17 時点で、このアカウントの Slack の設定はこの 1 件と、通知の 1 段目で足す `original-bucket-alert`）。Slack のワークスペースの承認は、`original-bucket-alert` が使うので消さない。
 
 ## 注意（片付け方に効くこと）
 
@@ -99,7 +99,7 @@ tuscenes-prod（767397804933、us-west-2）に、CloudFormation のスタック 
   - [ ] tuscenes-basicai-datasets の中身と持ち主。残すか（原本として守るか）
   - [ ] tuscenes-ingest・tuscenes-basicai-results・tuscenes-cleaned を残すか
   - [ ] `tuscenes-IssueRegister-Function` の中身と、td1-raw からの起動の許可の経緯
-  - [ ] AWS Chatbot のつなぎ先（Slack のチャンネル）
+  - [x] AWS Chatbot のつなぎ先（Slack のチャンネル）→ `#dev_system_info`（アーカイブ済み）。設定も片付ける（2026-11-17）
   - [ ] tuscenes-cleaned に Databricks の通知が付いていないこと
   - [ ] tuscenes-tmp の通知（`2.1/` → `tuscenes-CleaningJob-Function`）の出どころ。外してよいか
 - [ ] 片付けの手順書を書く（スタックの削除。バケットは残る。削除の前後の確認と、戻せないことの明記）
@@ -108,6 +108,7 @@ tuscenes-prod（767397804933、us-west-2）に、CloudFormation のスタック 
 
 ## 次セッションへの引き継ぎ
 
+- 2026-11-17: 通知の設計（[s3-data-protection-3](s3-data-protection-3/notification-design.md)）の調べで、SNS の購読先の Amazon Q Developer の設定 `tuscenes-notification` が、アーカイブ済みの `#dev_system_info` を指す残骸だと分かった。片付けの対象に足した（「スタックの外にあって、関係するもの」）。
 - 2026-10-28: AWS リソースの棚卸しで、tuscenes-tmp の通知が `tuscenes-CleaningJob-Function` を起動する形で残っていると分かった（「スタックの外にあって、関係するもの」と「注意」に追記）。
 - 起票しただけで、何も変えていない。調べた数字は 2026-10-27 時点。着手するときは、数字（呼び出し数・最終利用・オブジェクト数）を取り直す。
 - 調べるのは ReadOnly（`--profile readonly`）で。書き込みは伊藤が Full 権限で行う。

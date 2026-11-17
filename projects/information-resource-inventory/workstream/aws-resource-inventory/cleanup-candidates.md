@@ -168,6 +168,7 @@ AWS アカウント tuscenes-prod（767397804933）の棚卸しの結果。伊�
 - KMS: カスタマー管理のキーは 3 本。**us-west-2 の `alias/turing/ssm`（2024-04）・`alias/ssm`（2024-06）は、直近 90 日の CloudTrail にイベントが 1 件も無い**（片付けの候補。消すには 7〜30 日の待ち期間を置く。先に無効化して様子を見るのが安全）。ap-northeast-1 の `alias/ssm` は使われている（2026-10-27 に Decrypt など）。
 - CloudFront: 5 本とも使われている。Route 53 は `apps.turing-ai.dev` の 1 ゾーン。ACM の証明書は全部使用中。
 - IAM の OIDC プロバイダー 4 つは、どれも信頼するロールがある。
+- **（2026-11-17 に追記）Amazon Q Developer（旧 AWS Chatbot）の設定 `tuscenes-notification`（us-west-2）**: アーカイブ済みの Slack の `#dev_system_info` を指す残骸（最後の通知は 2025-04-09）。ガードレールは `ReadOnlyAccess` と `AWSLambdaInvocation`。スタック `tuscenes` の SNS が購読先。片付けは [tuscenes-stack-cleanup.md](../../../aws-data-protection/workstream/tuscenes-stack-cleanup.md) で一緒に行う。
 
 ## 4. 優先度 A（費用のかかるもの）
 
