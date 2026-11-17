@@ -137,7 +137,11 @@ us-east-1（tuscenes-prod）                                                    
 - **宛先は `mlops1@turing-motors.com`**（8 章の 1）。
 - **グループのアドレスなので、購読をやめる操作を守る。** SNS のメールには「購読をやめる」のリンクが付き、受け取った人のだれか 1 人が押すと、グループ全体への通知が止まる。購読の確認を `aws sns confirm-subscription --authenticate-on-unsubscribe true` で行い、やめるのに AWS の認証が要る形にする（下書きの 3.5 のまま）。CDK の `EmailSubscription` は確認のメールを送るだけなので、確認は伊藤が CLI で行う手順にする。
 - 長くは頂点の群の外へ移す（requirements.md の 7.5.2 の 7）。`mlops1@` のグループのメンバーを、Workspace の管理者が変えられることは受け入れる（区分の上は L20 の範囲）。
-- **2026-11-17 に ReadOnly で見たところ、tuscenes-prod のコストアノマリーの購読（`mlops-team`、毎日、10% 以上）の宛先は `mlops1@` ではなく、`#aws_cost_monitoring` のチャンネルのメールアドレス（`aws_cost_monitoring-…@turing-motors.slack.com`）だった。** `mlops1@` に届いているのは、別のアカウント（管理アカウントなど）の購読かもしれない。既存の事例として見るときに確かめる。
+- **既存の事例（コストアノマリー）**: tuscenes-prod の購読（`mlops-team`）の宛先は `#aws_cost_monitoring` のチャンネルのメールアドレスだった（2026-11-17、ReadOnly）。`mlops1@` に届いているのは、**管理アカウント `aws+management`（210332786925）の購読**（伊藤が受け取ったメールのヘッダで確かめた）。宛先（`To:`）は `mlops@turing-motors.com` で、Google グループ `mlops1@`（MLOps 1 Team）を通って配られている（`mlops@` はこのグループの別名か、このグループを含むグループとみる。推定）。
+- **Google グループで受けるときの注意**:
+  - 外の送り手（AWS）からの投稿を、グループが受け付けている（コストアノマリーが届いている）。SNS の送り手（`no-reply@sns.amazonaws.com`）も同じ設定で届く見込み。購読の確認のメールが届くかで確かめる。
+  - **迷惑メールとして保留される**ことがある（ヘッダに `X-Spam-Checked-In-Group`）。保留されると、だれにも届かない。グループの設定で、保留せずに配る形になっているかを、グループの管理者（`mlops1+owners@`）に確かめる。
+  - グループの記録（`List-Archive`）に、通知が残る。メンバーが後から見られる。
 
 ### 4.4 Slack
 
