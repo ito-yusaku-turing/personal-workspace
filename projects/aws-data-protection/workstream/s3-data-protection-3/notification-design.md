@@ -145,7 +145,12 @@ us-east-1（tuscenes-prod）                                                    
 
 - **Amazon Q Developer in chat applications（旧 AWS Chatbot）で送る。** tuscenes-prod では、Slack のワークスペース `Turing`（`T02B2T6EWNL`）がすでに承認済みで（`ENABLED`）、`tuscenes-notification` の設定が `#dev_system_info` に送っている（2026-11-17、ReadOnly）。11-04 の下書きで心配したワークスペースの承認は、もう要らない。新しく要るのは、`#aws_security_alert` のチャンネルの設定 1 つ（CDK の `SlackChannelConfiguration`。チャンネルの ID が要る）と、チャンネルへのアプリの招待。
 - **チャンネルの設定には、通知だけを許す。** この設定のロールとガードレールのポリシーは、Slack からの AWS の操作（コマンド）に効く。通知に権限は要らないので、ロールに何も付けず、ガードレールも空の形（通知だけ）にする。
-- **メンションは Slack のユーザーグループ `@mlops1`**（2026-11-17、伊藤の案）。Slack の書き方は `<!subteam^グループの ID>` で、グループの ID（`S` で始まる）が要る。カスタム通知が文書で対応を明記しているのは、ユーザー ID でのメンションだけ（[custom-notifs](https://docs.aws.amazon.com/chatbot/latest/adminguide/custom-notifs.html)）。ユーザーグループが効くかは、チャンネルを作ったらカナリアで試す（7 章）。効かなければ、メンバーのユーザー ID を並べる形に替える（メンバーの入れ替えに追随しないのが欠点）。
+- **メンションは Slack のユーザーグループ `@mlops1`**（2026-11-17、伊藤の案）。Slack の書き方は `<!subteam^グループの ID>` で、グループの ID（`S` で始まる）が要る。カスタム通知が文書で対応を明記しているのは、ユーザー ID でのメンションだけ（[custom-notifs](https://docs.aws.amazon.com/chatbot/latest/adminguide/custom-notifs.html)）。ユーザーグループが効くかは、チャンネルを作ったらカナリアで試す（7 章）。
+  - **Web で調べた結果**（2026-11-17）:
+    - 公式の文書が書いているのは、ユーザー ID での `<@userID>` だけ。`title` と `description` で使えて、メンションされた人に通知が届くとある。ユーザーグループ・`@here`・`@channel` には触れていない。
+    - 使えたと書いた記事は 1 件ある（[Zenn、GENDA、2025-12-26](https://zenn.dev/genda_jp/articles/20251225-custom-notification-slack-mention)）。`description` にユーザーグループとユーザーのメンションを入れて、成功したとしている。ただ、根拠はスクリーンショットだけで、検証の詳細はない。記事の記法 `<@!subteam^ID>` は Slack の正式な形 `<!subteam^ID>` と違う。グループ ID の取り方も、チャンネル ID と取り違えているように見える。`@here`・`@channel` は「そのまま使えるようです」で、確かめていない。
+    - `@here` が `description` で効いたという記事もあるが（[Zenn](https://zenn.dev/yuta28/articles/eventbridge-slack)）、本文は読み込んでいない。
+    - まとめると、**ユーザーグループは効く見込みが高いが、公式の保証はない**。カナリアでは `<!subteam^ID>` と `<@!subteam^ID>` の両方を試し、グループの人に通知が届くか（表示だけでなく）を見る。効かなければ、メンバーのユーザー ID を並べる形に替える（メンバーの入れ替えに追随しないのが欠点）。
 - **チャンネルは公開**（2026-11-17、伊藤の案）。エンジニアならだれでも見られるようにする。通知には主体の ARN・バケット・キーが載るが、社内の公開のチャンネルに載せてよい範囲とみる（認証情報は載らない）。
 - **Slack の経路を外す操作もルール C で拾う。** チャンネルの設定の削除・変更（`chatbot.amazonaws.com` の `DeleteSlackChannelConfiguration`・`UpdateSlackChannelConfiguration`）と、Slack 用のトピックの購読の削除。どのリージョンの EventBridge に届くかは確かめる（7 章）。メールは Slack とは別の経路なので、片方を外されても、もう片方で気づける。
 
@@ -225,3 +230,30 @@ cdk-apps にも、SNS のメールの購読（`EmailSubscription`）を作るコ
 ## 9. 次
 
 8 章は 11-17 に伊藤の案が出た。次は、仕様をチームに共有して合意を取り、cdk-apps の PR を起草する（アクション 4-9。エージェントが起草、伊藤が PR を作る）。PR に一緒に入れるもの: レポートの置き場をトレイルの対象に足す（[cdk-apps#2500](https://github.com/turingmotors/cdk-apps/pull/2500) のレビュー）、original-bucket-audit のテストを CI で走らせる workflow、datalake の `eventBridgeEnabled: false` のコメントの直し。
+
+### 9.1 1 段目: Slack への経路をカナリアで試す（2026-11-17、伊藤の決定）
+
+- **2 段に分ける。** 1 段目は Slack 用の SNS・Amazon Q Developer の設定・カナリアだけのルール B。メンションと届き方を確かめ、結果を仕様に入れてチームの合意を取る。2 段目でルール A〜E を全バケットに広げる。**メールは今回のスコープから外す**。
+- 起草: cdk-apps のブランチ `original-bucket-audit-slack`（commit `81855942`。worktree は scratchpad の `cdk-slack`、まだ push していない）。スタック `OriginalBucketNotify`（`lib/notify-stack.ts`）。
+  - チャンネルの設定は、ガードレールを省くと `AdministratorAccess` が既定で付く（aws-cdk-lib の `SlackChannelConfiguration` の既定）。すべてを拒むガードレールを付け、ロールには何も付けない。
+  - トピックは、ほかのアカウントからの発行を拒む（CDK がルールの送り先に付ける許可は条件なしのため）。
+  - **直したこと**: Amazon Q Developer でも、トピックに `sns:Publish` できる主体は偽の通知を流せる。bot token と違い、トピックのポリシーで「このスタックのルールからだけ」に絞れる。1 段目は手でメンションを試すために絞らず、2 段目で絞る。
+- **伊藤がすること（PR の前）**:
+  1. `#aws_security_alert` を公開で作り、Amazon Q Developer（旧 AWS Chatbot）のアプリを招待する。
+  2. チャンネルの ID（`C…`）と、ユーザーグループ `@mlops1` の ID（`S…`）を控える。`lib/config.ts` の `TODO_CHANNEL_ID`・`TODO_USERGROUP_ID` に入れる。
+  3. push して PR を作り、マージする（main への push で `original-bucket-audit-deploy` が走る）。
+- **deploy の後に試すこと**（FullAccess）:
+  1. 入力の変換の `<!subteam^…>` を、EventBridge が受け付けたか（deploy が通れば受け付けた）。
+  2. 手で 3 通を発行する。`<!subteam^ID>`・`<@!subteam^ID>`（Zenn の記法）・`<@自分のユーザー ID>`（文書にある形）。`@mlops1` のメンバーに通知が届くか（メンションの一覧に載るか）を見る。
+
+     ```bash
+     T=arn:aws:sns:us-west-2:767397804933:original-bucket-alert-slack
+     for M in '<!subteam^SXXXX>' '<@!subteam^SXXXX>' '<@UXXXX>'; do
+       aws --profile full --region us-west-2 sns publish --topic-arn "$T" --message "$(jq -cn --arg m "$M" \
+         '{version:"1.0",source:"custom",content:{textType:"client-markdown",title:"メンションの試し",description:"\($m) 試しの通知（書き方: `\($m)`）"}}')"
+     done
+     ```
+
+  3. カナリアで、ルール B を鳴らす。`aws s3api put-bucket-versioning --bucket original-bucket-canary-767397804933 --versioning-configuration Status=Enabled`（もう有効なので、何も変わらない）。通知が来るか、`errorCode` が無いときに「拒否」の欄がどう出るか、を見る。
+  4. チャンネルの設定の作成（`CreateSlackChannelConfiguration`）が、どのリージョンの CloudTrail に出たか（ルール C の置き場所。7 章）。
+- 結果で決めること: メンションの書き方（効かなければ、メンバーのユーザー ID を並べる形か、Lambda と bot token か）。

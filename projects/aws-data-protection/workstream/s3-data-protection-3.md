@@ -1,7 +1,7 @@
 # S3 バケットのデータ保護 第三弾（抜け穴の把握と塞ぎ・監視）
 
 - 開始: 2026-11-16
-- 状態: **通知の設計を詰めている**（2026-11-17。[notification-design.md](s3-data-protection-3/notification-design.md)、案）。届け方は伊藤の案が固まった（メールは `mlops@` に注意だけ、Slack の `#aws_security_alert`（公開）に注意と定期、メンションは `@mlops1`。チームの合意はまだ）。8 章も伊藤の案が出た。次は、チームへの共有と通知の PR の起草台帳の「決めること」1〜6 は通知の設計のあと
+- 状態: **通知の 1 段目（Slack への経路をカナリアで試す）を cdk-apps で起草した**。伊藤がチャンネルを作り、チャンネルとユーザーグループの ID を入れて PR にする。手順は [notification-design.md](s3-data-protection-3/notification-design.md) の 9.1
 
 第二弾で原本バケット 9 本に Object Lock を入れた。第三弾では、残った抜け穴を台帳にして区分 A（意図して残す）・B（監視する）・C（監視されていない）に分け、塞ぐ・監視を付ける・主体を減らすことで、C をできるだけ無くす。
 
@@ -107,6 +107,8 @@
   - 届け方の伊藤の案（11-17）: メールは `mlops@turing-motors.com`（コストアノマリーに揃える。管理アカウントの購読が Google グループ `mlops1@` を通って配られている）、Slack は `#aws_security_alert`（公開）、メンションは `@mlops1`。**個人の案で、仕様が固まったらチームに共有して合意を取る。**
   - 8 章の伊藤の案（11-17）: ルール D・E は入れる。見張り（L12）は見送る（今回は過剰なケア。L12 の一部は C に残る）。ログのバケット（L13）は通知の PR のあとに設計する。警報が OK に戻ったときは送らない。
   - 次: 仕様をチームに共有して合意を取る。並行して通知の PR（4-9）を起草する。伊藤の作業: `#aws_security_alert` を作り、チャンネルの ID と `@mlops1` のグループの ID を控える。`mlops1+owners@` に迷惑メールの保留の設定を確かめる。
+- 2026-11-17（午後）: Slack は Amazon Q Developer で送ると決めた（伊藤。メンションが効かなければ替える）。メールは今回のスコープから外す。通知は 2 段に分け、1 段目（Slack への経路・カナリアだけのルール B）を cdk-apps のブランチ `original-bucket-audit-slack` に起草した（`81855942`、worktree は scratchpad の `cdk-slack`、未 push）。
+  - 次: 伊藤が `#aws_security_alert` を作り、チャンネルと `@mlops1` の ID を `lib/config.ts` に入れて PR にする。deploy の後に試すことは設計の 9.1。
 
 ## 関連リンク
 

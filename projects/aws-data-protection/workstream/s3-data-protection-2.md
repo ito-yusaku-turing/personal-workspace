@@ -1,7 +1,7 @@
 # S3 バケットのデータ保護 第二弾（権限設計のアップグレード）
 
 - 開始: 2026-10-20
-- 状態: **9 本すべてに Object Lock と既定の保持設定（15 日）を入れ、既存の版のホールドは 8 本が verify まで済んだ**（2026-11-17 01:04Z）。残る td1-raw はジョブが流れている（94%、11-17 04:00Z ごろの見込み）。その verify（伊藤）が済めば第二弾を閉じる。手順と結果は [stage1-runbook.md](s3-data-protection-2/stage1-runbook.md) と [worm-rollout-stages.md](s3-data-protection-2/worm-rollout-stages.md) の「段階 3・4 の結果」。全体のアクションは [worm-action-list.md](s3-data-protection-2/worm-action-list.md)。権限の頂点の問題は別の案件（project:privileged-access）
+- 状態: **9 本すべてに Object Lock と既定の保持設定（15 日）を入れ、既存の版のホールドは 8 本が verify まで済んだ**（2026-11-17 01:04Z）。残る td1-raw はジョブが流れている（04:24Z に 98.85%、11-17 05:15Z ごろの見込み）。その verify（伊藤）が済めば第二弾を閉じる。手順と結果は [stage1-runbook.md](s3-data-protection-2/stage1-runbook.md) と [worm-rollout-stages.md](s3-data-protection-2/worm-rollout-stages.md) の「段階 3・4 の結果」。全体のアクションは [worm-action-list.md](s3-data-protection-2/worm-action-list.md)。権限の頂点の問題は別の案件（project:privileged-access）
 - 所属: project:aws-data-protection（2026-10-26 に `~/docs/workstream/` から移した）
 - 前段（第一弾、完了）:
   - [走行データ消失リスクへの対応](done/raw-data-security.md)（バケットの種別と処遇、裁定の正本）
@@ -940,6 +940,7 @@
   - 07:32Z の時点のジョブ（ReadOnly）: tuscenes-raw は約 4,200 件/秒で 15:10〜15:30Z ごろ、td1-raw は 20:40Z ごろに終わる見込み。再開の `apply` にも `EXPECT` が要る（上の引き継ぎの 2）。
 - 2026-11-17 00:30Z: **ジョブの状態を ReadOnly で確かめた（エージェント）**。tuscenes-raw（205,501,508 件、11-16 20:02Z に済み）と tuscenes-annotation（18,007,627 件、11-16 13:08Z に済み）は `Complete`・失敗 0。td1-raw は `Active` で 361,401,972 / 386,847,623 件（93.4%）・失敗 0。直近の速さが約 2,900 件/秒に落ちていて、03:00Z ごろに終わる見込み（11-16 の 20:40Z の見込みより遅い）。9 本とも、バージョニング `Enabled`・既定の保持設定 `GOVERNANCE`・15 日で、各バケットの先頭 3 件の最新の版が `GOVERNANCE ON 15`。表は worm-rollout-stages.md の「段階 3・4 の結果」。
 - 2026-11-17 01:04Z: **tuscenes-raw と tuscenes-annotation の verify が済んだ**（伊藤）。どちらも失敗 0・失敗の内訳は空・見本 20 件とも `GOVERNANCE ON 15`。00:56Z の td1-raw は 364,518,325 / 386,847,623 件（94%）、失敗 0。速さは約 2,000 件/秒に落ちていて、04:00Z ごろに終わる見込み。
+- 2026-11-17 04:24Z: td1-raw はまだ `Active`。382,388,167 / 386,847,623 件（98.85%）、失敗 0。速さは約 1,500 件/秒に落ちていて、05:15Z ごろに終わる見込み。
 - 2026-11-17 の引き継ぎ:
   1. **td1-raw の verify（伊藤）**: `EXPECT=348160919:387500000 bash worm-stage.sh apply td1-raw-767397804933`（`Active` のうちに打てば、終わるまで待って verify する）。出力をエージェントが読み、表を埋めて、第二弾を `done/` へ移す。
   2. ~~tuscenes-annotation の毎晩の処理の書き込みに拒否が無いかを、トレイルで見る~~ → 済み（下の 11-17 の記録）。
