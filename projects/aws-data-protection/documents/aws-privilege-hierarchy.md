@@ -5,7 +5,7 @@
 複数の AWS アカウントを持つ組織で、権限の強さをどう階層にするかの整理。前半の一般論は古くならない内容、後半はうちの組織への当てはめと、日付つきの調査記録。
 
 関連:
-- [S3 バケットのデータ保護 第二弾](../workstream/s3-data-protection-2.md)（層 3〜5 を直す案件）
+- [S3 バケットのデータ保護 第二弾](../workstream/done/s3-data-protection-2.md)（層 3〜5 を直す案件）
 - [メンバーアカウントの root の認証情報を消す](../workstream/aws-root-credentials.md)（層 0 の root の案件）
 - `~/security-review/issues.md` の H7〜H10（CI の経路の問題）
 

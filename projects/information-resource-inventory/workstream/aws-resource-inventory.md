@@ -10,7 +10,7 @@ AWS アカウント tuscenes-prod（767397804933）のリソースを総ざら�
 
 - 使われていないリソースを特定し、掃除の候補にする。
 - 今回は費用よりもセキュリティを重く見る。使われていない主体・権限・仕組みが残っていること自体をリスクとみなす。
-- もう一つの軸として、**変更を加えようとしたときに競合しかねないもの**を見つける。手本は、原本バケットの守りの第二弾で見つかった次の 2 件（[s3-data-protection-2.md](../../aws-data-protection/workstream/s3-data-protection-2.md) の TODO 23・25、2026-10-27）。
+- もう一つの軸として、**変更を加えようとしたときに競合しかねないもの**を見つける。手本は、原本バケットの守りの第二弾で見つかった次の 2 件（[s3-data-protection-2.md](../../aws-data-protection/workstream/done/s3-data-protection-2.md) の TODO 23・25、2026-10-27）。
   - **眠っている仕掛け**: スタック `tuscenes` の EventBridge のルール `tuscenes-NewTripEventRule…` は ENABLED のまま、tuscenes-raw の EventBridge が無効なので発火していなかった。監査のために EventBridge を有効にすると、cleaning の job・Supabase の書き換え・Slack への投稿が動き出すところだった。2026-10-27 に伊藤がルールを止めた。
   - **丸ごと上書きする持ち主**: td1-raw の通知は、datalake の CDK が `Managed: true` で丸ごと持っている。ほかの経路で足した通知は、datalake の deploy で消えるおそれがある。
 
@@ -87,6 +87,6 @@ AWS アカウント tuscenes-prod（767397804933）のリソースを総ざら�
 
 ## 関連リンク
 
-- [s3-data-protection-2.md](../../aws-data-protection/workstream/s3-data-protection-2.md): 競合の手本（TODO 23・25）
+- [s3-data-protection-2.md](../../aws-data-protection/workstream/done/s3-data-protection-2.md): 競合の手本（TODO 23・25）
 - [tuscenes-stack-cleanup.md](../../aws-data-protection/workstream/tuscenes-stack-cleanup.md): スタック tuscenes の中身
 - `/usr/app/cdk-apps`: 持ち主（IaC）を突き合わせる先

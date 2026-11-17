@@ -1,7 +1,7 @@
 # 走行データ消失リスクへの対応（バケットの価値の見積もり）
 
 - 開始: 2026-10-15
-- **完了（2026-10-20）**: 第一弾として完結。残りの TODO は [S3 バケットのデータ保護 第二弾](../s3-data-protection-2.md) に引き継いだ
+- **完了（2026-10-20）**: 第一弾として完結。残りの TODO は [S3 バケットのデータ保護 第二弾](s3-data-protection-2.md) に引き継いだ
 - 状態: **原本のバージョニングは入れ終えた（2026-10-20）**。対象の 12 本すべてで有効（CDK の分は [s3-versioning-cdk.md](s3-versioning-cdk.md)）。次の段のアクセスの洗い出しは [s3-bucket-access-control.md](s3-bucket-access-control.md) で済ませ、バケットポリシーと残りの TODO は第二弾に移した
 - 用語: S3 の Versioning は「バージョニング」と書く（2026-10-19 に「版管理」から統一）。旧版を指すときは「古い版」
 - 所属: project:aws-data-protection（2026-10-26 に `~/docs/workstream/` から移した）

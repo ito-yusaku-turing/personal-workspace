@@ -152,7 +152,7 @@ Quick Win の構成（迂回を全員に Deny、Q7）での、保護されてい
   - 後でコンプライアンスに移すときは、Batch Operations をもう一度流す（約 $3,900）。
   - 迂回の Deny は、外せる層（バケットポリシー）に頼る。RCP で迂回を拒否すれば、tuscenes-prod の中からは外せなくなる（フルスペックの候補）。
 - **コンプライアンスに移すか**は、フルスペックで改めて決める。その前に Q4 を予行用のバケットで試す。
-- **出典:** [worm-design.md](worm-design.md) の 3 章、[worm-reference.md](worm-reference.md) の 2 章、[worm-quickwin-plan.md](worm-quickwin-plan.md) の 1〜3 章、[notion-s3-object-lock.md](../../documents/notion-s3-object-lock.md) の 3 章
+- **出典:** [worm-design.md](worm-design.md) の 3 章、[worm-reference.md](worm-reference.md) の 2 章、[worm-quickwin-plan.md](worm-quickwin-plan.md) の 1〜3 章、[notion-s3-object-lock.md](../../../documents/notion-s3-object-lock.md) の 3 章
 
 ## D6. 解除できる主体 → 10-30 は BreakGlass だけ、11-02 に Quick Win では今の例外の主体のまま
 
@@ -290,7 +290,7 @@ E2〜E4 の権限は、費用を減らすための意図した掃除をどう行
 
 ## 2026-11-06: チームの共有ミーティングの意見
 
-共有用の資料（[notion-worm-governance-rollout.md](../../documents/notion-worm-governance-rollout.md)）について、チームの共有ミーティングで次の意見が出た（伊藤から聞いた）。
+共有用の資料（[notion-worm-governance-rollout.md](../../../documents/notion-worm-governance-rollout.md)）について、チームの共有ミーティングで次の意見が出た（伊藤から聞いた）。
 
 | # | 意見 | 扱い |
 |---|---|---|

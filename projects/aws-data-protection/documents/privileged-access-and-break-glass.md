@@ -4,7 +4,7 @@
 
 大きな企業や、セキュリティの要件が厳しい組織が、強い権限（特権）を持つ人をどう設計・管理しているかをまとめた学習用の資料です。規格と、クラウド事業者の公式のガイドを根拠にしています（2026-10-29 に原典で確認。確認できなかったものは、その旨を書いています）。
 
-当社に当てはめた案は、別の資料にしました: [BreakGlass の設計（叩き台）](../workstream/s3-data-protection-2/breakglass-design-draft.md)。
+当社に当てはめた案は、別の資料にしました: [BreakGlass の設計（叩き台）](../workstream/done/s3-data-protection-2/breakglass-design-draft.md)。
 
 ## 要点
 

@@ -3,7 +3,7 @@
 - 作成: 2026-10-30 ／ 伊藤（調べと下書きはエージェント）
 - 親: [S3 バケットのデータ保護 第二弾](../s3-data-protection-2.md)。[requirements.md](requirements.md) の「2. 全体の状態」を、権限の面から掘り下げたもの
 - 範囲: tuscenes-prod（767397804933）の原本バケット 12 本。他のアカウントは調べていない
-- 根拠: 2026-10-20 の主体の一覧（[principals-2026-10-20.md](../done/s3-bucket-access-control/principals-2026-10-20.md)）に、その後の変更（ステージ 1 のバケットポリシー、IAM ユーザーの削除）を重ね、2026-10-30 に ReadOnly で確かめた（下の「確かめたこと」）
+- 根拠: 2026-10-20 の主体の一覧（[principals-2026-10-20.md](../s3-bucket-access-control/principals-2026-10-20.md)）に、その後の変更（ステージ 1 のバケットポリシー、IAM ユーザーの削除）を重ね、2026-10-30 に ReadOnly で確かめた（下の「確かめたこと」）
 
 全体設計の議論の出発点として、今の守りと、今だれが何をできるかを並べ、弱点を整理する（6 章）。手段の良し悪しは扱わない。
 
@@ -73,7 +73,7 @@ deploy のロール（`cdk-hnb659fds-deploy-role-*`）は、アカウント内�
 | `CodeCatalystWorkflowDevelopmentRole-tuscenes-prod` | CodeCatalyst の space | 同上 | 2024-03-14 |
 | `databricks-uc-3913775780464502-db_s3_external_cluster-st152026da` | Databricks の Unity Catalog（アカウント 414351767826 の `UCMasterRole`、ExternalId つき）。2026-07-29 に Databricks 側の仕組みが作った（タグ `DatabricksExternalBucket=cluster-storage-usage-reports-…`）。IaC には無い | deploy のロールの引き受け。インラインのポリシーが、自分を引き受けるための `sts:AssumeRole` を `Resource: *` で許している（条件は「主体が自分か UCMasterRole」なので、常に満たされる）。Databricks の権限の境界を付けても、シミュレーターは allowed | 2026-10-30 |
 | `AmplifySSRLoggingRole-*`（6 本） | Amplify のサービスだけ。Amplify のアプリは 4 リージョンとも残っていない | deploy のロールの引き受け。AWS 管理のポリシー `AmplifyBackendDeployFullAccess` が、同じアカウントの `cdk-*-deploy-role-*` の引き受けを許している | 2024-12 以前か未使用 |
-| tuscenes-prod の root | パスワード有効・MFA なし | バケットポリシーを消せる（AWS の仕様） | CorpIT に削除を依頼中（[aws-root-credentials.md](../aws-root-credentials.md)） |
+| tuscenes-prod の root | パスワード有効・MFA なし | バケットポリシーを消せる（AWS の仕様） | CorpIT に削除を依頼中（[aws-root-credentials.md](../../aws-root-credentials.md)） |
 | 管理アカウントの管理者 | root の一元管理 | `S3UnlockBucketPolicy` でポリシーを消せる。Control Tower のロールにも入れる | — |
 
 FullAccess・AWSAdministratorAccess も deploy のロールを引き受けられるが、もともと 3.1 なので数えていない。

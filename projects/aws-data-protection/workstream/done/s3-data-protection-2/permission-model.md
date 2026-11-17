@@ -3,7 +3,7 @@
 - 作成: 2026-11-06 ／ 伊藤（エージェントが起草）。2026-11-09 に、伊藤と合意した捉え方（1 章）で組み直した
 - 親: [S3 バケットのデータ保護 第二弾](../s3-data-protection-2.md)
 - 状態: **6 章の 1〜8 を決めた**（2026-11-09、伊藤。5〜8 はセカンドオピニオンを受けて）。共有用の資料に反映済み。7 章の確かめは、手順 D の PR の前に行う
-- 前提: [worm-decisions.md](worm-decisions.md) の D7（古い版には保持をかけない）・D13（削除の運用は先送り）・D14（FullAccess を例外から外す）、G1（完全削除用の権限）・G2（SCP の範囲）。導入後の姿は共有用の資料 [notion-worm-governance-rollout.md](../../documents/notion-worm-governance-rollout.md) の 3 章。現状は [current-state.md](current-state.md) の 3 章
+- 前提: [worm-decisions.md](worm-decisions.md) の D7（古い版には保持をかけない）・D13（削除の運用は先送り）・D14（FullAccess を例外から外す）、G1（完全削除用の権限）・G2（SCP の範囲）。導入後の姿は共有用の資料 [notion-worm-governance-rollout.md](../../../documents/notion-worm-governance-rollout.md) の 3 章。現状は [current-state.md](current-state.md) の 3 章
 
 **要点**
 
@@ -50,7 +50,7 @@
 | H1 | **deploy の経路**（cfn-exec-role。`DenyProtectionRemoval` の例外） | バケットの設定の変更（ポリシー・ライフサイクル・バージョニング） | cdk-apps の `main` にマージできる人（GitHub Actions の deploy） | される（バケットの設定の変更。拒まれた試みも） | PR とレビュー | 迂回の禁止を外せば、**すぐ消せる** |
 | H2 | **完全削除用の権限**（AWSAdministratorAccess のまま。6 章の 3。`DenyIrreversibleDelete`・`DenyProtectionRemoval` の例外、ジョブのロールを渡せる） | 保護されていない版の削除、既定の保持設定の変更、バケットの設定の変更、ジョブでのイベントホールドの解除（H5） | 山本 修平さんほか 1〜2 名の見込み（アクション 2-1） | される | **無い**（削除の運用は先送り。D13） | 解除なら 30 日の猶予。迂回の禁止を外せば、**すぐ消せる**（共有用の資料の 4.4 の急ぎの戻し方も、この道） |
 | H3 | **FullAccess**（暫定の例外） | H2 と同じ（td1-raw・tuscenes-raw の古い版の削除を除く） | 14 名 | される | 無い | **手順 D（D14）で例外から外す**。外すまでは H2 と同じ |
-| H4 | **root・管理アカウント**（AWS の仕様で、バケットポリシーで止められない） | バケットポリシーの削除（root の `DeleteBucketPolicy`、管理アカウントの `S3UnlockBucketPolicy`） | tuscenes-prod の root の鍵を持つ人、管理アカウントの管理者 | される（バケットの設定の変更） | 無い | 締め出されたときの戻し道。ポリシーを消せば、**すぐ消せる**。tuscenes-prod の root は認証情報の削除を依頼中（[aws-root-credentials.md](../aws-root-credentials.md)） |
+| H4 | **root・管理アカウント**（AWS の仕様で、バケットポリシーで止められない） | バケットポリシーの削除（root の `DeleteBucketPolicy`、管理アカウントの `S3UnlockBucketPolicy`） | tuscenes-prod の root の鍵を持つ人、管理アカウントの管理者 | される（バケットの設定の変更） | 無い | 締め出されたときの戻し道。ポリシーを消せば、**すぐ消せる**。tuscenes-prod の root は認証情報の削除を依頼中（[aws-root-credentials.md](../../aws-root-credentials.md)） |
 
 ### 3.2 想定外の抜け穴: ⑦ 例外を名乗る道
 

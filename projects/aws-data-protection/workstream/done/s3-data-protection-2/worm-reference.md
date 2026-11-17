@@ -4,7 +4,7 @@
 
 - 作成: 2026-10-30
 - 親: [原本バケットの WORM 化の設計](worm-design.md)（この資料はその添付）
-- 一般論: [S3 Object Lock（WORM）の整理](../../documents/notion-s3-object-lock.md)（以下「整理」）
+- 一般論: [S3 Object Lock（WORM）の整理](../../../documents/notion-s3-object-lock.md)（以下「整理」）
 
 設計の決定のために比べたことと、そのために調べたことを残す。決定そのものと理由は設計資料に書く。
 

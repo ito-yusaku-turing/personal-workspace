@@ -7,13 +7,13 @@ GitHub の組織の owner・identity の admin・GCP の管理者・Okta の管�
 
 ## 背景・目的
 
-S3 の原本バケットの保護（[第二弾](../../aws-data-protection/workstream/s3-data-protection-2.md)）で、要承認操作の 2 人目の確認を仕組みで強制する前に、流れを迂回できる経路を調べた（2026-11-02）。その結果、1 人で、誰にも通知されずに組織のほぼすべてに届く人が 10 名を超え、その頂点が輪になっていることが分かった（[privilege-map.md](apex-privileges/privilege-map.md) の 9 章）。
+S3 の原本バケットの保護（[第二弾](../../aws-data-protection/workstream/done/s3-data-protection-2.md)）で、要承認操作の 2 人目の確認を仕組みで強制する前に、流れを迂回できる経路を調べた（2026-11-02）。その結果、1 人で、誰にも通知されずに組織のほぼすべてに届く人が 10 名を超え、その頂点が輪になっていることが分かった（[privilege-map.md](apex-privileges/privilege-map.md) の 9 章）。
 
 この問題はデータの保全の範囲を超えるので、S3 の案件から分けた（伊藤）。
 
 目的:
 
-- 構造上の上位権限者は無くせないので、存在は受け入れ、**何が存在しているかの把握と管理を徹底する**（2026-11-02、伊藤。S3 の案件の [requirements.md](../../aws-data-protection/workstream/s3-data-protection-2/requirements.md) の 7.4 から引き継いだ方針）。
+- 構造上の上位権限者は無くせないので、存在は受け入れ、**何が存在しているかの把握と管理を徹底する**（2026-11-02、伊藤。S3 の案件の [requirements.md](../../aws-data-protection/workstream/done/s3-data-protection-2/requirements.md) の 7.4 から引き継いだ方針）。
 - 管理の目指す形: 数を絞る、使えば即時に通知する、残るリスクとして明記する。
 
 ## 設計判断と理由
@@ -46,7 +46,7 @@ S3 の原本バケットの保護（[第二弾](../../aws-data-protection/workst
 - 2026-11-02 の終わり: S3 の案件で、人のグループを最高権限者・システム保全責任者・通常権限メンバーに整理した（requirements.md の 7.5.1）。この案件に関わる宿題: 組織の owner を最高権限者の中に収めること（今は 4 名が外。I1・I28）、最高権限者の管理用のアカウントの分離（TODO）。未反映の提案は S3 の案件の workstream の最後の項にある。
 - 次の聞き取りの優先: I19（`gcp-organization-admins@` のロール。最高権限者が 4 名より多いかが決まる）→ I27（止めてある循環）→ I30（組織のルールセット）→ I29（Workspace の apply のロールの範囲）。
 - 説明資料のページ（apex-cycle.html、<https://claude.ai/artifact/Gtzn6zWuQXYW4KC2zpuMMo>）は、GCP を最上位にした階層図に差し替え済み。人のグループの整理は、まだ載せていない。
-- S3 の案件で、最上位の 4 名を前提にしたシステム保全責任者の設計の案を書いた（[requirements.md](../../aws-data-protection/workstream/s3-data-protection-2/requirements.md) の 7.5）。この案件の聞き取りの答えが、その案の前提になる。
+- S3 の案件で、最上位の 4 名を前提にしたシステム保全責任者の設計の案を書いた（[requirements.md](../../aws-data-protection/workstream/done/s3-data-protection-2/requirements.md) の 7.5）。この案件の聞き取りの答えが、その案の前提になる。
 - 10 章の案は、セカンドオピニオン（別のエージェントの独立した考察）と突き合わせたもの。聞き取りの結果で見直す。
 - identity の見た時点は、2〜5 章が ed1f678、10 章が 8b8e953。
 - 調べるときの権限: GitHub は伊藤のアカウント（組織では member、cdk-apps では admin、identity では write）。devbox の gcloud にはユーザーのログインが無い。AWS は tuscenes-prod の ReadOnly（`--profile readonly`）だけ。
@@ -54,7 +54,7 @@ S3 の原本バケットの保護（[第二弾](../../aws-data-protection/workst
 ## 関連リンク
 
 - [privilege-map.md](apex-privileges/privilege-map.md): 権限の地図（経路・ヒアリング項目・台帳・構造と評価・人ごとの一覧）
-- [S3 バケットのデータ保護 第二弾](../../aws-data-protection/workstream/s3-data-protection-2.md)（分けた元）
+- [S3 バケットのデータ保護 第二弾](../../aws-data-protection/workstream/done/s3-data-protection-2.md)（分けた元）
 - [AWS の権限の階層](../../aws-data-protection/documents/aws-privilege-hierarchy.md)（organization-policy の経路の調査）
 - [特権アクセスと break-glass の一般論](../../aws-data-protection/documents/privileged-access-and-break-glass.md)
 - identity（`/usr/app/identity`）・cdk-apps（`/usr/app/cdk-apps`）

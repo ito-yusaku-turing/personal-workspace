@@ -108,7 +108,7 @@ cdk-apps の `packages/original-bucket-guard`（ステージ 1 の共通部）�
 - [ ] 10 本の版に既存のタグがあるか（Batch Operations のタグ付けは丸ごと置き換える）。
 - [ ] Batch Operations の `S3PutObjectRetention` で `EventHold: OFF` にできるか（Q6 は `ON` だけ試した）。
 - [ ] 保持期限の切れたバージョンに、イベントホールドを付け直せるか（掃除の取りやめ方。2026-11-05）。
-- 掃除の取りやめ方と、ライフサイクルを 2 段にする案は、共有用の資料（[notion-worm-governance-rollout.md](../../documents/notion-worm-governance-rollout.md) の 4.2）に書いた（2026-11-05）。
+- 掃除の取りやめ方と、ライフサイクルを 2 段にする案は、共有用の資料（[notion-worm-governance-rollout.md](../../../documents/notion-worm-governance-rollout.md) の 4.2）に書いた（2026-11-05）。
 
 ## 3. すぐの通知（作業 3）
 

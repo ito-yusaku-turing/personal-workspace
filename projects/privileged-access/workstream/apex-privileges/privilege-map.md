@@ -1,7 +1,7 @@
 # 権限の地図: 要承認操作と名簿に届く経路
 
 - 作成: 2026-11-02 ／ 伊藤
-- 親: [権限の頂点の把握と管理](../apex-privileges.md)。きっかけは [S3 バケットのデータ保護 第二弾](../../../aws-data-protection/workstream/s3-data-protection-2.md) の [全体の状態と要件](../../../aws-data-protection/workstream/s3-data-protection-2/requirements.md) の 7 章
+- 親: [権限の頂点の把握と管理](../apex-privileges.md)。きっかけは [S3 バケットのデータ保護 第二弾](../../../aws-data-protection/workstream/done/s3-data-protection-2.md) の [全体の状態と要件](../../../aws-data-protection/workstream/done/s3-data-protection-2/requirements.md) の 7 章
 - 2026-11-02 に project:aws-data-protection から移した（頂点の問題を S3 の案件から分けたため）
 - 状態: **GitHub の組織・identity・cdk-apps の層を調べ、あるべき姿（10 章）を考えた（2026-11-02）。** 見えない層はヒアリング項目（7 章）で CorpIT に確かめる。説明用の図のページは [apex-cycle.html](apex-cycle.html)（公開先: <https://claude.ai/artifact/Gtzn6zWuQXYW4KC2zpuMMo>）。聞き取りのシートは [corpit-hearing.md](corpit-hearing.md)
 
@@ -11,7 +11,7 @@ S3 の案件で、要承認操作の 2 人目の確認（要件 12）を仕組�
 
 組織の権限を全部棚卸しするのではなく、次の 2 つをゴールに置き、そこへ届く経路を逆向きにたどる。**1 人で届く経路が、穴**になる。
 
-- **ゴール 1: 要承認操作を実行できる**（[requirements.md](../../../aws-data-protection/workstream/s3-data-protection-2/requirements.md) の 7.2）
+- **ゴール 1: 要承認操作を実行できる**（[requirements.md](../../../aws-data-protection/workstream/done/s3-data-protection-2/requirements.md) の 7.2）
 - **ゴール 2: 名簿（システム保全責任者）を書き換えられる。** 名簿を GitHub のチームにすると、実体は cdk-apps の `.github/CODEOWNERS`（どのファイルを誰が承認するか）と、identity の `platform/github/team_memberships.tf`（チームに誰がいるか）の 2 か所になる
 
 見た時点: cdk-apps `main` 0ca7e31e・identity `main` ed1f678（どちらも 2026-11-02 に取得）。GitHub の API は伊藤のアカウント（組織では member、cdk-apps では admin、identity では write）で読んだ。
@@ -33,7 +33,7 @@ S3 の案件で、要承認操作の 2 人目の確認（要件 12）を仕組�
 | P11 | cdk-apps | `.github/CODEOWNERS` の変更は、山本 修平（yamashush）・安本 雅啓（MasahiroYasumoto） の 1 名の承認 | 2 名（山本 修平・安本 雅啓） | 承認者 1 人と組めば | 2 |
 | P12 | cdk-apps | 承認のあとに作者が変更を足しても、承認し直しが要らない（`require_last_push_approval`・`dismiss_stale_reviews_on_push` が無効） | PR の作者 | 承認者が気づかなければ | 1・2 |
 | P13 | cdk-apps | 自動マージの App（`cdk-apps-auto-merge`）が、承認なしでマージできる（W3） | App の鍵 | 鍵が漏れれば | 1・2 |
-| P14 | AWS | 管理アカウントの管理者、`organization-policy` の deploy の経路、tuscenes-prod の FullAccess・root など | [current-state.md](../../../aws-data-protection/workstream/s3-data-protection-2/current-state.md)・[AWS の権限の階層](../../../aws-data-protection/documents/aws-privilege-hierarchy.md) | はい | 1 |
+| P14 | AWS | 管理アカウントの管理者、`organization-policy` の deploy の経路、tuscenes-prod の FullAccess・root など | [current-state.md](../../../aws-data-protection/workstream/done/s3-data-protection-2/current-state.md)・[AWS の権限の階層](../../../aws-data-protection/documents/aws-privilege-hierarchy.md) | はい | 1 |
 
 「1 人で届く」の P1〜P5・P7 は、どれも**使っても誰にも通知されない**。identity の GitHub の Terraform には定期の差分の検知が無く（apply は `platform/github/**` を変えた `main` への push のときだけ）、画面で直接変えた設定は、次の apply まで残る。
 
@@ -149,7 +149,7 @@ tuscenes-prod の deploy のロールはアプリに関係なく 1 組なので�
 | I8 | GitHub の組織の監査ログか webhook で、チーム・メンバー・ルールセット・environment の変更を即時に通知できるか | 上位権限者が使われたら通知する（要件 10） | CorpIT（owner） | 未 |
 | I9 | identity の GitHub の Terraform に、差分の定期の検知を足せるか | 画面での直接の変更に気づくため | CorpIT | 未 |
 | I10 | AWS の管理アカウントの管理者（人数と人）、Identity Center の管理者、委任管理者 | P14。構造上の上位権限者の台帳 | CorpIT | 未 |
-| I11 | tuscenes-prod に効く SCP・RCP の一覧と、Control Tower のガードレールの中身 | [current-state.md](../../../aws-data-protection/workstream/s3-data-protection-2/current-state.md) の残りの調べ | CorpIT | 未 |
+| I11 | tuscenes-prod に効く SCP・RCP の一覧と、Control Tower のガードレールの中身 | [current-state.md](../../../aws-data-protection/workstream/done/s3-data-protection-2/current-state.md) の残りの調べ | CorpIT | 未 |
 | I12 | 管理画面で直接した SSO の割り当て（`organization-policy` の外のもの）があるか | 例外の権限セットに届く人の漏れ | CorpIT | 未 |
 | I13 | Okta の管理者と、AWS の権限セットにつながるグループを変えられる人 | Okta から FullAccess を付けられる経路 | CorpIT | 未 |
 | I14 | 管理アカウントの root の管理（誰が持ち、どう保管しているか） | 最上位の上位権限者 | CorpIT | 未 |
@@ -172,7 +172,7 @@ tuscenes-prod の deploy のロールはアプリに関係なく 1 組なので�
 
 ## 8. 構造上の上位権限者の台帳
 
-仕組みの構造の上で、システム保全責任者より上に立つ権限。無くせないので、**何が存在しているかを把握し、管理を徹底する**（[requirements.md](../../../aws-data-protection/workstream/s3-data-protection-2/requirements.md) の 7.4、2026-11-02、伊藤）。流れには組み込まず、名簿の行き詰まりと流れの故障のときだけ、最後のエスケープハッチとして使う。
+仕組みの構造の上で、システム保全責任者より上に立つ権限。無くせないので、**何が存在しているかを把握し、管理を徹底する**（[requirements.md](../../../aws-data-protection/workstream/done/s3-data-protection-2/requirements.md) の 7.4、2026-11-02、伊藤）。流れには組み込まず、名簿の行き詰まりと流れの故障のときだけ、最後のエスケープハッチとして使う。
 
 管理の列は、目指す形（数を絞る・使えば即時に通知する・残るリスクとして明記する）に対する今の状態。
 
@@ -412,4 +412,4 @@ GitHub のアカウント名と氏名の対応は、identity の `platform/githu
 | 安部 敦 | piste-jp | | | P10（OTA） |
 | 齋藤 諒子 | ryokosaito-rgb | 契約社員。identity の外部の協力者（write） | | identity の Okta のユーザーとグループのメンバーの承認（P6 には入らない） |
 
-AWS の側（tuscenes-prod の FullAccess 14 名・AWSAdministratorAccess 1 名）の人は [current-state.md](../../../aws-data-protection/workstream/s3-data-protection-2/current-state.md) の 3.1.1 にある（2026-11-05。グループ経由の分だけ。直接の割り当ては未確認）。管理アカウント・GCP・Okta の管理者は分からない（I7・I10・I13）。
+AWS の側（tuscenes-prod の FullAccess 14 名・AWSAdministratorAccess 1 名）の人は [current-state.md](../../../aws-data-protection/workstream/done/s3-data-protection-2/current-state.md) の 3.1.1 にある（2026-11-05。グループ経由の分だけ。直接の割り当ては未確認）。管理アカウント・GCP・Okta の管理者は分からない（I7・I10・I13）。

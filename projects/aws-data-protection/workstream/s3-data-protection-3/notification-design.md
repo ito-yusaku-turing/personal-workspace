@@ -3,7 +3,7 @@
 - 作成: 2026-11-17 ／ 伊藤（エージェントが起草）
 - 親: [S3 バケットのデータ保護 第三弾](../s3-data-protection-3.md)
 - 状態: **案**。届け方（4 章）は伊藤の案が固まった（2026-11-17。チームの合意はまだ。仕様が固まったらチームに共有して合意を取る）。8 章も伊藤の案が出た（11-17。ルール D・E は入れる、見張りは見送り、ログのバケットは通知のあとに設計、OK は送らない）
-- 土台: [worm-quickwin-design.md](../s3-data-protection-2/worm-quickwin-design.md) の 3 章（2026-11-04 の通知の下書き）。仕組みの説明はそちらを正本にし、ここには 11-04 から変わったことと、台帳（[loophole-ledger.md](loophole-ledger.md)）への当てはめを書く
+- 土台: [worm-quickwin-design.md](../done/s3-data-protection-2/worm-quickwin-design.md) の 3 章（2026-11-04 の通知の下書き）。仕組みの説明はそちらを正本にし、ここには 11-04 から変わったことと、台帳（[loophole-ledger.md](loophole-ledger.md)）への当てはめを書く
 
 **要点**
 
@@ -234,13 +234,13 @@ cdk-apps にも、SNS のメールの購読（`EmailSubscription`）を作るコ
 ### 9.1 1 段目: Slack への経路をカナリアで試す（2026-11-17、伊藤の決定）
 
 - **2 段に分ける。** 1 段目は Slack 用の SNS・Amazon Q Developer の設定・カナリアだけのルール B。メンションと届き方を確かめ、結果を仕様に入れてチームの合意を取る。2 段目でルール A〜E を全バケットに広げる。**メールは今回のスコープから外す**。
-- 起草: cdk-apps のブランチ `original-bucket-audit-slack`（commit `b05ef98a`。`/usr/app/cdk-apps` でチェックアウトしている。まだ push していない）。スタック `OriginalBucketNotify`（`lib/notify-stack.ts`）。
+- 起草: cdk-apps のブランチ `original-bucket-audit-slack`（commit `0cce70ea`。`/usr/app/cdk-apps` でチェックアウトしている。まだ push していない）。スタック `OriginalBucketNotify`（`lib/notify-stack.ts`）。
   - チャンネルの設定は、ガードレールを省くと `AdministratorAccess` が既定で付く（aws-cdk-lib の `SlackChannelConfiguration` の既定）。すべてを拒むガードレールを付け、ロールには何も付けない。
   - トピックは、ほかのアカウントからの発行を拒む（CDK がルールの送り先に付ける許可は条件なしのため）。
   - **直したこと**: Amazon Q Developer でも、トピックに `sns:Publish` できる主体は偽の通知を流せる。bot token と違い、トピックのポリシーで「このスタックのルールからだけ」に絞れる。1 段目は手でメンションを試すために絞らず、2 段目で絞る。
 - **伊藤がすること（PR の前）**:
   1. `#aws_security_alert` を公開で作り、Amazon Q Developer（旧 AWS Chatbot）のアプリを招待する。
-  2. チャンネルの ID（`C…`）と、ユーザーグループ `@mlops1` の ID（`S…`）を控える。`lib/config.ts` の `TODO_CHANNEL_ID`・`TODO_USERGROUP_ID` に入れる。
+  2. チャンネルの ID（`C…`）と、ユーザーグループ `@mlops1` の ID（`S…`）を控える。`lib/config.ts` に入れる。→ 済み（11-17。チャンネル `C0CJ6HNC21K`、`@mlops1` は `S087DHX478B`）。
   3. push して PR を作り、マージする（main への push で `original-bucket-audit-deploy` が走る）。
 - **deploy の後に試すこと**（FullAccess）:
   1. 入力の変換の `<!subteam^…>` を、EventBridge が受け付けたか（deploy が通れば受け付けた）。

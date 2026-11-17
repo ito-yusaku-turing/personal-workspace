@@ -3,7 +3,7 @@
 - 作成: 2026-11-16 ／ 伊藤（エージェントが起草）
 - 親: [S3 バケットのデータ保護 第三弾](../s3-data-protection-3.md)
 - 状態: **案**。区分と目標は伊藤の確認待ち
-- 前提: [permission-model.md](../s3-data-protection-2/permission-model.md)（層・ハッチ H1〜H5・抜け穴 X1〜X5・範囲）、[current-state.md](../s3-data-protection-2/current-state.md) の 6 章（弱点 W1〜W16。2026-10-30 時点で、WORM の前）
+- 前提: [permission-model.md](../done/s3-data-protection-2/permission-model.md)（層・ハッチ H1〜H5・抜け穴 X1〜X5・範囲）、[current-state.md](../done/s3-data-protection-2/current-state.md) の 6 章（弱点 W1〜W16。2026-10-30 時点で、WORM の前）
 
 **要点**
 

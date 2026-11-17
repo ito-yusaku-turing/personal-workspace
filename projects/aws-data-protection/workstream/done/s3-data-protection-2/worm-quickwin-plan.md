@@ -45,7 +45,7 @@
 | # | 穴 | 中身 |
 |---|---|---|
 | A | FullAccess の乗っ取り | 通知を外し、ポリシーを外し、迂回して消すことが、1 人でできる |
-| B | 解除できる「ほかの何人か」 | deploy の経路（cfn-exec-role。cdk-apps の `main` へのマージ）と、それを引き受けられる 22 主体（2026-10-30 の全主体の判定）、root、管理アカウント、頂点の群（[privilege-map.md](../../../privileged-access/workstream/apex-privileges/privilege-map.md) の台帳）。一覧にして把握する（作業 7） |
+| B | 解除できる「ほかの何人か」 | deploy の経路（cfn-exec-role。cdk-apps の `main` へのマージ）と、それを引き受けられる 22 主体（2026-10-30 の全主体の判定）、root、管理アカウント、頂点の群（[privilege-map.md](../../../../privileged-access/workstream/apex-privileges/privilege-map.md) の台帳）。一覧にして把握する（作業 7） |
 | C | 今ある古い版 | 鍵はかからない（worm-design.md の決定 5）。守りは今のバケットポリシーの層だけ |
 | D | 通知を外せる主体の範囲 | 「FullAccess だけ」が成り立つかは確かめていない（作業 4）。FullAccess 以外にもいれば、A に載せて範囲を広げるか、見張りを tuscenes-prod の外に置く |
 
@@ -114,7 +114,7 @@ Quick Win でやるか、フルスペックでやるかは決めていない。
 | 9 | 名簿の変更の決まり | 足す・外す・入れ替える。行き詰まったときの最後の手段 | K1 |
 | 10 | 台帳 | 新しいバケットが自動で守られる形にする | K11 |
 | 11 | 手順書 | 解除、かけ直し、30 日後の削除（タグで絞ったライフサイクル）、判断の記録の書式 | K1・K9 |
-| 12 | 残る穴の明記 | root（管理アカウントからの root の操作で、バケットポリシーは外せる）、管理アカウント、頂点の群。[project:privileged-access](../../../privileged-access/workstream/apex-privileges.md) と、残るリスクの扱いに回す | 頂点の案件 |
+| 12 | 残る穴の明記 | root（管理アカウントからの root の操作で、バケットポリシーは外せる）、管理アカウント、頂点の群。[project:privileged-access](../../../../privileged-access/workstream/apex-privileges.md) と、残るリスクの扱いに回す | 頂点の案件 |
 
 ## 7. 解除できる主体の一覧（作業 7、2026-11-02）
 
@@ -125,7 +125,7 @@ Quick Win のバケットポリシー（試しの `policy` と同じ形: ステ�
 | 直接 | SSO `FullAccess`（13 名）・`AWSAdministratorAccess`（1 名） | そのまま解除できる | 解除（Q10） |
 | ポリシーを書き換えてから | `cdk-hnb659fds-cfn-exec-role-*`（deploy の経路。cdk-apps の `main` へのマージ） | バケットポリシーから鍵の操作の Deny を外し、そのあと解除する（スタックの中で Lambda などを作って解除させる） | ポリシーの変更（Q11）と解除（Q10） |
 | 同上（deploy のロールに届く） | `GithubActions-CdkDeployRole…`、Control Tower の 2 本、StackSets、CodeCatalyst、Databricks の Unity Catalog のロール、Amplify のログ用のロール 6 本 | 同上 | 同上 |
-| 構造の上から | tuscenes-prod の root、管理アカウントの管理者、頂点の群（[privilege-map.md](../../../privileged-access/workstream/apex-privileges/privilege-map.md) の台帳。`organization-policy` の経路や Okta から FullAccess を付けられる） | ポリシーを消す、FullAccess を手に入れるなどしてから解除する | ポリシーの変更と解除（管理アカウントからの操作も tuscenes-prod の CloudTrail に出るかは確かめていない） |
+| 構造の上から | tuscenes-prod の root、管理アカウントの管理者、頂点の群（[privilege-map.md](../../../../privileged-access/workstream/apex-privileges/privilege-map.md) の台帳。`organization-policy` の経路や Okta から FullAccess を付けられる） | ポリシーを消す、FullAccess を手に入れるなどしてから解除する | ポリシーの変更と解除（管理アカウントからの操作も tuscenes-prod の CloudTrail に出るかは確かめていない） |
 
 - 「直接」以外は、どれも**ポリシーの変更か FullAccess の取得が先に要り、その足跡が通知に乗る**。
 - 掃除の手順書（[cleanup-runbook.md](cleanup-runbook.md)）の 1・2 で、Amplify と CodeCatalyst の分は消える見込み。Databricks の Unity Catalog のロールは、担当と直し方を相談する（課題 K4）。

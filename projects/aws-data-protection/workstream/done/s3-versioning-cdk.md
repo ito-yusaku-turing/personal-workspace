@@ -1,7 +1,7 @@
 # 原本バケットのバージョニング（cdk-apps の準備）
 
 - 開始: 2026-10-19
-- **完了（2026-10-20）**: 第一弾として完結。残りの TODO は [S3 バケットのデータ保護 第二弾](../s3-data-protection-2.md) に引き継いだ
+- **完了（2026-10-20）**: 第一弾として完結。残りの TODO は [S3 バケットのデータ保護 第二弾](s3-data-protection-2.md) に引き継いだ
 - 状態: **cdk-apps の 4 本の PR はすべてマージ・deploy 済み（2026-10-19）**。DataSync は 2026-10-20 に確かめた（認証は通った。送り元が 0 件なので中身の転送は未確認）。deploy の workflow の `paths` の修正（[cdk-apps#2231](https://github.com/turingmotors/cdk-apps/pull/2231)）は第二弾の TODO 18 に移した
 - 所属: project:aws-data-protection（作業先は cdk-apps だが、cdk-apps に workstream の置き場が無いためこちらに置く。2026-10-26 に `~/docs/workstream/` から移した）
 - 親: [走行データ消失リスクへの対応](raw-data-security.md)（種別 S1〜S10 と処遇はそちらが正本）

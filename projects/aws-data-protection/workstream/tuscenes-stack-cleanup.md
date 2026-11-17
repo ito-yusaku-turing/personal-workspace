@@ -3,7 +3,7 @@
 - 開始: 2026-10-27
 - 状態: **起票した。まだ着手しない（積んでいる）**。着手するときは「着手の前に確かめること」から
 - 所属: project:aws-data-protection
-- 経緯: [S3 バケットのデータ保護 第二弾](s3-data-protection-2.md) の TODO 23 の調査で見つかった。tuscenes-raw の EventBridge を有効にすると、このスタックのルールが目を覚ますため。第二弾では、そのルール 1 本だけを伊藤が手で止める（2026-10-27 決定）。スタック全体の片付けは、この資料で別に進める（2026-10-27 伊藤が決定）
+- 経緯: [S3 バケットのデータ保護 第二弾](done/s3-data-protection-2.md) の TODO 23 の調査で見つかった。tuscenes-raw の EventBridge を有効にすると、このスタックのルールが目を覚ますため。第二弾では、そのルール 1 本だけを伊藤が手で止める（2026-10-27 決定）。スタック全体の片付けは、この資料で別に進める（2026-10-27 伊藤が決定）
 
 tuscenes-prod（767397804933、us-west-2）に、CloudFormation のスタック `tuscenes` が残っている。作ったのは、アーカイブ済みの [turingmotors/tuscenes-pipeline](https://github.com/turingmotors/tuscenes-pipeline)（CDK、Python）。収集は 2025-04 に終わり、主なバケットは cdk-apps に移った。それでも、ルール・Lambda・IAM ユーザー・バケット 5 本などが残っている。これを片付ける。
 
@@ -81,7 +81,7 @@ tuscenes-prod（767397804933、us-west-2）に、CloudFormation のスタック 
 
 ## 注意（片付け方に効くこと）
 
-- **スタックを消すと、tuscenes-cleaned の通知の設定が空になる。** `CleanedDataBucketNotifications3738AD3D`（`Custom::S3BucketNotifications`、`Managed: true`）の Delete で、CDK のハンドラーが通知の設定を `{}` に置き換える（[s3-data-protection-2.md](s3-data-protection-2.md) の TODO 23 の調査を参照）。いまは EventBridge だけで、バケットも空なので実害は小さい。ただし、消す前に Databricks の Auto Loader の通知（`databricks-auto-ingest-*`）が付いていないことを確かめる。
+- **スタックを消すと、tuscenes-cleaned の通知の設定が空になる。** `CleanedDataBucketNotifications3738AD3D`（`Custom::S3BucketNotifications`、`Managed: true`）の Delete で、CDK のハンドラーが通知の設定を `{}` に置き換える（[s3-data-protection-2.md](done/s3-data-protection-2.md) の TODO 23 の調査を参照）。いまは EventBridge だけで、バケットも空なので実害は小さい。ただし、消す前に Databricks の Auto Loader の通知（`databricks-auto-ingest-*`）が付いていないことを確かめる。
 - **バケット 5 本は、スタックを消しても残る**（`Retain`）。スタックの外に出るだけで、中身もポリシーも残る。tuscenes-testdata は今も使われているので、残すのが前提。ほかの 4 本は、中身を見てから別に決める。
 - **tuscenes-basicai-datasets は原本の候補（S4）。** 第一弾で「中身と経緯が分からない」として外したもの。片付けの中で、持ち主・中身・残すかを決める。
 - **スタックの削除で消えるのは、ルール 3 本・Lambda 7 本・ロール 8 本・IAM ユーザー 1 本・SNS のトピック**など（バケット以外）。IAM ユーザーとロールが消えると、第一弾の洗い出し（[principals-2026-10-20.md](done/s3-bucket-access-control/principals-2026-10-20.md)）の主体も減る。
@@ -114,7 +114,7 @@ tuscenes-prod（767397804933、us-west-2）に、CloudFormation のスタック 
 
 ## 関連リンク
 
-- [S3 バケットのデータ保護 第二弾](s3-data-protection-2.md)（TODO 23・tuscenes-raw の沿革・(b) の決定）
+- [S3 バケットのデータ保護 第二弾](done/s3-data-protection-2.md)（TODO 23・tuscenes-raw の沿革・(b) の決定）
 - [turingmotors/tuscenes-pipeline](https://github.com/turingmotors/tuscenes-pipeline)（アーカイブ済み。`tuscenes_pipeline/main.py`・`new_trip_event.py`・`functions/new_trip_event_handler/index.py`）
 - [turingmotors/tuscenes-infra](https://github.com/turingmotors/tuscenes-infra)（アーカイブ済み。前身）
 - [走行データ消失リスクへの対応](done/raw-data-security.md)（バケットの種別。tuscenes-basicai-datasets・alphaspp-*）

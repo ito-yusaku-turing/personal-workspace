@@ -30,4 +30,4 @@ AWS から取った一次情報は、その時点の写しなので git では�
 ## 関連する資料（ほかの project）
 
 - [../aws-data-protection/workstream/tuscenes-stack-cleanup.md](../aws-data-protection/workstream/tuscenes-stack-cleanup.md): 古いスタック tuscenes の片付け。調べた結果を棚卸しで再利用する
-- [../aws-data-protection/workstream/s3-data-protection-2.md](../aws-data-protection/workstream/s3-data-protection-2.md): 原本バケットの守りの第二弾。競合の手本（眠っていた EventBridge のルール、通知の丸ごと上書き）は、この資料の TODO 23・25
+- [../aws-data-protection/workstream/s3-data-protection-2.md](../aws-data-protection/workstream/done/s3-data-protection-2.md): 原本バケットの守りの第二弾。競合の手本（眠っていた EventBridge のルール、通知の丸ごと上書き）は、この資料の TODO 23・25

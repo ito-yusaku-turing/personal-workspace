@@ -1,12 +1,12 @@
 # S3 バケットのデータ保護 第三弾（抜け穴の把握と塞ぎ・監視）
 
 - 開始: 2026-11-16
-- 状態: **通知の 1 段目（Slack への経路をカナリアで試す）を cdk-apps で起草した**。伊藤がチャンネルを作り、チャンネルとユーザーグループの ID を入れて PR にする。手順は [notification-design.md](s3-data-protection-3/notification-design.md) の 9.1
+- 状態: **通知の 1 段目（Slack への経路をカナリアで試す）を cdk-apps で起草し、チャンネルとグループの ID も入れた**（ブランチ `original-bucket-audit-slack`、未 push）。伊藤がローカルで差分を見てから push・PR。deploy の後の試しは [notification-design.md](s3-data-protection-3/notification-design.md) の 9.1
 
 第二弾で原本バケット 9 本に Object Lock を入れた。第三弾では、残った抜け穴を台帳にして区分 A（意図して残す）・B（監視する）・C（監視されていない）に分け、塞ぐ・監視を付ける・主体を減らすことで、C をできるだけ無くす。
 
 - 所属: project:aws-data-protection
-- 前段: [第二弾](s3-data-protection-2.md)（権限設計のアップグレードと WORM の導入）。第二弾の決定（D1〜D36）・アクション（[worm-action-list.md](s3-data-protection-2/worm-action-list.md)）・導入の段階（[worm-rollout-stages.md](s3-data-protection-2/worm-rollout-stages.md)）は、第二弾の資料を正本のまま参照する
+- 前段: [第二弾](done/s3-data-protection-2.md)（権限設計のアップグレードと WORM の導入）。第二弾の決定（D1〜D36）・アクション（[worm-action-list.md](done/s3-data-protection-2/worm-action-list.md)）・導入の段階（[worm-rollout-stages.md](done/s3-data-protection-2/worm-rollout-stages.md)）は、第二弾の資料を正本のまま参照する
 - 第二弾の閉じ方（2026-11-16、伊藤）: **9 本すべてのホールドの verify が済んだら閉じる**（`done/` に移す）。共有用の資料の Notion への反映などの残りは、第三弾に引き継ぐ（下の「第二弾から引き継いだもの」）。導入の第 3 段階（通知・手順 D）も第三弾で行う
 
 ## 第二弾から引き継いだもの
@@ -20,11 +20,11 @@
 - [ ] td1-raw の古い CLI（2.15・2.16）の書き込みが、既定の保持設定の下で拒まれていないかをトレイルで見る。tuscenes-annotation の夜の処理は 11-17 に見て、拒否 0（第二弾の 11-17 の記録）。
 - [ ] e2e-dev の `td1-raw-471112873671` の既定の保持設定（1 日）を外すか決める。徳弘さんの試しの結果の詳細を受け取る。
 - [ ] 2026-11-28 ごろ、カナリアの `default.txt` で、付け直しのあとの期限の動きを確かめる。
-- [ ] 第二弾を `done/` に移す前に、恒久的に残す内容（決定 D1〜D36・導入の結果・手順書）が第二弾のフォルダの資料にあることを確かめる。
+- [x] 第二弾を `done/` に移す前に、恒久的に残す内容（決定 D1〜D36・導入の結果・手順書）が第二弾のフォルダの資料にあることを確かめる。→ 確かめて、2026-11-17 に移した（フォルダごと `done/s3-data-protection-2/` にある）。
 
 ## 背景・目的
 
-第二弾までで、原本バケットは次の層で守られている（[permission-model.md](s3-data-protection-2/permission-model.md)）。
+第二弾までで、原本バケットは次の層で守られている（[permission-model.md](done/s3-data-protection-2/permission-model.md)）。
 
 - 層 1: バージョニング（12 本、2026-10-20）
 - 層 2: 守りのバケットポリシー（12 本、2026-10-26。迂回の禁止・鍵の操作の禁止は 2026-11-10）
@@ -46,8 +46,8 @@
 | 0. 台帳 | 抜け穴を洗い出し、区分を決める。柱 1〜3 の結果で区分を更新する | すべて | permission-model.md・current-state.md の 6 章 |
 | 1. 通知 | 解除・バケットの設定の変更・ジョブの作成・通知の仕組みの変更を、即時に届ける。見張り、ログのバケットの守り | L1・L2・L4・L5・L10・L12・L13 を A・B にする | 導入の第 3 段階の通知、アクション 4-5・4-9 |
 | 2. 手順 D | FullAccess を例外から外す。ジョブのロールと deploy の経路を守る SCP | L3・L6〜L9・L19 を塞ぐ | 導入の第 3 段階の手順 D、アクション 2-1・2-3・3-5・4-8・4c-3〜4c-5 |
-| 3. 掃除 | 原本バケットに届く主体を減らす | L14 の主体を減らす。L6 の対象を減らす | TODO 12〜16、[cleanup-runbook.md](s3-data-protection-2/cleanup-runbook.md) |
-| 4. 検知（できれば） | 削除の毎時の報告。監査の対象（S3 のイベント・Inventory）に原本バケットを足す | L14 を B にする | ステージ 2 の PR-A・PR-B、[stage2-hourly-report.md](s3-data-protection-2/stage2-hourly-report.md) |
+| 3. 掃除 | 原本バケットに届く主体を減らす | L14 の主体を減らす。L6 の対象を減らす | TODO 12〜16、[cleanup-runbook.md](done/s3-data-protection-2/cleanup-runbook.md) |
+| 4. 検知（できれば） | 削除の毎時の報告。監査の対象（S3 のイベント・Inventory）に原本バケットを足す | L14 を B にする | ステージ 2 の PR-A・PR-B、[stage2-hourly-report.md](done/s3-data-protection-2/stage2-hourly-report.md) |
 
 範囲の外:
 - 意図して消すときの手順（D13・D35）。消す必要が出たときに再開する。
@@ -107,11 +107,12 @@
   - 届け方の伊藤の案（11-17）: メールは `mlops@turing-motors.com`（コストアノマリーに揃える。管理アカウントの購読が Google グループ `mlops1@` を通って配られている）、Slack は `#aws_security_alert`（公開）、メンションは `@mlops1`。**個人の案で、仕様が固まったらチームに共有して合意を取る。**
   - 8 章の伊藤の案（11-17）: ルール D・E は入れる。見張り（L12）は見送る（今回は過剰なケア。L12 の一部は C に残る）。ログのバケット（L13）は通知の PR のあとに設計する。警報が OK に戻ったときは送らない。
   - 次: 仕様をチームに共有して合意を取る。並行して通知の PR（4-9）を起草する。伊藤の作業: `#aws_security_alert` を作り、チャンネルの ID と `@mlops1` のグループの ID を控える。`mlops1+owners@` に迷惑メールの保留の設定を確かめる。
-- 2026-11-17（午後）: Slack は Amazon Q Developer で送ると決めた（伊藤。メンションが効かなければ替える）。メールは今回のスコープから外す。通知は 2 段に分け、1 段目（Slack への経路・カナリアだけのルール B）を cdk-apps のブランチ `original-bucket-audit-slack` に起草した（`b05ef98a`、`/usr/app/cdk-apps` でチェックアウトしている、未 push）。
+- 2026-11-17（午後）: Slack は Amazon Q Developer で送ると決めた（伊藤。メンションが効かなければ替える）。メールは今回のスコープから外す。通知は 2 段に分け、1 段目（Slack への経路・カナリアだけのルール B）を cdk-apps のブランチ `original-bucket-audit-slack` に起草した（`0cce70ea`、`/usr/app/cdk-apps` でチェックアウトしている、未 push）。
   - 次: 伊藤が `#aws_security_alert` を作り、チャンネルと `@mlops1` の ID を `lib/config.ts` に入れて PR にする。deploy の後に試すことは設計の 9.1。
+- 2026-11-17 05:54Z: **第二弾の td1-raw の verify が済み、第二弾を閉じた**（9 本すべてのホールドが verify 済み）。`done/` に移し、リンクを直した。
 
 ## 関連リンク
 
 - [抜け穴の台帳](s3-data-protection-3/loophole-ledger.md)
-- 第二弾: [s3-data-protection-2.md](s3-data-protection-2.md)、[permission-model.md](s3-data-protection-2/permission-model.md)、[current-state.md](s3-data-protection-2/current-state.md)、[worm-rollout-stages.md](s3-data-protection-2/worm-rollout-stages.md)、[worm-action-list.md](s3-data-protection-2/worm-action-list.md)、[worm-decisions.md](s3-data-protection-2/worm-decisions.md)、[stage2-hourly-report.md](s3-data-protection-2/stage2-hourly-report.md)、[cleanup-runbook.md](s3-data-protection-2/cleanup-runbook.md)
+- 第二弾: [s3-data-protection-2.md](done/s3-data-protection-2.md)、[permission-model.md](done/s3-data-protection-2/permission-model.md)、[current-state.md](done/s3-data-protection-2/current-state.md)、[worm-rollout-stages.md](done/s3-data-protection-2/worm-rollout-stages.md)、[worm-action-list.md](done/s3-data-protection-2/worm-action-list.md)、[worm-decisions.md](done/s3-data-protection-2/worm-decisions.md)、[stage2-hourly-report.md](done/s3-data-protection-2/stage2-hourly-report.md)、[cleanup-runbook.md](done/s3-data-protection-2/cleanup-runbook.md)
 - cdk-apps: `apps/original-bucket-audit`（通知・検知の置き場）、`packages/original-bucket-guard`（守りのバケットポリシー）、`apps/organization-policy`（SCP）

@@ -4,7 +4,7 @@
 - 状態: **完了**（2026-10-26）。ユーザーと Amplify の一式を削除した。残りの TODO 2・3 は対処不要とした（伊藤）
 - 所属: project:aws-data-protection（2026-10-26 に `~/docs/workstream/` から移した）
 - 実施: 伊藤（書き込みは Full の権限で CLI。このユーザーは CDK の管理外）
-- 経緯: [S3 バケットのデータ保護 第二弾](../s3-data-protection-2.md) の TODO 13 から切り出した。[cdk-apps#2252](https://github.com/turingmotors/cdk-apps/pull/2252) のレビューで犬塚さん（graph226）が「cfn-exec-role を名乗れる主体」として挙げたユーザー
+- 経緯: [S3 バケットのデータ保護 第二弾](s3-data-protection-2.md) の TODO 13 から切り出した。[cdk-apps#2252](https://github.com/turingmotors/cdk-apps/pull/2252) のレビューで犬塚さん（graph226）が「cfn-exec-role を名乗れる主体」として挙げたユーザー
 
 ## 背景
 

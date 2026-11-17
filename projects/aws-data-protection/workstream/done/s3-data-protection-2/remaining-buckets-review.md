@@ -1,6 +1,6 @@
 # WORM の対象の残り 8 本の精査（2026-11-10）
 
-denso-raw・gaming-data-collection を外したあと（D26・D27）、残りの 8 本も同じ観点で見直した。観点は、何のデータか・使われているか・写しがあるか・作り直せるか・入れる前に決めることがあるか。tuscenes-prod の ReadOnly と、手元の記録（第一弾の分類 [notion-bucket-classification.md](../done/raw-data-security/notion-bucket-classification.md)、[raw-data-security.md](../done/raw-data-security.md)、安本さんの調査書 [raw-data-security.md](../../documents/raw-data-security.md)）で調べた。
+denso-raw・gaming-data-collection を外したあと（D26・D27）、残りの 8 本も同じ観点で見直した。観点は、何のデータか・使われているか・写しがあるか・作り直せるか・入れる前に決めることがあるか。tuscenes-prod の ReadOnly と、手元の記録（第一弾の分類 [notion-bucket-classification.md](../raw-data-security/notion-bucket-classification.md)、[raw-data-security.md](../raw-data-security.md)、安本さんの調査書 [raw-data-security.md](../../../documents/raw-data-security.md)）で調べた。
 
 ## 結論
 

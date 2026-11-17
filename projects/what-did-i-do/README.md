@@ -10,4 +10,4 @@
 
 ## 関連する資料（ほかの project）
 
-- [../aws-data-protection/workstream/s3-data-protection-2/stage2-hourly-report.md](../aws-data-protection/workstream/s3-data-protection-2/stage2-hourly-report.md): 今日なに消したかわかる君（原本バケットの削除の記録と報告）の設計と、カナリアでの確認の結果
+- [../aws-data-protection/workstream/s3-data-protection-2/stage2-hourly-report.md](../aws-data-protection/workstream/done/s3-data-protection-2/stage2-hourly-report.md): 今日なに消したかわかる君（原本バケットの削除の記録と報告）の設計と、カナリアでの確認の結果

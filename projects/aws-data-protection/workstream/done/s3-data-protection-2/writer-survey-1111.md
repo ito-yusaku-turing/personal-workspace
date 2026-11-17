@@ -31,7 +31,7 @@ Object Lock を入れる 9 本について、誰が・何で書いているか�
 
 ## 限界と、残る確かめ
 
-- **12 日間しか見ていない。** 書き込みが 0 件の 6 本は、たまにしか書かれない書き手を見落としている可能性がある。段階 1 の 2 本（td1-rlog・tuscenes-calibration（旧））は、もともと書き込みが止まっていると見ているバケット。tuscenes-raw と denso の 3 本は、書き込みの権限を持つ主体の一覧（第一弾の [s3-bucket-access-control.md](../done/s3-bucket-access-control.md)）と突き合わせ、持ち主に聞く。
+- **12 日間しか見ていない。** 書き込みが 0 件の 6 本は、たまにしか書かれない書き手を見落としている可能性がある。段階 1 の 2 本（td1-rlog・tuscenes-calibration（旧））は、もともと書き込みが止まっていると見ているバケット。tuscenes-raw と denso の 3 本は、書き込みの権限を持つ主体の一覧（第一弾の [s3-bucket-access-control.md](../s3-bucket-access-control.md)）と突き合わせ、持ち主に聞く。
 - **アップロード用の PC の古い CLI（2.15〜2.25）は、版から推定しただけ。** PC の `~/.aws/config` と環境変数 `AWS_REQUEST_CHECKSUM_CALCULATION` で `when_required` にしていないかを確かめる（段階 3 の td1-raw の前）。
 - DataSync は、期間中に書き込みが無く、振る舞いが分からない。[datasync-probe-runbook.md](datasync-probe-runbook.md) で試す。
 - tuscenes-annotation には、TeamE2E の人の手での書き込みが多い（11-05 に 1 日で 8 万件など）。今回の道具はどれも付けていたが、ほかの道具（s5cmd・rclone など）を使う人が出ると止まる。段階 2 の前に、チームに知らせる。

@@ -2,7 +2,7 @@
 
 - 作成: 2026-11-04
 - 使いどころ: WORM の資料を**共有用に仕上げるとき**に、言い換えをこの表で正式名に直す・補う。作業中の資料（workstream）は、いまの言い方のままでよい。
-- 対象の資料: [worm-quickwin-plan.md](worm-quickwin-plan.md)・[worm-quickwin-design.md](worm-quickwin-design.md)・[worm-probe-runbook.md](worm-probe-runbook.md)、10-30 の [worm-design.md](worm-design.md)・[worm-reference.md](worm-reference.md)・[option-reassessment.md](option-reassessment.md)、Notion に上げた [S3 Object Lock（WORM）の整理](../../documents/notion-s3-object-lock.md)
+- 対象の資料: [worm-quickwin-plan.md](worm-quickwin-plan.md)・[worm-quickwin-design.md](worm-quickwin-design.md)・[worm-probe-runbook.md](worm-probe-runbook.md)、10-30 の [worm-design.md](worm-design.md)・[worm-reference.md](worm-reference.md)・[option-reassessment.md](option-reassessment.md)、Notion に上げた [S3 Object Lock（WORM）の整理](../../../documents/notion-s3-object-lock.md)
 
 ## 1. 書き方の決まり
 

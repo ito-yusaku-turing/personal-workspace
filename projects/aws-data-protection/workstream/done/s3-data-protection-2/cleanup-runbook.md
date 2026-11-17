@@ -3,7 +3,7 @@
 - 作成: 2026-10-30 ／ 伊藤（下書きはエージェント）
 - 親: [S3 バケットのデータ保護 第二弾](../s3-data-protection-2.md) のステージ 4（TODO 13・14）
 - 根拠: [current-state.md](current-state.md) の 3 章・4 章（2026-10-30 に全 740 主体を判定）
-- 棚卸しとの関係: [project:information-resource-inventory の掃除の候補](../../../information-resource-inventory/workstream/aws-resource-inventory/cleanup-candidates.md) と重なるものは、その番号（S3・S5〜S7・C3-6）を併記した。重なるものは、この手順書で片付ける
+- 棚卸しとの関係: [project:information-resource-inventory の掃除の候補](../../../../information-resource-inventory/workstream/aws-resource-inventory/cleanup-candidates.md) と重なるものは、その番号（S3・S5〜S7・C3-6）を併記した。重なるものは、この手順書で片付ける
 - 対象: tuscenes-prod（767397804933）
 
 ## 進め方

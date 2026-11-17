@@ -4,7 +4,7 @@
 
 > **2026-10-29 追記:** チーム向けの資料は [breakglass-proposal.md](breakglass-proposal.md) に書いた。この資料は内部の検討の記録として残す。同日、伊藤の方針で「ふだんの権限は今の FullAccess のまま変えず、昇格は BreakGlass のときだけ」と決めた（5.2 の形）。
 
-**叩き台です。** 伊藤の判断とチームの議論の前の案で、決まったことはまだありません。一般論は [特権アクセスと break-glass の一般論](../../documents/privileged-access-and-break-glass.md) にまとめ、ここでは当社（tuscenes-prod と原本バケット 12 本）に当てはめた案だけを書きます。
+**叩き台です。** 伊藤の判断とチームの議論の前の案で、決まったことはまだありません。一般論は [特権アクセスと break-glass の一般論](../../../documents/privileged-access-and-break-glass.md) にまとめ、ここでは当社（tuscenes-prod と原本バケット 12 本）に当てはめた案だけを書きます。
 
 ## 1. この資料で決めたいこと
 
@@ -39,10 +39,10 @@
 | tuscenes-prod の FullAccess | 中身は AdministratorAccess、セッションは 12 時間。持つ人は 13 名（identity の第 3・第 4 グループの役員・正社員。10-21 の確認）。プランには 14 名とも書いており、数を確かめ直す必要がある | workstream の 10-21 |
 | tuscenes-prod の AWSAdministratorAccess | `Engineers` グループの 1 名。2022 年の旧 SCIM の残骸で、6 アカウントに付いている | identity `docs/aws-manual-groups.md` |
 | 管理アカウントなどの管理者 | `AWSControlTowerAdmins` の 7 名。管理アカウントを含む 4 アカウントで AWSAdministratorAccess。ここに入る人は、自分に BreakGlass を割り当てられる | 同上 |
-| 権限セットと割り当ての管理 | cdk-apps の `apps/organization-policy`（管理アカウントに deploy）。グループは Okta の SCIM で同期 | [AWS の権限の階層](../../documents/aws-privilege-hierarchy.md) |
+| 権限セットと割り当ての管理 | cdk-apps の `apps/organization-policy`（管理アカウントに deploy）。グループは Okta の SCIM で同期 | [AWS の権限の階層](../../../documents/aws-privilege-hierarchy.md) |
 | Okta の AWS アプリ | IAM Identity Center のアプリに、グループ `APP:AWS` を割り当てている。認証ポリシー（MFA の要素）は Terraform に無く、今の設定は**確かめていない** | identity `platform/okta/` |
 | ステージ 1 の例外 | 暫定で FullAccess と AWSAdministratorAccess | workstream の TODO 3 |
-| メンバーアカウントの root | パスワードは有効で MFA は無い。削除を CorpIT に依頼する段階で、まだ消えていない | [aws-root-credentials.md](../aws-root-credentials.md) |
+| メンバーアカウントの root | パスワードは有効で MFA は無い。削除を CorpIT に依頼する段階で、まだ消えていない | [aws-root-credentials.md](../../aws-root-credentials.md) |
 | 監査のログ | Control Tower の組織のトレイルが、ログアーカイブのアカウントに置く。tuscenes-prod の管理者は消せない | workstream の 10-29 |
 
 ## 4. 想定する脅威と、守りの強さの目安
@@ -113,7 +113,7 @@
   - 案 1: AWS のガイドの形。管理アカウント（か緊急用の専用アカウント）に、ハードウェアの MFA を付けた緊急用の IAM ユーザーを 2 人分置きます。各アカウントには、そのユーザーが名乗れる緊急用のロールを置きます。パスワードと MFA のキーは別の人が持ち、使うには 2 人が要るようにします。組織全体の仕組みなので、CorpIT の担当になります。
   - 案 2: root のパスワードの回復を、緊急時の手順にする。root の一元管理で「パスワードの回復を許可」し、root のメールを受け取れる人が設定し直します。終わったら認証の情報を再び消します。ただし、root のメールの受信箱自体が Okta（Google Workspace のログイン）に頼っていると、Okta が止まったときに使えない可能性があります。
   - 案 3: 置かない。Okta が止まっているあいだは待ちます。原本バケットの守りは、止まっているあいだも効き続けます。
-- **論点 C:** 緊急用の入口を、この案件で扱うか、CorpIT の root の案件（[aws-root-credentials.md](../aws-root-credentials.md)）に寄せるか。組織全体に関わるので、私は CorpIT に寄せるのがよいと考えています。この案件としては、当面は案 3（待つ）で困らないことを確かめれば足ります。
+- **論点 C:** 緊急用の入口を、この案件で扱うか、CorpIT の root の案件（[aws-root-credentials.md](../../aws-root-credentials.md)）に寄せるか。組織全体に関わるので、私は CorpIT に寄せるのがよいと考えています。この案件としては、当面は案 3（待つ）で困らないことを確かめれば足ります。
 
 ### 5.8 名簿の外にいる「同等の人」
 

@@ -30,10 +30,10 @@
 | 項目 | 状態 | 資料 |
 |---|---|---|
 | 削除の検知（ステージ 2） | 記録の仕組みは deploy 済み（[cdk-apps#2267](https://github.com/turingmotors/cdk-apps/pull/2267)、2026-10-26）。対象はカナリアだけ。12 本の書き込みの記録は 2026-10-30 に始まった（[cdk-apps#2387](https://github.com/turingmotors/cdk-apps/pull/2387)）。毎時の報告（PR-A）と 12 本の S3 のイベント・Inventory（PR-B）は保留 | [stage2-hourly-report.md](stage2-hourly-report.md) |
-| tuscenes-prod の root の認証情報（パスワード有効・MFA なし） | CorpIT の対応待ち | [aws-root-credentials.md](../aws-root-credentials.md) |
+| tuscenes-prod の root の認証情報（パスワード有効・MFA なし） | CorpIT の対応待ち | [aws-root-credentials.md](../../aws-root-credentials.md) |
 | LidarDeleter・S3BatchDeleteLidar（消すための常設のロール） | 扱いが決まっていない | 第二弾の TODO 16 |
 | `grantReadWrite` が広すぎるアプリ 4 本、長期キーの IAM ユーザー、使われていない強いロール | 手つかず | 第二弾のステージ 4（TODO 12〜15） |
-| 古いスタック tuscenes の片付け | 起票のみ | [tuscenes-stack-cleanup.md](../tuscenes-stack-cleanup.md) |
+| 古いスタック tuscenes の片付け | 起票のみ | [tuscenes-stack-cleanup.md](../../tuscenes-stack-cleanup.md) |
 
 ### 2.3 選択肢として検討したもの
 
@@ -158,7 +158,7 @@
 - **名簿の行き詰まり。** 名簿の変更も 2 人が要るので、2 人以上が不在になる・乗っ取られると行き詰まる。
   - **方針（2026-11-02、伊藤）: システム保全責任者より上位の権限保持者は、できれば作らない。** システム保全責任者は互いに対等とし、仕組みを強めて人数を増やすことで行き詰まりを避ける。
   - → 同じ日の CorpIT への聞き取りで前提が変わったので、7.5 で見直した（案）。
-  - **構造上の上位権限者の扱い（2026-11-02、伊藤）:** GitHub の組織の owner、AWS の管理アカウントなど、仕組みの構造の上でシステム保全責任者より上に立つ権限は、設計しなくても既にあり、無くせない（[privilege-map.md](../../../privileged-access/workstream/apex-privileges/privilege-map.md)）。存在は受け入れ、**上位として何が存在しているかの把握と管理を徹底する**。
+  - **構造上の上位権限者の扱い（2026-11-02、伊藤）:** GitHub の組織の owner、AWS の管理アカウントなど、仕組みの構造の上でシステム保全責任者より上に立つ権限は、設計しなくても既にあり、無くせない（[privilege-map.md](../../../../privileged-access/workstream/apex-privileges/privilege-map.md)）。存在は受け入れ、**上位として何が存在しているかの把握と管理を徹底する**。
     - 流れには組み込まない（普段の要承認操作には使わない）。
     - 何が存在するかを台帳にする（privilege-map.md の 8 章）。
     - 数を絞る。使えば即時に通知する。残るリスクとして明記する。
@@ -166,15 +166,15 @@
     - システム保全責任者自身が構造上の上位権限者を兼ねると、1 人で流れを迂回できる。兼ねないようにする（案。前提 (a) と同じ考え。未決定）。
 - **前提の確認（未回答）:** (a) システム保全責任者も普段は直接の権限を持たない、(b) 提案者もシステム保全責任者の中から出す、(c) 流れそのものの故障には、管理アカウントからの操作を最後の手段にする。
 - **人数:** 3 人か 4 人か。人数を増やして行き詰まりを避ける場合の注意（名簿から人を外す操作の扱い、不在がまとまって起きること、補充の決まり、最初の名簿の決め方）は、2026-11-02 の議論の記録（workstream）にある。
-- **頂点の問題は別の案件に分けた（2026-11-02、伊藤）。** 構造上の上位権限者は、互いに届き合う「頂点の群」になっていて、要件 7 に対して良くない（[privilege-map.md](../../../privileged-access/workstream/apex-privileges/privilege-map.md) の 9 章）。データの保全の範囲を超えるので、[project:privileged-access の「権限の頂点の把握と管理」](../../../privileged-access/workstream/apex-privileges.md)で、CorpIT と一体で取り組む。この案件は次を前提に進める。
+- **頂点の問題は別の案件に分けた（2026-11-02、伊藤）。** 構造上の上位権限者は、互いに届き合う「頂点の群」になっていて、要件 7 に対して良くない（[privilege-map.md](../../../../privileged-access/workstream/apex-privileges/privilege-map.md) の 9 章）。データの保全の範囲を超えるので、[project:privileged-access の「権限の頂点の把握と管理」](../../../../privileged-access/workstream/apex-privileges.md)で、CorpIT と一体で取り組む。この案件は次を前提に進める。
   - 頂点の群の乗っ取りは、別の案件で扱う残るリスクとする。GitHub の上の 2 人の確認が効くのは、ふつうの経路（誤操作、ふつうのメンバーの乗っ取り）まで。
   - 頂点に頼らない守り（WORM の猶予と、輪の外への通知の受け手）は、この案件で持つ。
-- **不明点は、ヒアリング項目として溜める**（[privilege-map.md](../../../privileged-access/workstream/apex-privileges/privilege-map.md) の 7 章）。設計を整理してから、まとめて相談する（2026-11-02、伊藤）。
-- **権限の構造の調査を先に行う（2026-11-02、伊藤）。** GitHub の組織・identity・cdk-apps・AWS の各層に、流れを迂回できる経路がどれだけあるかを洗い出さないと、設計が穴だらけになるため。 結果は [privilege-map.md](../../../privileged-access/workstream/apex-privileges/privilege-map.md)。
+- **不明点は、ヒアリング項目として溜める**（[privilege-map.md](../../../../privileged-access/workstream/apex-privileges/privilege-map.md) の 7 章）。設計を整理してから、まとめて相談する（2026-11-02、伊藤）。
+- **権限の構造の調査を先に行う（2026-11-02、伊藤）。** GitHub の組織・identity・cdk-apps・AWS の各層に、流れを迂回できる経路がどれだけあるかを洗い出さないと、設計が穴だらけになるため。 結果は [privilege-map.md](../../../../privileged-access/workstream/apex-privileges/privilege-map.md)。
 
 ### 7.5 前提が変わったことによる設計の案（2026-11-02）
 
-7.4 を書いた時点では、構造上の上位権限者は「互いに届き合う頂点の群（10 名超）」で、境界が見えず、頼れなかった。同じ日に CorpIT に聞き取りをして、前提が変わった（[corpit-hearing.md](../../../privileged-access/workstream/apex-privileges/corpit-hearing.md)）。
+7.4 を書いた時点では、構造上の上位権限者は「互いに届き合う頂点の群（10 名超）」で、境界が見えず、頼れなかった。同じ日に CorpIT に聞き取りをして、前提が変わった（[corpit-hearing.md](../../../../privileged-access/workstream/apex-privileges/corpit-hearing.md)）。
 
 - **最上位は GCP で、実質の最高権限者は 4 名**（渡辺 晃平・山口 祐・山本 修平・大戸 一希）。GCP だけは Okta を飛ばしてログインできるので、CorpIT が最上位に置いている。
 - 頂点の群の循環のいくつかは、止めてある（どれが、どの仕組みでかは未確認）。
@@ -212,7 +212,7 @@
      - **解任で、名簿を 2 名未満にしない。**
    - **名簿の承認者を、最高権限者にそろえる。** 名簿の実体の承認者は、今は CorpIT の 1 名（山本 修平・山下 卓也。identity の `team_memberships.tf`、P6）で、**山下さんは最高権限者の 4 名に入らない**。名簿のチームの行を別のファイルに分け、その Code Owner を最高権限者にする（CODEOWNERS はファイルの単位なので）。cdk-apps の `.github/CODEOWNERS`（P11）も同じ扱いにする。名簿のチームの maintainer は 0 にする（P4）。
 3. **システム保全責任者が兼ねてよいもの、兼ねないもの。**
-   - 兼ねない: **最高権限者**（任命する人と使う人が同じになる）、**GitHub の組織の owner**（P1。組織のルールセットを変えられる。C1（[privilege-map.md](../../../privileged-access/workstream/apex-privileges/privilege-map.md) の 9.1）が通るなら、実質の最上位にも近い）。
+   - 兼ねない: **最高権限者**（任命する人と使う人が同じになる）、**GitHub の組織の owner**（P1。組織のルールセットを変えられる。C1（[privilege-map.md](../../../../privileged-access/workstream/apex-privileges/privilege-map.md) の 9.1）が通るなら、実質の最上位にも近い）。
    - **cdk-apps の admin（P3）は兼ねてよい。ただし、`main` の保護を組織のルールセットに移すことを条件にする**（伊藤の意向）。
      - 兼任の問題: cdk-apps の deploy のロールが鍵を渡す条件は `repo:turingmotors/cdk-apps:ref:refs/heads/main` だけ（`apps/organization-policy/ci-cdk-deploy-role.yml`、cfc61a5e。確認済み）。`main` の保護が唯一の関門で、今はそれがリポジトリのルールセットなので、admin が 1 人で無効にして、守りの変更や CODEOWNERS の書き換えを `main` に入れられる。システム保全責任者が admin を兼ねると、そのアカウント 1 つの乗っ取りで要承認操作が通る。
      - ただし、兼任を禁じても穴は残る。cdk-apps の admin は 13 名いて、全員が同じ経路をたどれる。塞ぐべきは「リポジトリの admin が `main` の保護を外せる」こと。
@@ -228,7 +228,7 @@
    - **この人のグループの整理の土台は K2 になる。**
 5. **3 つのグループに入らない、AWS を直接さわれる人がいる。**
    - tuscenes-prod の FullAccess・AWSAdministratorAccess の 14 名（P14）と、AWS の管理アカウントの管理者は、GitHub を通らずに守りを外せる。
-   - 通常権限メンバーとして扱うなら、バケットポリシーの例外から外す（K3）。外せない人がいるなら、4 つ目のグループとして台帳（[privilege-map.md](../../../privileged-access/workstream/apex-privileges/privilege-map.md) の 8 章）に載せ、残るリスクとして扱う。AWS の管理アカウントの管理者が最高権限者の中にいれば（I10）、最高権限者に含めて扱える。
+   - 通常権限メンバーとして扱うなら、バケットポリシーの例外から外す（K3）。外せない人がいるなら、4 つ目のグループとして台帳（[privilege-map.md](../../../../privileged-access/workstream/apex-privileges/privilege-map.md) の 8 章）に載せ、残るリスクとして扱う。AWS の管理アカウントの管理者が最高権限者の中にいれば（I10）、最高権限者に含めて扱える。
 6. **最高権限者は、保全の権限を自分で使わない。**
    - 最高権限者は、技術的には組織のルールセットを変えて、自分で守りの変更を通せる。無くせない残るリスク。
    - 役割として「任命・解任と通知の受け手の基盤は持つが、保全の操作の提案と承認はしない」と決め、最高権限者の操作は通知する。
@@ -243,7 +243,7 @@
 9. **残るリスクを名前で書く。**
    - 「最高権限者（と、AWS の管理アカウントの管理者）のアカウントの乗っ取り」。
    - これに効くのは、WORM のコンプライアンスモードだけ（K6 のフルスペック）。Quick Win はガバナンスモードで、迂回の Deny を外せる主体（バケットポリシーを変えられる主体）には効かない。**フルスペックまでは、この乗っ取りに効く守りが無い期間がある。**
-   - 最高権限者の要件（管理用のアカウントの分離、フィッシングに強い MFA）は、[project:privileged-access](../../../privileged-access/workstream/apex-privileges.md) で扱う。
+   - 最高権限者の要件（管理用のアカウントの分離、フィッシングに強い MFA）は、[project:privileged-access](../../../../privileged-access/workstream/apex-privileges.md) で扱う。
 
 別の案（7.5.1 には入れていない）: 前提 (c)（流れの故障の最後の手段は管理アカウント）は、AWS の管理アカウントの管理者が最高権限者の中にいれば、「最高権限者」に一本化できる（I10）。
 
@@ -263,11 +263,11 @@
 | — | 名簿の変更の通知と、任命から権限を使えるまでの待ちの期間を、仕組みで作れるか（設計の課題。聞き取りではない） | 作れなければ、最高権限者 1 人の乗っ取りで名簿を入れ替えられる（7.5.2 の 2） |
 | I10 | AWS の管理アカウントの管理者は、最高権限者の中にいるか | 中にいなければ、AWS の側に別の最上位が残る（7.5.2 の 5）。前提 (c) は一本化できない |
 
-ヒアリング項目の番号は、[privilege-map.md](../../../privileged-access/workstream/apex-privileges/privilege-map.md) の 7 章による。
+ヒアリング項目の番号は、[privilege-map.md](../../../../privileged-access/workstream/apex-privileges/privilege-map.md) の 7 章による。
 
 ## 8. 課題の整理（2026-11-02）
 
-頂点の問題を [project:privileged-access](../../../privileged-access/workstream/apex-privileges.md) に分けたあとの、この案件の課題。弱点の番号（W）は [current-state.md](current-state.md) の 6 章。
+頂点の問題を [project:privileged-access](../../../../privileged-access/workstream/apex-privileges.md) に分けたあとの、この案件の課題。弱点の番号（W）は [current-state.md](current-state.md) の 6 章。
 
 ### 8.1 決まっていること
 

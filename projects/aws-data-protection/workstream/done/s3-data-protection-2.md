@@ -1,14 +1,14 @@
 # S3 バケットのデータ保護 第二弾（権限設計のアップグレード）
 
 - 開始: 2026-10-20
-- 状態: **9 本すべてに Object Lock と既定の保持設定（15 日）を入れ、既存の版のホールドは 8 本が verify まで済んだ**（2026-11-17 01:04Z）。残る td1-raw はジョブが流れている（04:24Z に 98.85%、11-17 05:15Z ごろの見込み）。その verify（伊藤）が済めば第二弾を閉じる。手順と結果は [stage1-runbook.md](s3-data-protection-2/stage1-runbook.md) と [worm-rollout-stages.md](s3-data-protection-2/worm-rollout-stages.md) の「段階 3・4 の結果」。全体のアクションは [worm-action-list.md](s3-data-protection-2/worm-action-list.md)。権限の頂点の問題は別の案件（project:privileged-access）
+- 状態: **完了（2026-11-17）**。9 本すべてに Object Lock と既定の保持設定（ガバナンス・15 日）を入れ、すでにある版のホールドも 9 本とも verify まで済んだ。結果は [worm-rollout-stages.md](s3-data-protection-2/worm-rollout-stages.md) の「段階 3・4 の結果」、決定は [worm-decisions.md](s3-data-protection-2/worm-decisions.md)（D1〜D36）。残りは第三弾（[s3-data-protection-3.md](../s3-data-protection-3.md) の「第二弾から引き継いだもの」）
 - 所属: project:aws-data-protection（2026-10-26 に `~/docs/workstream/` から移した）
 - 前段（第一弾、完了）:
-  - [走行データ消失リスクへの対応](done/raw-data-security.md)（バケットの種別と処遇、裁定の正本）
-  - [原本バケットのバージョニング（cdk-apps）](done/s3-versioning-cdk.md)
-  - [原本バケットへのアクセスの洗い出し](done/s3-bucket-access-control.md)（誰が何をできるかの表。本資料の根拠）
+  - [走行データ消失リスクへの対応](raw-data-security.md)（バケットの種別と処遇、裁定の正本）
+  - [原本バケットのバージョニング（cdk-apps）](s3-versioning-cdk.md)
+  - [原本バケットへのアクセスの洗い出し](s3-bucket-access-control.md)（誰が何をできるかの表。本資料の根拠）
 - 共有用の資料: [permission-upgrade-plan.md](s3-data-protection-2/permission-upgrade-plan.md)（2026-10-21 に Notion に上げた。2026-10-26 に手元の写しを 10-21〜22 の決定に合わせて直したので、上げ直しが要る）
-- 参考資料: [AWS の権限の階層](../documents/aws-privilege-hierarchy.md)（一般論と、管理アカウントへの CI の経路の調査）
+- 参考資料: [AWS の権限の階層](../../documents/aws-privilege-hierarchy.md)（一般論と、管理アカウントへの CI の経路の調査）
 - 用語: S3 の Versioning は「バージョニング」。旧版を指すときは「古い版」
 - 番号の付け方: 案件は「第一弾・第二弾」、第二弾の中の手順は「ステージ 1〜4」、TODO は通し番号で「TODO 6」のように呼ぶ（2026-10-22。以前の「第 1 段」「P1」はやめた）
 
@@ -20,7 +20,7 @@
 
 - CDK の `grantReadWrite` が古い版の削除まで許す。
 - 最大権限の持ち主が多い。
-- root に MFA が無い（別案件で認証情報を消す。[aws-root-credentials.md](aws-root-credentials.md)）。
+- root に MFA が無い（別案件で認証情報を消す。[aws-root-credentials.md](../aws-root-credentials.md)）。
 
 第二弾では、これを権限設計から直す。
 
@@ -51,7 +51,7 @@
 - 守りの設定の変更は EventBridge で受けると決めた（10-29）。管理イベントが default のバスに流れるかは未確認。
 - カナリアの失効の確認（ReadOnly で見るだけなので、手が空いたときにやってよい）。カナリアは、WORM 化の検証でも使う。
 
-26. **原本バケットの WORM 化（S3 Object Lock）を検討する**（2026-10-29 に優先度を上げた）。整理の資料は [S3 Object Lock（WORM）の整理](../documents/notion-s3-object-lock.md)（2026-10-26、Notion に上げてある）。
+26. **原本バケットの WORM 化（S3 Object Lock）を検討する**（2026-10-29 に優先度を上げた）。整理の資料は [S3 Object Lock（WORM）の整理](../../documents/notion-s3-object-lock.md)（2026-10-26、Notion に上げてある）。
     - 決めること（資料の 8 章）: 対象のバケット、モード（コンプライアンスかガバナンスか）、鍵の種類と期間（固定か、可変の保持期間か）、消す必要が出たときの手順、既存の版にさかのぼって鍵をかけるか、アカウントの閉鎖にも備えるか。
     - 資料の推奨（9 章）: カナリアとは別の使い捨てのバケットで試す。監査ログのバケットから入れる。原本は案 A（ガバナンス ＋ RCP で迂回を BreakGlass だけに許す）か、案 B（コンプライアンス ＋ 可変の保持期間）。
     - BreakGlass（TODO 10）と、SCP・RCP（TODO 24）に関わる。
@@ -60,7 +60,7 @@
 ### すぐやる
 
 1. **共有用のプランをチームに出す**（~~[permission-upgrade-plan.md](s3-data-protection-2/permission-upgrade-plan.md) を Notion に上げる~~ → 済み（2026-10-21。「進捗と引き継ぎ」の 10-21）。2026-10-26 に手元の写しを 10-21〜22 の決定に合わせて直したので、Notion への上げ直しが要る）。「決めてほしいこと」の 1〜4 への回答を集める。とくに break-glass の人を誰にするか（名簿はまだ無い）。
-2. **root の認証情報の削除**は別の案件にした（[メンバーアカウントの root の認証情報を消す](aws-root-credentials.md)。CorpIT に依頼する）。S3 の案件としては、進み具合を見るだけにする。
+2. **root の認証情報の削除**は別の案件にした（[メンバーアカウントの root の認証情報を消す](../aws-root-credentials.md)。CorpIT に依頼する）。S3 の案件としては、進み具合を見るだけにする。
 
 ### ステージ 1: バケットポリシーの Deny
 
@@ -115,7 +115,7 @@
     - 12 本への `DeleteObjectVersion` などの Deny を SCP か RCP に重ねる。
     - 調べること: RCP の対象（S3 は可）・root にどう効くか・サービスにリンクされたロールの扱い・SCP との違い（他のアカウントの主体に効くか）・大きさの上限。
     - 経路は cdk-apps の `apps/organization-policy`（管理アカウントに deploy）。
-25. ~~**tuscenes-raw のルール `tuscenes-NewTripEventRule…` を止める**~~ → 済み（2026-10-27。伊藤が止め、`DISABLED` を ReadOnly で確かめた）。（2026-10-27 決定。PR-B の前に要る）tuscenes-raw の EventBridge を有効にすると、古いスタック `tuscenes` のこのルールが動き出し、cleaning の job・Supabase・Slack への投稿が起きるため。伊藤が Full 権限で止める。持ち主への確認はしない（本件の障害を自らの手で取り除く）。スタック全体の片付けは別の資料にした（[tuscenes-stack-cleanup.md](tuscenes-stack-cleanup.md)）。
+25. ~~**tuscenes-raw のルール `tuscenes-NewTripEventRule…` を止める**~~ → 済み（2026-10-27。伊藤が止め、`DISABLED` を ReadOnly で確かめた）。（2026-10-27 決定。PR-B の前に要る）tuscenes-raw の EventBridge を有効にすると、古いスタック `tuscenes` のこのルールが動き出し、cleaning の job・Supabase・Slack への投稿が起きるため。伊藤が Full 権限で止める。持ち主への確認はしない（本件の障害を自らの手で取り除く）。スタック全体の片付けは別の資料にした（[tuscenes-stack-cleanup.md](../tuscenes-stack-cleanup.md)）。
     - 手順（伊藤、Full 権限）:
       ```bash
       aws events disable-rule --region us-west-2 --name tuscenes-NewTripEventRule9F52899F-dXQQ5emHVD08
@@ -143,7 +143,7 @@
     - `AmazonS3FullAccess` の 4 本：jadd-datasync、jadd-remote-sync-kohei.watanabe、jadd_studio_amplify、shio-secretsmanager_GetSecretValue。
     - **jadd_studio_amplify**（2026-10-23 に正体を調べた）。Amplify CLI の時代（2024-11-22、初代 jadd_studio）に `amplify configure` で作ったユーザー。`AmazonS3FullAccess`・`AdministratorAccess-Amplify`・`AmplifyBackendDeployFullAccess`・`secretsmanager_GetSecretValue` を持つ。cfn-exec-role を名乗れるので、ステージ 1 の守りを外せる（[cdk-apps#2252](https://github.com/turingmotors/cdk-apps/pull/2252) のレビュー）。
       - **2026-10-26 にユーザーを削除した**（伊藤）。cfn-exec-role を名乗れる抜け穴の主体の 1 つが消えた。[cdk-apps#2252](https://github.com/turingmotors/cdk-apps/pull/2252) のレビューへの返答は対処不要とした。
-      - **別の資料に切り出した: [jadd_studio_amplify を削除する](done/jadd-studio-amplify-removal.md)**（2026-10-23）。利用元の調査の結果・削除の手順・Amplify の一式の扱いはそちらが正本。
+      - **別の資料に切り出した: [jadd_studio_amplify を削除する](jadd-studio-amplify-removal.md)**（2026-10-23）。利用元の調査の結果・削除の手順・Amplify の一式の扱いはそちらが正本。
       - 要点: キーは 2 本とも 2026-10-23 に無効化した（伊藤）。利用元の最有力は、jadd_studio3 の開発者の手元の `.env.local`（3 月に配った秘密情報のパッケージにこのキーが入っていた）。Devin の線は取り下げた。削除を妨げる依存は無い。
       - PR には、キーが漏れていることを書かない（「ステージ 4 で片付ける」とだけ書いた）。
 14. **使われていない強いロールを消す**。ecsTaskExecutionRole、AmazonEMRStudio_RuntimeRole、CodeCatalyst、tuscenes-sampler-test、sfn-auto-labeling、tuscenes-processing（どれも最終利用は 1 年以上前）。cdk の us-east-2 の bootstrap は使う予定を確かめてから。
@@ -158,9 +158,9 @@
 
 ### 第一弾からの持ち越し（チームの合意待ち）
 
-20. **バケットの種別の記事を Notion に上げ直す**（[`done/raw-data-security/notion-bucket-classification.md`](done/raw-data-security/notion-bucket-classification.md)。10-19 の変更を反映済み。2026-10-26 に、tuscenes-calibration（新）の失効の記述と denso-nx-raw の件数の記述も手元の写しで直した）。
+20. **バケットの種別の記事を Notion に上げ直す**（[`done/raw-data-security/notion-bucket-classification.md`](raw-data-security/notion-bucket-classification.md)。10-19 の変更を反映済み。2026-10-26 に、tuscenes-calibration（新）の失効の記述と denso-nx-raw の件数の記述も手元の写しで直した）。
 21. **databricks-workspace-e2e-bucket の A 案**（バージョニングを入れない）をチームで議論する。S3 を直接消されることへの手当ては、ステージ 1 と同じバケットポリシーで考えられる（Databricks のロール以外の削除を拒否する）。
-22. **調べ残し**：手で作ったバケットの持ち主と出所、tuscenes-calibration（旧）の写しの有無、他アカウント（amman-pipeline・e2e-dev・biz-dev）の同じ集計。（2026-10-27: `alphaspp-raw`・`alphaspp-data` の出所は tuscenes-infra（スタック `alphaspp-pipeline`、削除済み）と分かった。tuscenes-basicai-datasets はスタック `tuscenes` の管理下。どちらも [tuscenes-stack-cleanup.md](tuscenes-stack-cleanup.md) に書いた）
+22. **調べ残し**：手で作ったバケットの持ち主と出所、tuscenes-calibration（旧）の写しの有無、他アカウント（amman-pipeline・e2e-dev・biz-dev）の同じ集計。（2026-10-27: `alphaspp-raw`・`alphaspp-data` の出所は tuscenes-infra（スタック `alphaspp-pipeline`、削除済み）と分かった。tuscenes-basicai-datasets はスタック `tuscenes` の管理下。どちらも [tuscenes-stack-cleanup.md](../tuscenes-stack-cleanup.md) に書いた）
 23. **datalake の td1-raw の通知の設定**: datalake は td1-raw の通知を CDK の「丸ごと上書き」の方式（`Managed: true`）で持っている。datalake の通知の設定を変えて deploy すると、Databricks の auto-ingest の通知が消えるおそれがある（2026-10-22 に気づいた。ステージ 2 の設計を参照）。
     - **2026-10-27 に調べた（結果は「進捗と引き継ぎ」の 10-27）。** 監査のアプリ（PR-B）と td1-raw はぶつからない。一方で、td1-raw には監査とは関係なく前からある危険が 1 つある。また、tuscenes-raw に EventBridge を入れると、止まっている cleaning の処理が動き出すおそれがあることが分かった。
 
@@ -168,7 +168,7 @@
 
 - 2026-10-20: 起票した。第一弾の 3 本を `done/` に移した。共有用のプランを書いた。
 - 2026-10-20: root の現状を ReadOnly で確かめた（記録は aws-root-credentials.md に移した）。root の認証情報は削除する方針に決め、CorpIT に依頼することにした。
-- 2026-10-20: root の件を別の案件に切り出した（[aws-root-credentials.md](aws-root-credentials.md)）。
+- 2026-10-20: root の件を別の案件に切り出した（[aws-root-credentials.md](../aws-root-credentials.md)）。
 - 2026-10-21: Notion の記事に 5 件のコメント（12 本の内訳・データイベントの費用・ステージ 3 の詳細・break-glass の権限セット・Databricks のライフサイクルの権限）が付いた。回答を共有用のプランの末尾に「2026-10-21 追記」として足した。Databricks の権限は古い CFn の雛形由来で、今の公式ドキュメントには無い（TODO 5 の検証は予定どおり行う）。
 - 2026-10-21: 回答を Notion の記事に反映した。break-glass の名簿はまだ無い。候補は tuscenes-prod の FullAccess 13 名（identity の第 3・第 4 グループの役員・正社員）と `Engineers` の 1 名。ステージ 1 は、例外を暫定で FullAccess・AWSAdministratorAccess にして先に進めることにした。ポリシーの雛形・検証のスクリプトを書き、13 本で `validate-policy` とシミュレーターを通した。
 - 2026-10-21: 使い捨てのバケットでの検証が全項目 OK だった（TODO 4）。Control Tower・StackSets のロールも 12 本に触れていないことを ReadOnly で確かめた。
@@ -238,7 +238,7 @@
     | [cdk-apps#2267](https://github.com/turingmotors/cdk-apps/pull/2267) | ステージ 2 の 1 本目: カナリアと記録の仕組み | 10-22 の引き継ぎの「[cdk-apps#2267](https://github.com/turingmotors/cdk-apps/pull/2267) の deploy の後」の 4 点 |
 
   - **伊藤の作業**: denso-raw の `_policy-check/` の片付け（FullAccess で古い版と削除マーカーを消す）。
-  - **待っているもの**: jadd-1023-search（並行のセッション）の結果。1 本目のキーの利用元（Devin の Secrets・Slurm の資格情報）。片付けは TODO 13（切り出した workstream）で。（2026-10-26 注: Devin の線は取り下げた。利用元は TODO 13 と [jadd-studio-amplify-removal.md](done/jadd-studio-amplify-removal.md) を正とする）
+  - **待っているもの**: jadd-1023-search（並行のセッション）の結果。1 本目のキーの利用元（Devin の Secrets・Slurm の資格情報）。片付けは TODO 13（切り出した workstream）で。（2026-10-26 注: Devin の線は取り下げた。利用元は TODO 13 と [jadd-studio-amplify-removal.md](jadd-studio-amplify-removal.md) を正とする）
   - **作業場所**: worktree はエージェントの一時ディレクトリ（cdk-2253・cdk-2267）。ブランチはすべて push 済みなので、次は `/usr/app/cdk-apps` から作り直せばよい。`/usr/app/cdk-apps` は片付け済み（main は c8698ee2 まで fast-forward、ローカルブランチは PR 中のものだけ。valhalla-turing-api の残骸は控えを取って消した）。
   - **期限があるもの**: TODO 19（azure-data-sync の SAS は 2026-10-26 まで）。
   - **注意**: [cdk-apps#2253](https://github.com/turingmotors/cdk-apps/pull/2253) と [cdk-apps#2231](https://github.com/turingmotors/cdk-apps/pull/2231) は denso の workflow の同じ箇所を触る（後からマージする側で行をそろえる）。
@@ -268,13 +268,13 @@
   - 次にやること:
     - 2026-10-27〜28: カナリアの失効（`expire/`）のイベントを確かめる。`aws s3 ls` でログのバケットの `events/2026/10/27/` 以降を読み、`reason=Lifecycle` の `Object Deleted` を探す。
     - ステージ 2 の 2 本目の PR: トレイルを削除系（`DeleteObject`・`DeleteObjects`）に絞る、毎時の集計（Lambda・Athena）、12 本を足す。
-    - 2026-10-26 追記: ステージ 2 は、構想「今日なにしたかわかる君」（[project:what-did-i-do の構想](../../what-did-i-do/documents/notion-what-did-i-do-concept.md)）の**フェーズ 1（今日なに消したかわかる君）**にあたる。段階 3・4 は、構想の 9 章のフェーズ 1 の中身（MLOps チームのチャンネルへの通知、出力を共通の記録の形にそろえる、1b の日次の突き合わせ・本人へのメンション・ログのバケットの Object Lock）に合わせて進める。伊藤が進めるのはフェーズ 1 まで。フェーズ 2 以降はチームへの提案で、着手が決まったら project:what-did-i-do に workstream を作る。
+    - 2026-10-26 追記: ステージ 2 は、構想「今日なにしたかわかる君」（[project:what-did-i-do の構想](../../../what-did-i-do/documents/notion-what-did-i-do-concept.md)）の**フェーズ 1（今日なに消したかわかる君）**にあたる。段階 3・4 は、構想の 9 章のフェーズ 1 の中身（MLOps チームのチャンネルへの通知、出力を共通の記録の形にそろえる、1b の日次の突き合わせ・本人へのメンション・ログのバケットの Object Lock）に合わせて進める。伊藤が進めるのはフェーズ 1 まで。フェーズ 2 以降はチームへの提案で、着手が決まったら project:what-did-i-do に workstream を作る。
     - レビューで出た課題（10-26 の一覧の 1〜6）の対応を決める。
   - 作業場所: cdk-apps の worktree は scratchpad の cdk-2267b（push 済み）。前の cdk-2253・cdk-2267 はディレクトリが消えている。
 - 2026-10-26: tuscenes-prod の CloudTrail の今の設定を ReadOnly で確かめた（全リージョン）。トレイルは 2 本のままで、S3 の削除のデータイベントはまだ記録されていない。`aws-controltower-BaselineCloudTrail`（us-west-2、マルチリージョン、ログは 617808723336 のバケット）は管理イベントだけで `DataResources` は空。`garuda-index-access`（us-west-2 だけ）は `*/index.json` の `GetObject` だけ。CloudTrail Lake のイベントデータストアも無い。`DeleteBucket`・`PutBucketLifecycle` などの管理イベントは記録されている。`DeleteObject`・`DeleteObjects` を記録するトレイル `original-bucket-audit` は [cdk-apps#2267](https://github.com/turingmotors/cdk-apps/pull/2267) で足す予定で、PR はまだ OPEN（レビュー待ち）。（2026-10-26 注: この記録はマージ前のもの。[cdk-apps#2267](https://github.com/turingmotors/cdk-apps/pull/2267) は 06:37 UTC にマージされ、トレイル `original-bucket-audit` は deploy 済み。今の対象はカナリアだけ）
 - 2026-10-26 のセッションの終わり。引き継ぎ（これより前の引き継ぎより、こちらを正とする）:
   - **今日の結果:** ステージ 1 は 12 本すべてに入った（[cdk-apps#2253](https://github.com/turingmotors/cdk-apps/pull/2253)）。ステージ 2 の 1 本目（[cdk-apps#2267](https://github.com/turingmotors/cdk-apps/pull/2267)）も入り、カナリアの確認は失効の 1 点を残すだけ。1 時間の見張りで、原本バケットへの AccessDenied は 0 件。
-  - **構想:** ステージ 2 は、構想「今日なにしたかわかる君」の**フェーズ 1（今日なに消したかわかる君）**として進める。伊藤が進めるのはフェーズ 1 まで。構想は [project:what-did-i-do の構想](../../what-did-i-do/documents/notion-what-did-i-do-concept.md)（Notion: https://app.notion.com/p/405a93b3e6f28156a7c0fbc3db578957 、下書き）。
+  - **構想:** ステージ 2 は、構想「今日なにしたかわかる君」の**フェーズ 1（今日なに消したかわかる君）**として進める。伊藤が進めるのはフェーズ 1 まで。構想は [project:what-did-i-do の構想](../../../what-did-i-do/documents/notion-what-did-i-do-concept.md)（Notion: https://app.notion.com/p/405a93b3e6f28156a7c0fbc3db578957 、下書き）。
   - **フェーズ 1 の計画（案。伊藤の決定待ち）:**
     - 着手の前に:
       - 0-1: カナリアの失効の確認（10-27〜28。ログのバケットの `events/2026/10/27/` 以降で `reason=Lifecycle` の `Object Deleted` を探す。ReadOnly）。
@@ -346,14 +346,14 @@
   - **(b) にする。** 本件の障害になるルール `tuscenes-NewTripEventRule…` を、伊藤が自分の手で止める（TODO 25）。そのうえで、PR-B で 12 本すべてに同じ形で EventBridge を入れる。
   - 比べた案: (a) tuscenes-raw だけ EventBridge を入れず、CloudTrail だけで報告する。ライフサイクルで消えた分と一括削除の種類が見えず、1 本だけ別の処理が残るので採らなかった。
   - カナリアの記録で確かめたこと（(a) を比べるため）: CloudTrail では、単発の `DeleteObject` の応答に `x-amz-delete-marker` と `x-amz-version-id` が載る。一括削除のオブジェクトごとの記録には、`resources` のキーしか載らない（版も種類も無い）。ライフサイクルの削除は CloudTrail に出ない。
-  - **スタック `tuscenes` 全体の片付けは、別の資料に起票した: [tuscenes-stack-cleanup.md](tuscenes-stack-cleanup.md)**（積んでいる。そのうちやる）。ルール 3 本・Lambda 7 本・IAM ユーザー `tuscenes-basicai-user`・バケット 5 本などの中身と注意点は、そちらにまとめた。
+  - **スタック `tuscenes` 全体の片付けは、別の資料に起票した: [tuscenes-stack-cleanup.md](../tuscenes-stack-cleanup.md)**（積んでいる。そのうちやる）。ルール 3 本・Lambda 7 本・IAM ユーザー `tuscenes-basicai-user`・バケット 5 本などの中身と注意点は、そちらにまとめた。
 - 2026-10-27: 伊藤が `tuscenes-NewTripEventRule9F52899F-dXQQ5emHVD08` を止めた（TODO 25）。ReadOnly で `DISABLED` を確かめた。ほかのルール（tuscenes の NewSceneEvent・CleaningJobStateChange、rlog-decoder、監査のアプリ）は ENABLED のまま。これで PR-B で tuscenes-raw にも EventBridge を入れられる。
 - 2026-10-27 のセッションの終わり。引き継ぎ（これより前の引き継ぎより、こちらを正とする）:
   - **今日の結果:**
     - TODO 19（SAS）は済み。期限の前に自動で差し替わり、転送も成功していた。今後は手で見なくてよい。
     - TODO 18 は済み。[cdk-apps#2231](https://github.com/turingmotors/cdk-apps/pull/2231) を閉じた。
     - TODO 23 を調べた。監査のアプリと td1-raw はぶつからない。td1-raw の通知の持ち方には、前からある危険がある。
-    - tuscenes-raw は (b) に決め、古いルールを止めた（TODO 25）。スタック `tuscenes` の片付けは [tuscenes-stack-cleanup.md](tuscenes-stack-cleanup.md) に起票した（積んでいる）。
+    - tuscenes-raw は (b) に決め、古いルールを止めた（TODO 25）。スタック `tuscenes` の片付けは [tuscenes-stack-cleanup.md](../tuscenes-stack-cleanup.md) に起票した（積んでいる）。
     - カナリアの失効は、まだ起きていない（仕様どおり）。
   - **フェーズ 1 の計画の決定の状況:** 1（Slack）は、bot もチャンネルも新しく作る。3（カナリアの削除）は、通知に出さない。2（守りの設定の変更をイベント履歴から引く案）は未定。
   - **次にやること（10-28）:**
@@ -380,7 +380,7 @@
     - **確かめられなかったこと:** 管理イベントが tuscenes-prod の default のバスに実際に流れているか。us-west-2 のルール 56 本の中に `AWS API Call via CloudTrail` を受けるものが無く、過去の流れを見る手段が無い。組織のトレイルの状態（`GetTrailStatus`）も、ReadOnly では管理アカウントのものなので見られない。
     - そのため、PR-A でルールを入れたら、カナリアのポリシーなどを変えて、`events/` に届くかを最初に確かめる。届かなければ、tuscenes-prod に管理イベントだけのトレイルを足す（組織のトレイルが 1 本目にあたるので、2 本目の写しとして 10 万件あたり $2 かかる。書き込み系だけに絞れば少額）。
 - 2026-10-29: BreakGlass の議論を始めた（伊藤の関心は、大きな企業の組織と人のレイヤーの設計と、BreakGlass の人に課される要件）。資料を 2 本書いた。
-  - 一般論（学習用）: [特権アクセスと break-glass の一般論](../documents/privileged-access-and-break-glass.md)。出典はサブエージェントが原典で確かめた（ISO は二次資料だけ、FISC は未確認）。
+  - 一般論（学習用）: [特権アクセスと break-glass の一般論](../../documents/privileged-access-and-break-glass.md)。出典はサブエージェントが原典で確かめた（ISO は二次資料だけ、FISC は未確認）。
   - 当社への当てはめ（叩き台）: [breakglass-design-draft.md](s3-data-protection-2/breakglass-design-draft.md)。6 章の「決めてほしいこと」が伊藤の判断待ち。
   - 分かったこと:
     - 今の設計の「BreakGlass」は、昇格用の権限セットで、本来の意味の break-glass（Okta が止まったときの入口）ではない。名前の扱いは論点 A。
@@ -416,11 +416,11 @@
   - **今日の結果:**
     - 優先度を組み替えた。BreakGlass の議論と設計、原本バケットの WORM 化の検討（TODO 26）を先にやる。ステージ 2 の監視（PR-A 以降）は保留。守りの設定の変更は EventBridge で受けると決めた。
     - BreakGlass 権限の提案を書き、第一版を Notion に上げた（[breakglass-proposal.md](s3-data-protection-2/breakglass-proposal.md)、https://app.notion.com/p/408a93b3e6f281b38292d14cbbed304c ）。決めたこと: FullAccess は変えずに削る（案 A）、BreakGlass 権限の中身は AdministratorAccess（仮）、入り方は専用の Okta アプリから IAM ロール `BreakGlass` に直接 SAML（案 3）、MFA はスマートフォンのパスキー。
-    - 一般論の学習用の資料を書いた（[privileged-access-and-break-glass.md](../documents/privileged-access-and-break-glass.md)）。
+    - 一般論の学習用の資料を書いた（[privileged-access-and-break-glass.md](../../documents/privileged-access-and-break-glass.md)）。
     - tuscenes-prod の FullAccess は 13 名（リポジトリから数えた）。
   - **次にやること:**
     1. 伊藤がチームで提案を議論する。Notion のコメントや編集を読んで、手元の原本に取り込んでから Notion を更新する。
-    2. 議論の結果を待つあいだにできること: WORM 化の検討（TODO 26。[S3 Object Lock の整理](../documents/notion-s3-object-lock.md) が起点）、TODO 24（SCP。提案の 2.2 の ②・③ と重なる）の仕様の調査。
+    2. 議論の結果を待つあいだにできること: WORM 化の検討（TODO 26。[S3 Object Lock の整理](../../documents/notion-s3-object-lock.md) が起点）、TODO 24（SCP。提案の 2.2 の ②・③ と重なる）の仕様の調査。
   - **決まっていないこと:** 提案の移行の手順 1（BreakGlass 権限を持つ人、Slack のチャンネル、通知を確かめる人）と、4.7 の確かめること（CorpIT への確認が主）。プランの Notion の URL（提案の Notion 版で、リンクにできていない）。
   - **注意:**
     - 叩き台（breakglass-design-draft.md）は権限セットの案のままで古い。記録として残している。
@@ -543,7 +543,7 @@
   - **要承認操作**（伊藤が命名）: 提案と承認を通さないと実行できない操作。要件 9 の集まりに、台帳から外すことと名簿の変更を足した（S3 のバケットの分。対象が広がったら種類ごとに足す）。
   - **システム保全責任者**（伊藤が命名）: 要承認操作を提案・承認できる人。仮に 3 人。互いに対等で、1 件ごとに提案者と承認者に分かれる。パイプラインなどにも広がる見込みがあるので、名前を S3 に縛らない。名簿と流れは、S3 専用の共通部に置かない。
   - **上位の権限保持者は、できれば作らない**（伊藤）。行き詰まりは、仕組みを強めて人数を増やすことで避ける。
-  - **権限の構造を先に調べる**（伊藤）。ゴール（要承認操作・名簿の書き換え）から逆にたどる。GitHub の組織・identity・cdk-apps の層を [privilege-map.md](../../privileged-access/workstream/apex-privileges/privilege-map.md) にまとめた（P1〜P14）。
+  - **権限の構造を先に調べる**（伊藤）。ゴール（要承認操作・名簿の書き換え）から逆にたどる。GitHub の組織・identity・cdk-apps の層を [privilege-map.md](../../../privileged-access/workstream/apex-privileges/privilege-map.md) にまとめた（P1〜P14）。
     - 分かったこと: 1 人で、通知なしに名簿や流れを書き換えられる経路が多い。組織の owner 7 名、`team-leaders` 5 名（組織のロール `all_repo_admin` で全リポジトリの admin。API の協力者の一覧には出ない）、cdk-apps の admin 13 名、admin を持つチームの maintainer。identity の admin は environment `github-prod` の制限を外せば apply の鍵を取れるので、組織の owner と同じ力を持つとみられる。identity の GitHub の Terraform には差分の定期の検知が無い。
     - cdk-apps の `packages/original-bucket-guard` は `*` の Code Owner（MLOps 1・3 の 1 名）の承認でマージできる。企画 1・OTA のアプリも、それぞれ 1 名の承認で、共通の deploy のロールを使える。
     - 見えなかったもの: GitHub の組織の設定（owner だけ）、identity のブランチの保護（admin だけ）、GCP の `corp-it-485102`（devbox の gcloud にユーザーのログインが無い）、管理アカウント、Okta。CorpIT への質問の案を privilege-map.md の 7 章に置いた（まだ送っていない）。
@@ -553,7 +553,7 @@
   - privilege-map.md に人名を入れた（identity の `people.tf` から。10 章に人ごとの一覧）。
   - **上位の構造を整理し、評価した**（伊藤の問い「GitHub > identity > cdk-apps > mono-e2e の階層か」から。privilege-map.md の 9 章）。一直線ではなく、GitHub の owner・identity の admin・GCP の管理者・Okta の管理者が互いに届き合う「頂点の群」がある（一部推定、I15〜I18）。AWS の管理アカウントは別系統の頂点。mono-e2e は AWS の側では cdk-apps の下、GitHub の側では横並び。
     - 評価: 要件 7（乗っ取り）に対して良くない。1 人で全体に届く人が 10 名を超え、残りは見えない。輪なので頂点どうしで見張り合えず、使われても通知されない。GitHub の上の 2 人の確認は、頂点の群の乗っ取りには効かない。頂点に頼らない守りは WORM の猶予だけで、通知は輪の外に届ける必要がある。頂点を狭めるのは CorpIT と組織の判断になる。
-  - **頂点の問題を別の案件に分けた**（伊藤）。新しい project:privileged-access の [権限の頂点の把握と管理](../../privileged-access/workstream/apex-privileges.md) に、privilege-map.md ごと移した。CorpIT は別の部署として扱わず、一体で取り組む（伊藤）。この案件は、頂点の群の乗っ取りを残るリスクとし、頂点に頼らない守り（WORM の猶予・輪の外への通知の受け手）と、ふつうの経路での 2 人の確認を持つ（requirements.md の 7.4）。
+  - **頂点の問題を別の案件に分けた**（伊藤）。新しい project:privileged-access の [権限の頂点の把握と管理](../../../privileged-access/workstream/apex-privileges.md) に、privilege-map.md ごと移した。CorpIT は別の部署として扱わず、一体で取り組む（伊藤）。この案件は、頂点の群の乗っ取りを残るリスクとし、頂点に頼らない守り（WORM の猶予・輪の外への通知の受け手）と、ふつうの経路での 2 人の確認を持つ（requirements.md の 7.4）。
   - **課題を K1〜K11 に整理し直した**（requirements.md の 8 章）。
   - **WORM を、最小限の設計で先に入れる考察をした**（伊藤の問い）。伊藤が許容した: 解除の後 30 日は絶対に消せないこととその費用、解除できるのが今の FullAccess など（存在を把握できていればよい）。これで解除の経路の設計（K1・K2）が WORM の前提ではなくなった。
   - **WORM の Quick Win プランを決めた**（伊藤の作戦をレビューして取りまとめた。[worm-quickwin-plan.md](s3-data-protection-2/worm-quickwin-plan.md)）。ガバナンスで 12 本すべてに鍵をかけ、解除はすぐに通知し、通知を外せるのは FullAccess（認識された穴）。権限の設計が固まったら、解除できるのをシステム保全責任者だけにするフルスペックに差し替える。
@@ -569,7 +569,7 @@
 - 2026-11-02 のセッションの終わり。引き継ぎ（これより前の引き継ぎより、こちらを正とする）:
   - **今日の結果:**
     - 2 人目の確認の議論で、要承認操作・システム保全責任者・提案者と承認者を決めた（[requirements.md](s3-data-protection-2/requirements.md) の 7 章）。上位者は置かない。構造上の上位権限者は把握と管理を徹底する。
-    - 権限の頂点の問題を、新しい project:privileged-access に分けた（[権限の頂点の把握と管理](../../privileged-access/workstream/apex-privileges.md)）。この案件は、頂点の群の乗っ取りを残るリスクとして進める。
+    - 権限の頂点の問題を、新しい project:privileged-access に分けた（[権限の頂点の把握と管理](../../../privileged-access/workstream/apex-privileges.md)）。この案件は、頂点の群の乗っ取りを残るリスクとして進める。
     - 課題を K1〜K11 に整理した（requirements.md の 8 章）。
     - **WORM の Quick Win プランを決めた**（[worm-quickwin-plan.md](s3-data-protection-2/worm-quickwin-plan.md)）。試しを始め、作業 4・7 を済ませた。
   - **次にやること:**
@@ -582,7 +582,7 @@
     - スクリプトのイベントの読み出しは 11-02 に直した（キューが空のときに止まらなかった）。
     - 全主体の IAM の設定（`iam.json`）は scratchpad にだけ置いた（git には入れていない）。
 - 2026-11-02: **作業 5（書き手のチェックサム）を調べた**（サブエージェント。監査の証跡の全期間 139 万件。プランの 9 章）。直さないと止まるのは tuscenes-model の 2 つ（Cosmos の checkpoint と jadd-cli）。ほかのログに出た書き手は付ける。DataSync・Databricks（catalog `denso` の WRITE_VOLUME の場所）・gaming の PC・SkyPilot は不明。boto3 の CRC32 の trailer が Object Lock で通るかは未確認（Q13）。
-- 2026-11-02: **CorpIT への聞き取りで、上位者の前提が変わった**（project:privileged-access の [corpit-hearing.md](../../privileged-access/workstream/apex-privileges/corpit-hearing.md)）。最上位は GCP で、実質の最高権限者は 4 名。これを受けて、「上位者は置かない」を「最上位の 4 名に、名簿の立て直しと通知の受け手の基盤だけを任せる」に見直す案を、[requirements.md](s3-data-protection-2/requirements.md) の 7.5 に書いた。K1・K8 の欄も案に合わせて直した。同じ日にサブエージェントのレビューを受けて直した（受け手は IaC の外に置くだけでは守れない、名簿の普段の承認を CorpIT から移す、システム保全責任者は cdk-apps の admin も兼ねない、など）。伊藤の決定と、2 回目の聞き取り（7.5.3 の前提。最優先は I19）の答え待ち。そのあと伊藤の意向で、システム保全責任者は cdk-apps の admin を兼ねてよいことにし、条件を「`main` の保護を組織のルールセットに移す」とした（7.5.2 の 3。I30）。さらに伊藤が人のグループを、最高権限者（任命・解任と通知の受け手の基盤）・システム保全責任者（MLOps から任命、提案と承認の 2 人）・通常権限メンバー（保全性に関わらない変更と cdk の deploy）の 3 つに整理し、7.5 を書き直した（7.5.1）。土台は K2（専用の経路）。TODO: 最高権限者に、普段使いとは別の管理用のアカウントを持ってもらう。
+- 2026-11-02: **CorpIT への聞き取りで、上位者の前提が変わった**（project:privileged-access の [corpit-hearing.md](../../../privileged-access/workstream/apex-privileges/corpit-hearing.md)）。最上位は GCP で、実質の最高権限者は 4 名。これを受けて、「上位者は置かない」を「最上位の 4 名に、名簿の立て直しと通知の受け手の基盤だけを任せる」に見直す案を、[requirements.md](s3-data-protection-2/requirements.md) の 7.5 に書いた。K1・K8 の欄も案に合わせて直した。同じ日にサブエージェントのレビューを受けて直した（受け手は IaC の外に置くだけでは守れない、名簿の普段の承認を CorpIT から移す、システム保全責任者は cdk-apps の admin も兼ねない、など）。伊藤の決定と、2 回目の聞き取り（7.5.3 の前提。最優先は I19）の答え待ち。そのあと伊藤の意向で、システム保全責任者は cdk-apps の admin を兼ねてよいことにし、条件を「`main` の保護を組織のルールセットに移す」とした（7.5.2 の 3。I30）。さらに伊藤が人のグループを、最高権限者（任命・解任と通知の受け手の基盤）・システム保全責任者（MLOps から任命、提案と承認の 2 人）・通常権限メンバー（保全性に関わらない変更と cdk の deploy）の 3 つに整理し、7.5 を書き直した（7.5.1）。土台は K2（専用の経路）。TODO: 最高権限者に、普段使いとは別の管理用のアカウントを持ってもらう。
 - 2026-11-02 の権限の設計の議論の終わり（WORM の作業の引き継ぎは上の項が正）。**7.5 に未反映の提案が 2 つある**。伊藤の了承を得てから 7.5 に入れる:
   1. **最高権限者は cdk-apps・mono-e2e を変更しない**（伊藤の方針）。整合させるための直し:
      - 「誰が」システム保全責任者かは identity のチーム（最高権限者が承認）、「何をどのチームが守るか」は cdk-apps の CODEOWNERS（システム保全責任者 2 人の要承認操作）に分ける。CODEOWNERS にはチームの名前だけを書く。7.5.2 の 2 の「cdk-apps の CODEOWNERS の Code Owner を最高権限者に」は、この方針と矛盾するので直す。
@@ -636,7 +636,7 @@
 
 - 2026-11-04（続き）: **資料の整理（伊藤の依頼）。**
   - 用語集 [worm-glossary.md](s3-data-protection-2/worm-glossary.md) を作った。共有用に仕上げるとき、言い換え（「鍵」など）には括弧で AWS の正式名を補い、自分たちで作った呼び名（Quick Win・フルスペックなど）は使うかどうかを都度確かめる。
-  - [S3 Object Lock（WORM）の整理](../documents/notion-s3-object-lock.md) に、1 章「バケット・バージョンと操作の関係」（エンティティ・属性・操作で見た Object Lock）と、2 章「イベントホールドとリーガルホールドの違い」を足した。**Notion 版はまだ更新していない**（反映は最後に、伊藤の許可を取って行う）。
+  - [S3 Object Lock（WORM）の整理](../../documents/notion-s3-object-lock.md) に、1 章「バケット・バージョンと操作の関係」（エンティティ・属性・操作で見た Object Lock）と、2 章「イベントホールドとリーガルホールドの違い」を足した。**Notion 版はまだ更新していない**（反映は最後に、伊藤の許可を取って行う）。
   - 決定と理由の一覧 [worm-decisions.md](s3-data-protection-2/worm-decisions.md) を作った（D1〜D12 と、設計案の提案 P1〜P7）。D5（Quick Win をガバナンスにした理由）と D2（S2 の消去の義務）は、資料に理由や答えが無いところを「補足・要確認」とした。伊藤に確かめる。
   - 設計案の通知（ルール A）は `Object Retention Updated` だけを拾うので、リーガルホールドの付け外しは通知されない。EventBridge にどう届くかをカナリアで確かめ、要れば足す（設計案の 3.6 にまだ書いていない）。
 - 2026-11-04（続き 2）: **モードをガバナンスに決め、周辺の仕様の議論を始めた。**
@@ -673,7 +673,7 @@
   - Identity Store は tuscenes-prod の ReadOnly で読めた。AWSAdministratorAccess は `Engineers` の 山本 修平 1 名で、10-30・11-02 に使っている。FullAccess は Group 3・Group 4 の正社員で 14 名（10-29 の 13 名から 1 名多い）。
   - 割り当て（`sso-admin`）は管理アカウントでしか読めない。[iam-scan/sso-assignments.sh](s3-data-protection-2/iam-scan/sso-assignments.sh) を作ったが、伊藤の FullAccess では拒まれた。山本 修平が持っていると分かれば足りるとした。ほかに 1〜2 名いる見込みで、名前は伊藤が後で確かめる。
   - 設計案の 2.1 の承認者は 山本 修平（CorpIT）になる。導入の作業（PR-3 より後の鍵の既定・ジョブ）もこの人の権限が要る。役を担えるか、2 名にするかは要相談。
-- 2026-11-05: **共有用の資料を 2 本書いた**（Notion は未）。[notion-s3-object-lock-spec.md](../documents/notion-s3-object-lock-spec.md)（参照用・学習用。仕組みだけ）と [notion-worm-governance-rollout.md](../documents/notion-worm-governance-rollout.md)（共有用。ガバナンスモードでの導入。参照用から引用して単独で読めるようにした）。言い回しの決まりは [worm-glossary.md](s3-data-protection-2/worm-glossary.md) の 1 章（保護・通常の削除・最新／最新ではないバージョン・検証済み／未検証）。
+- 2026-11-05: **共有用の資料を 2 本書いた**（Notion は未）。[notion-s3-object-lock-spec.md](../../documents/notion-s3-object-lock-spec.md)（参照用・学習用。仕組みだけ）と [notion-worm-governance-rollout.md](../../documents/notion-worm-governance-rollout.md)（共有用。ガバナンスモードでの導入。参照用から引用して単独で読めるようにした）。言い回しの決まりは [worm-glossary.md](s3-data-protection-2/worm-glossary.md) の 1 章（保護・通常の削除・最新／最新ではないバージョン・検証済み／未検証）。
   - 共有用の資料に新しく書いたこと: 誤って通常の削除をしたときの戻し方（直前のバージョンのコピー）、意図した削除の取りやめ方（イベントホールドの付け直し）と、ライフサイクルを 2 段にする案（最後に取りやめられる期間。案は 7 日）。
   - 暗号化の鍵: 10 本は該当しない（9 本は SSE-S3、tuscenes-calibration（新）は `aws/s3` の SSE-KMS。利用者管理のキーは SSM 用の 3 つで、過去 90 日に 10 本で使われた記録なし）。共有用の資料からは外し、参照用の資料の一般論だけに残した。
 - 2026-11-05: **共有用の資料 2 本の初版を仕上げた**（伊藤が初版とした）。サブエージェント 2 つで整合性チェックと推敲のレビューを受け、伊藤の了承のうえで直した。
@@ -690,7 +690,7 @@
   - 原本はローカル。直すときはローカルを直してから Notion を更新する。人の編集・コメントが付いたら、読んで取り込んでから更新する。
 
 - 2026-11-05: **権限を持つ人の一覧をドラフトにし、共有用の資料を直した**。
-  - [notion-tuscenes-prod-privilege-holders.md](../documents/notion-tuscenes-prod-privilege-holders.md): FullAccess・AWSAdministratorAccess の中身・経路・人の一覧。Notion は未作成（メンバーを伊藤が確かめてから上げる）。上げたら、共有用の資料の 3.2・7 章からリンクを張る案。
+  - [notion-tuscenes-prod-privilege-holders.md](../../documents/notion-tuscenes-prod-privilege-holders.md): FullAccess・AWSAdministratorAccess の中身・経路・人の一覧。Notion は未作成（メンバーを伊藤が確かめてから上げる）。上げたら、共有用の資料の 3.2・7 章からリンクを張る案。
   - 共有用の資料の 4.2 から「3 か月に 1 度あるかないか…MLOps チームで行います。」を消した（伊藤の指示。Notion も更新。表の幅などの手での調整は保った）。
   - 参照用の資料の冒頭から、共有用の資料のページへリンクを張った（Notion も更新）。
 - 2026-11-05 のセッションの終わり。引き継ぎ:
@@ -728,7 +728,7 @@
     4. 完全削除用の権限の案 a〜c（エージェントの案は c）。
     5. RCP を有効にするか（管理アカウントの作業。CorpIT と organization-policy の CODEOWNERS に相談が要る）。
   - **返事を待つ間にエージェントだけで進められること**: permission-model.md の 8 章の確かめ（ReadOnly）。とくに S1 の前提の、deploy のロールの `AssumeRole` を CloudTrail で 90 日分引くことと、`CDKToolkit` のスタックのイベント（S2）。RCP の仕様をドキュメントで確かめる（アクション 3-3）。大量の読み取りになるものは、伊藤に断ってから。
-  - **決まったら**: 共有用の資料（[notion-worm-governance-rollout.md](../documents/notion-worm-governance-rollout.md)）の 3.2・3.6・5.1・7 章に反映 → Notion のコメント・編集を読んで取り込む → 伊藤の許可を得て Notion を更新（アクション 1-1）→ チームの Go サイン（1-2）。
+  - **決まったら**: 共有用の資料（[notion-worm-governance-rollout.md](../../documents/notion-worm-governance-rollout.md)）の 3.2・3.6・5.1・7 章に反映 → Notion のコメント・編集を読んで取り込む → 伊藤の許可を得て Notion を更新（アクション 1-1）→ チームの Go サイン（1-2）。
   - **伊藤の作業（変わらず）**: 検証用のバケットの cleanup（5-1）、AWSAdministratorAccess のほかの 1〜2 名の確認（2-1）、denso-raw の出どころを安本さんに確認（5-2）。
   - **注意**: Notion のページ（<https://app.notion.com/p/40fa93b3e6f2811bb51ffaef3cc970e9>）は、11-06 のミーティングの意見も呼び方の統一もまだ入っていない古い版。ローカルが先に進んでいる。
 - 2026-11-09: 権限の整理の進め方を、伊藤と見直した。
@@ -743,7 +743,7 @@
   - D16: H1・H2 の「すぐ消せる」は受け入れ、通知で気づく。RCP は入れない。
   - D17: 完全削除用の権限は暫定で AWSAdministratorAccess のまま。専用の権限の作成は範囲の外。
   - D18: 導入の途中の消失のリスクは重視しない。共有用の資料には、作業を終えた時点の姿として書く。
-  - 反映: 共有用の資料（[notion-worm-governance-rollout.md](../documents/notion-worm-governance-rollout.md)）の 3.2・3.4（deploy の経路を守る組織のポリシー）・3.6・4.4・5.1・7 章（決めることを 6 つに）、permission-model.md の 6 章、アクションリスト（2-2・2-4・3-3 は不要、3-2・3-4 は済み、3-5 を追加）。
+  - 反映: 共有用の資料（[notion-worm-governance-rollout.md](../../documents/notion-worm-governance-rollout.md)）の 3.2・3.4（deploy の経路を守る組織のポリシー）・3.6・4.4・5.1・7 章（決めることを 6 つに）、permission-model.md の 6 章、アクションリスト（2-2・2-4・3-3 は不要、3-2・3-4 は済み、3-5 を追加）。
   - **次**: アクション 1-1（Notion の側のコメント・編集を読んで取り込む → 伊藤の許可を得て Notion を更新）。手順 D の PR の前に、アクション 3-5 の確かめ（ReadOnly）。
 - 2026-11-09（続き 2）: Notion の前に、WORM の実装（手順 A〜D）の決めごとを詰めた。7 つの論点に別のエージェントのセカンドオピニオンをもらい、伊藤が D19〜D23 を決めた（[worm-decisions.md](s3-data-protection-2/worm-decisions.md) の「2026-11-09（続き）」）。
   - 見落としていた抜け道: X4（既存のスタックの更新。スタックに付いた cfn-exec-role で動くので PassRole が要らない）と X5（GitHub Actions の deploy のロールの信頼の書き換え）。D19: X5 は SCP で塞ぐ。D20: X4 は把握した抜け道として残し、次回以降。
@@ -889,7 +889,7 @@
   - **td1-rlog の 2 回目（全体）は、層の結果を待たずに 11-12 に流すことにした**（伊藤。上がっても最大 約 $750）。結果から時間の 3 点目を取り、td1-raw・tuscenes-raw の見積もり（ジョブ 1 本で約 5 日・約 2.7 日）と、プレフィクスで分けて流すか（I6）を決める。
   - **層が上がったら**: 残りを流さず、td1-raw・tuscenes-raw の進め方を考え直す。AWS サポートの人の担当者に、文書での回答を頼む。
   - **段階 3（denso-nx-raw）**: 伊藤が犬塚さんに 5 問を聞く（[denso-nx-raw-writer-review.md](s3-data-protection-2/denso-nx-raw-writer-review.md)）。DataSync の試し（[datasync-probe-runbook.md](s3-data-protection-2/datasync-probe-runbook.md)）。
-  - **共有用の資料**: [notion-worm-governance-rollout.md](../documents/notion-worm-governance-rollout.md) はローカルだけ直した（30 日、2 人目なし、段階の並べ直し）。Notion へは、許可を得てから差分で反映する。今日の導入の結果もまだ書いていない。
+  - **共有用の資料**: [notion-worm-governance-rollout.md](../../documents/notion-worm-governance-rollout.md) はローカルだけ直した（30 日、2 人目なし、段階の並べ直し）。Notion へは、許可を得てから差分で反映する。今日の導入の結果もまだ書いていない。
   - 伊藤のシェルの変数: `B=td1-rlog`、`CAL_OLD`・`CAL_NEW`（手順書の 2 章）。
 - 2026-11-12 の定時。追記の引き継ぎ（上の引き継ぎより、こちらが新しい）:
   - **td1-rlog の全体のジョブ** `d50af3e2-c6ef-4009-a53f-1adefcbdba24`（4,555,379 件、一覧はジョブの数と一致。一覧づくり 06:59:59 → 07:05:18 ごろ）。`run` 08:28Z、08:59Z で 1,626,517 件・失敗 0・約 896 件/秒。09:54Z（18:54 JST）ごろ終わる見込み。
@@ -905,7 +905,7 @@
 - 2026-11-13: **AWS サポートの AI に、同時に動かせるジョブと層のことを聞いた**。上限は Active の 6 本で、7 本目は `Ready` で待つ（推論。拒まれても `apply` は止まるだけ）。層は「上がらない」（Intelligent-Tiering の文書の「アクセスに当たる操作」の一覧に `PutObjectRetention` が無い。当たらない操作の一覧は例示。エージェントが原文を確かめた）。実測の層の比べは続ける。詳しくは worm-rollout-stages.md の段階 4 の注。
 - 2026-11-13: **トレイルの確かめ（11-12 04:30Z〜11-13 06:21Z）**: Object Lock の 3 本に、ジョブのロール以外の操作と拒否は無し。拒否はカナリアの 1 件（30 日を付けようとしてロールに拒まれる、狙いどおりの試し）だけ。td1-raw の `InternalError`・`IncompleteBody`・`NoSuchUpload` はアップロード PC の転送の途切れで、Object Lock とは関係ない。新への backend-api の書き込みはまだ来ていない（チェックサムの要る書き込みが通るかは、まだ実地で見ていない）。
 - 2026-11-13: **td1-rlog の 15 日への付け直しが `apply` で済んだ**（4,555,379 件、失敗 0）。**denso-nx-raw（段階 3）に入れ終えた**（187,833 件、失敗 0）。denso-nx-raw は mono-turing-infra の資料（[mono-turing-infra#772](https://github.com/turingmotors/mono-turing-infra/pull/772)）で、転送元の Azure が意図して空にされたことが分かり、DataSync は S3 に記録されたチェックサム（すべて SHA256）から心配なしと判断した（[denso-nx-raw-writer-review.md](s3-data-protection-2/denso-nx-raw-writer-review.md)）。DataSync の試しは行わない。
-- 2026-11-13: **段階 4 のうち denso-taxi の 2 本と tuscenes-raw に Object Lock と既定の保持設定（15 日）を入れ、`DETACH=1` の `apply` で一覧づくりを始めた**（層は上がらない前提。伊藤の判断）。`worm-stage.sh` に承認済みの一覧（`APPROVED`）を足し、一覧にあるバケットは打ち込みを省くようにした。外部資料の目録（[docs/external-sources.md](../../../docs/external-sources.md)）を作った。
+- 2026-11-13: **段階 4 のうち denso-taxi の 2 本と tuscenes-raw に Object Lock と既定の保持設定（15 日）を入れ、`DETACH=1` の `apply` で一覧づくりを始めた**（層は上がらない前提。伊藤の判断）。`worm-stage.sh` に承認済みの一覧（`APPROVED`）を足し、一覧にあるバケットは打ち込みを省くようにした。外部資料の目録（[docs/external-sources.md](../../../../docs/external-sources.md)）を作った。
 - 2026-11-13: **td1-raw は e2e-dev で先に試す**（徳弘さんと合意）。`td1-raw-471112873671` にバージョニング・Object Lock・既定の保持設定（1 日）を入れた。試しはこれから（worm-rollout-stages.md の「段階 3・4 の結果」）。
 - 2026-11-13 のセッションの終わり。引き継ぎ:
   1. **朝いちばん: 3 本の `apply` を打つ**（`cd ~/homes/jadd-studio/runbook/worm-stage` で、denso-taxi-processed `EXPECT=10137617:11376659`、denso-taxi-video `EXPECT=17725105:19891507`、tuscenes-raw `EXPECT=184972196:207579909`。`DETACH=1` を付ければ流し始めて抜ける）。出力をエージェントが読む。tuscenes-raw は一覧づくりに数時間かかるので、まだ `Preparing` なら昼にもう一度。
@@ -930,13 +930,13 @@
   1. **verify（伊藤が `EXPECT=… bash worm-stage.sh apply <バケット>` を打つ。再開でも `EXPECT` が要る）**: denso-taxi の 2 本は 11-16 09:03Z に済んだ。tuscenes-raw（`EXPECT=184972196:207579909`）は 11-16 の 15:30Z ごろ、td1-raw（`EXPECT=348160919:387500000`）は 20:40Z ごろ（約 9,100 件/秒）、tuscenes-annotation（`EXPECT=16200000:18500000`）は流し始めたばかり（08:59Z〜）に終わる見込み。出力をエージェントが読み、段階 3・4 の結果の表を埋める。
   2. **td1-raw**: 08:50Z に流し始めた（上の 1 で verify）。
   3. **td1-raw の書き込みの見張り**: default のあと 03:39Z までは拒否 0。古い CLI（2.15・2.16）の書き込みはまだ見ていない。トレイルの読み取りは scratchpad の `ts/scan.py`（日付のフォルダは 11/16 に固定。ジョブの記録でファイルが大きく、30 分で約 1 GB を落とす）。CloudWatch の要求のメトリクス（td1-raw は `FilterId=basic`）の 4xx は、読み取りの 404 を含むので拒否の判断には使えない。
-  4. **会社全体への共有用の資料**: [notion-worm-company-guide.md](../documents/notion-worm-company-guide.md) の下書きを、伊藤と推敲した（11-16）。完遂した後の姿で書く。技術の細部・日々の作業・これから・FAQ・他社のデータの話・チーム名は入れない。日付は「2026年11月16日」の形、「当社」は冒頭だけ。Notion への作成は次のセッションで（許可を取ってから。親ページの指定が無ければ MLOps 1チームのドキュメント置き場）。tuscenes-annotation の導入日の欄は 2026年11月16日 で埋めた。
+  4. **会社全体への共有用の資料**: [notion-worm-company-guide.md](../../documents/notion-worm-company-guide.md) の下書きを、伊藤と推敲した（11-16）。完遂した後の姿で書く。技術の細部・日々の作業・これから・FAQ・他社のデータの話・チーム名は入れない。日付は「2026年11月16日」の形、「当社」は冒頭だけ。Notion への作成は次のセッションで（許可を取ってから。親ページの指定が無ければ MLOps 1チームのドキュメント置き場）。tuscenes-annotation の導入日の欄は 2026年11月16日 で埋めた。
   5. **このあとのフェーズ（11-16 に整理、伊藤の確認待ち）**: 1 第 2 段階の仕上げ（ホールドの verify、td1-raw、tuscenes-annotation）→ 2 共有（会社全体の資料、MLOps 向けの資料の Notion への反映。後者は 11-11 から古い: 30 日→15 日、段階の並べ直し、結果）→ 3 第 3 段階の通知の PR（受け手を決める）→ 4 権限の絞り込みの PR と組織のポリシー（AWSAdministratorAccess を持つ人への相談を先に始める）→ 5 削除の手順書（D35 の流れ。ジョブのロールにタグ付けの権限を足す PR。急がない）。
   6. **tuscenes-annotation**: 08:59Z に流し始めた（上の 1 で verify）。11-17 朝に、毎晩の処理（18〜22Z）の書き込みに拒否が無いかをエージェントがトレイルで見る（止まっていたら `rollback`）。
   7. **残り**: e2e-dev の `td1-raw-471112873671` の既定の保持設定（1 日）を外すか（Jetson の書き込みが拒まれうる）。徳弘さんの試しの結果の詳細の受け取り。11-28 ごろにカナリアの付け直しのあとの期限の確かめ。Notion の共有用の資料への反映（許可を取ってから）。
 - 2026-11-16 の夕方（別のセッション）: **第二弾の閉じ方と第三弾を決めた**（伊藤）。
   - **9 本すべてのホールドの verify が済んだら、第二弾を閉じる**（`done/` に移す）。残りの作業（Notion への反映・関係者へのお知らせ・e2e-dev の後始末・11-28 のカナリアの確かめなど）は、第三弾の「第二弾から引き継いだもの」で進める。
-  - 導入の第 3 段階（通知・手順 D）と、掃除（TODO 12〜16）・検知（ステージ 2 の毎時の報告）は第三弾で行う: [s3-data-protection-3.md](s3-data-protection-3.md)。残った抜け穴は台帳（[loophole-ledger.md](s3-data-protection-3/loophole-ledger.md)）で区分 A・B・C に分ける。
+  - 導入の第 3 段階（通知・手順 D）と、掃除（TODO 12〜16）・検知（ステージ 2 の毎時の報告）は第三弾で行う: [s3-data-protection-3.md](../s3-data-protection-3.md)。残った抜け穴は台帳（[loophole-ledger.md](../s3-data-protection-3/loophole-ledger.md)）で区分 A・B・C に分ける。
   - 07:32Z の時点のジョブ（ReadOnly）: tuscenes-raw は約 4,200 件/秒で 15:10〜15:30Z ごろ、td1-raw は 20:40Z ごろに終わる見込み。再開の `apply` にも `EXPECT` が要る（上の引き継ぎの 2）。
 - 2026-11-17 00:30Z: **ジョブの状態を ReadOnly で確かめた（エージェント）**。tuscenes-raw（205,501,508 件、11-16 20:02Z に済み）と tuscenes-annotation（18,007,627 件、11-16 13:08Z に済み）は `Complete`・失敗 0。td1-raw は `Active` で 361,401,972 / 386,847,623 件（93.4%）・失敗 0。直近の速さが約 2,900 件/秒に落ちていて、03:00Z ごろに終わる見込み（11-16 の 20:40Z の見込みより遅い）。9 本とも、バージョニング `Enabled`・既定の保持設定 `GOVERNANCE`・15 日で、各バケットの先頭 3 件の最新の版が `GOVERNANCE ON 15`。表は worm-rollout-stages.md の「段階 3・4 の結果」。
 - 2026-11-17 01:04Z: **tuscenes-raw と tuscenes-annotation の verify が済んだ**（伊藤）。どちらも失敗 0・失敗の内訳は空・見本 20 件とも `GOVERNANCE ON 15`。00:56Z の td1-raw は 364,518,325 / 386,847,623 件（94%）、失敗 0。速さは約 2,000 件/秒に落ちていて、04:00Z ごろに終わる見込み。
@@ -946,3 +946,4 @@
   2. ~~tuscenes-annotation の毎晩の処理の書き込みに拒否が無いかを、トレイルで見る~~ → 済み（下の 11-17 の記録）。
   3. そのほかは 11-16 の引き継ぎの 4・5・7 のまま。
 - 2026-11-17: **tuscenes-annotation の毎晩の処理（11-16 17:00〜22:59Z）の書き込みに、拒否は無かった**（エージェント、ReadOnly。トレイル約 26 GB を流し読み）。書き込みは 59,829 件（PutObject 58,777・マルチパート 189 本）で、`AccessDenied` は 0 件。エラーは `InternalError`（S3 の一時的なエラー）の 2 件だけで、17:00:34Z の 1 件は 1 秒後に同じキーへの書き込みが通った。20:28:14Z の 1 件（LocalizationNightly の Boto3）はキーが長く、抽出で切ったため同じキーの再試行を突き合わせられていない（Boto3 は 500 を既定でやり直す）。書き手は LocalizationNightly（Boto3 1.43・aws-sdk-js 3.1104）と PerceptionDetection（aws-cli 2.39.4・aws-sdk-js 3.1104）。夜に書かれた版を見本 3 件で見て、`GOVERNANCE ON 15`。
+- 2026-11-17 05:54Z: **td1-raw の verify が済んだ**（伊藤）。386,847,623 件、失敗 0、失敗の内訳は空、見本 20 件とも `GOVERNANCE ON 15`。**これで 9 本すべてのホールドの verify が済んだ。** 第二弾を閉じ、`done/` に移した（11-16 の決定のとおり）。残り（共有用の資料の Notion への反映・関係者へのお知らせ・td1-raw の古い CLI の書き込みの確かめ・e2e-dev の後始末・11-28 のカナリアの確かめ）は、第三弾の「第二弾から引き継いだもの」に移してある。
