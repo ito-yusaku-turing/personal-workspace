@@ -622,3 +622,28 @@ us-west-2 の `lookup-events`（ReadOnly）で、実際の記録の `requestPara
 - ルールは 3 本に分ける: `invokedBy` が無い（`invokedBy` に `-`）／`invokedBy` があり `type` が `AWSService` でない（両方を出す）／`type` が `AWSService`（`arn` に `-`）。危険度と掛けて、1 件ずつの通知は種類ごとに 3 本 × 危険度。ルールは表から組み立てるので、手で書く量は増えない。
 - **deploy の経路は、`invokedBy` が `cloudformation.amazonaws.com` で、`userIdentity.sessionContext.sessionIssuer.userName` が `cdk-hnb659fds-cfn-exec-role-` で始まる**（記録で確かめた）。2 本目の形の中から、この条件で切り出す。PR 1 では仮に注意へ、PR 2 で警報へ（10.12）。
 
+### 10.14 記録の無かった操作の試し（2026-11-18、伊藤が FullAccess で実行、エージェントが ReadOnly で確かめた）
+
+試し用の資源（`alert-field-probe-<時刻>`）を作って操作を 1 回ずつ呼び、すぐ消した。スクリプトは `~/runbook/alert-field-probe/alert-field-probe.sh`（git 管理外）。試し用の資源は、すべて消えたことを確かめた。
+
+| 操作 | 対象の欄（記録で確かめた） |
+|---|---|
+| SNS の `AddPermission`・`RemovePermission`・`DeleteTopic` | `topicArn` |
+| SNS の `SetSubscriptionAttributes`・`Unsubscribe` | `subscriptionArn`（`<トピックの ARN>:<UUID>`。トピックの ARN の前方一致で絞れる） |
+| CloudWatch の `DisableAlarmActions`・`DeleteAlarms` | `alarmNames`（配列） |
+| CloudWatch の `SetAlarmState` | `alarmName` |
+| CloudTrail の `CreateTrail`・`StartLogging`・`StopLogging`・`DeleteTrail` | `name` |
+| CloudTrail の `PutEventSelectors` | `trailName` |
+| IAM の `PutRolePermissionsBoundary`・`DeleteRolePermissionsBoundary` | `roleName` |
+| IAM の `CreatePolicyVersion`・`SetDefaultPolicyVersion`・`DeletePolicy` | `policyArn` |
+
+- **Amazon Q Developer の `UpdateSlackChannelConfiguration`・`DeleteSlackChannelConfiguration` は試せなかった。** 1 つのアカウントで 1 つのチャンネルに作れる設定は 1 つだけで、`#aws_security_alert` には通知のスタックの設定がすでにある（`InvalidRequestException`）。API の文書の `ChatConfigurationArn` で書き、確かめていないと文書に残す。本物の設定が deploy で更新されたときに記録で確かめる。
+- 試しの前に、FullAccess で試しの操作ができるかを IAM のポリシーシミュレーターで判定した（すべて `allowed`。`iam:CreateUser` は `implicitDeny` で、IAM ユーザーは作れない）。
+
+**拒否された操作の通知**（ReadOnly でカナリアに `PutBucketVersioning`、08:03:38Z）:
+
+- 1 段目のルールで、すぐ届いた。エラーの欄は `AccessDenied（無ければ成功した操作）`。`invokedBy` は空（` `` `）で出た。題名・メンションは成功と同じ（1 段目は成否を分けていない）。
+- 拒否したのは IAM の権限ではなく、**カナリアの守りのバケットポリシーの明示的な拒否**だった（`errorMessage` が「with an explicit deny in a resource-based policy」）。`errorMessage` は通知に入れない（10.2）ので、どのポリシーが拒んだかは eventID から CloudTrail を引いて読む。
+- 最初の実行では、ReadOnly の操作は AWS に届いていなかった（伊藤の端末の `readonly` のプロファイルの状態のため）。スクリプトは「失敗したら拒否とみなす」作りだったので、気づけなかった。`AccessDenied` を含むときだけ拒否とみなすように直した。
+- Amazon Q Developer のフッター「Custom notification delivered by Amazon Q Developer」が、通知の最後に付く（変えられない）。
+
