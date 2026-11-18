@@ -80,6 +80,7 @@ us-east-1（tuscenes-prod）                                                    
 - **管理イベントの証跡は、tuscenes-prod の中にある**（2026-11-17 に直した。前は「管理アカウントの組織の証跡なので、tuscenes-prod の中からは止められない」と書いていたが、誤り）。tuscenes-prod で管理イベントを記録しているのは Control Tower の証跡 `aws-controltower-BaselineCloudTrail` だけで、`original-bucket-audit` はデータイベントだけを記録する（11-17、`get-event-selectors`）。この証跡は `IsOrganizationTrail: False`・ホームは us-west-2・全リージョン（11-17、`describe-trails`。[cdk-apps#2614](https://github.com/turingmotors/cdk-apps/pull/2614) のレビューで分かった）。
   - ルール B・C・E は、この証跡に頼る。止められると、まとめて黙る。
   - Control Tower の予防のガードレール（組織のポリシー）が `aws-controltower-*` の証跡の変更を禁じているのがふつうだが、メンバーのアカウントからは確かめられない。**管理アカウントの側で確かめる**（伊藤の判断、11-17）。禁じていなければ、この証跡の `StopLogging`・`DeleteTrail`・`UpdateTrail`・`PutEventSelectors` をルール C に足す。
+  - **2026-11-18、IAM のポリシーシミュレーター（ReadOnly の `simulate-principal-policy`）で FullAccess を判定した**: `aws-controltower-BaselineCloudTrail` への `StopLogging`・`DeleteTrail` は `explicitDeny`、`AllowedByOrganizations: False`。組織のポリシー（SCP）で拒まれている見込みが高い。一方、`original-bucket-audit` への `StopLogging` は `allowed`（ルール C で拾う対象のまま）。シミュレーターの SCP の判定は参考で、確定は管理アカウントの側で SCP の文を読む。`UpdateTrail`・`PutEventSelectors` はまだ判定していない。
   - [cdk-apps#2614](https://github.com/turingmotors/cdk-apps/pull/2614) では、説明だけして手当てしない。
 
 ### 3.4 ルール D（古い版の削除・拒まれた鍵の操作。新しい案）
