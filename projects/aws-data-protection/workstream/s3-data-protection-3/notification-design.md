@@ -341,18 +341,19 @@ cdk-apps にも、SNS のメールの購読（`EmailSubscription`）を作るコ
 | 重大 | `PutBucketLifecycle` | 古い版を失効させるルールを足せる |
 | 重大 | `PutBucketVersioning` で `Status` が `Suspended` | バージョニングの停止 |
 | 重大 | `DeleteBucket` | 取り返しが付かない |
-| 重大（公開） | `PutBucketAcl`・`PutBucketOwnershipControls`・`DeleteBucketOwnershipControls` | ACL での公開につながる（所有権の設定で ACL が有効になる） |
+| 重大（公開） | `PutBucketAcl`・`DeleteBucketOwnershipControls`、`PutBucketOwnershipControls` で `BucketOwnerEnforced` 以外 | ACL での公開につながる（所有権の設定で ACL が有効になる） |
 | 重大（公開） | `DeleteBucketPublicAccessBlock`、`PutBucketPublicAccessBlock` で 4 つのどれかが `false` | 公開のブロックを外す |
 | 重大 | `PutBucketReplication`・`PutBucketEncryption`・`DeleteBucketEncryption` | 写しを外のアカウントに送れる・暗号化の鍵を替えられる（向きが分からない） |
 | 重大（監視） | `PutBucketNotification`・`PutBucketInventoryConfiguration`・`DeleteBucketInventoryConfiguration` | データの保護は外さないが、監視の入力を止められる（伊藤、11-18） |
 | 注意 | `PutBucketVersioning` で `Status` が `Enabled` | 強める向き |
 | 注意 | `PutBucketPublicAccessBlock` で 4 つとも `true` | 強める向き |
+| 注意 | `PutBucketOwnershipControls` で `BucketOwnerEnforced` | 強める向き（ACL を効かなくする） |
 | 注意 | `DeleteBucketLifecycle` | 古い版を消すルールも消えるので、保護は弱まらない |
 | 注意 | `DeleteBucketReplication` | 写しが止まる。原本は弱まらない |
 | 注意 | ジョブの `CreateJob`・`UpdateJobStatus`・`UpdateJobPriority` | 伊藤が流すジョブでも鳴る（区分 A の「使ったら届く」） |
 | 記録 | 上のすべてで、`errorCode` があるもの | 保護が効いた |
 
-- バージョニングの `Status`、公開のブロックの 4 つの値の欄の名前（`requestParameters.VersioningConfiguration.Status` など）は、カナリアの CloudTrail の記録で確かめてから、イベントパターンに書く。
+- 向きを分ける欄の名前は、CloudTrail の記録で確かめた（10.8）。
 - オブジェクトの ACL（`PutObjectAcl`）での公開は、ルール B（S3 バケットの設定）では拾わない。所有権の設定が `BucketOwnerEnforced` なら ACL は効かないので、所有権の設定の変更（重大）で気づける。**12 本とカナリアは、すべて `BucketOwnerEnforced`**（2026-11-18、ReadOnly で `get-bucket-ownership-controls`）。
 
 ### 10.5 載せる欄（2026-11-18、伊藤の方針）
@@ -423,3 +424,78 @@ cdk-apps にも、SNS のメールの購読（`EmailSubscription`）を作るコ
 3. ~~「意図しない操作なら」の行き先~~ → 通知には書かない。手順書はチャンネルのトピックなどに置く（伊藤、11-18）。
 4. ~~空の欄の表記を、10.5 の a・b のどちらにするか~~ → **b**（伊藤、11-18）。
 5. ~~`principalId`・`invokedBy` を外してよいか~~ → 付ける。ログの特定に役立つ欄も足す（伊藤、11-18。10.5）。
+
+### 10.8 向きを分ける欄（2026-11-18、CloudTrail の記録で確かめた）
+
+us-west-2 の `lookup-events`（ReadOnly）で、実際の記録の `requestParameters` を見た。
+
+| 操作 | 欄 | 記録の例 |
+|---|---|---|
+| `PutBucketVersioning` | `requestParameters.VersioningConfiguration.Status` | `"Enabled"`（11-18 02:18:33Z のカナリアの試し） |
+| `PutBucketPublicAccessBlock` | `requestParameters.PublicAccessBlockConfiguration` の `BlockPublicAcls`・`IgnorePublicAcls`・`BlockPublicPolicy`・`RestrictPublicBuckets` | 4 つとも JSON の `true`（11-13・11-18、ほかのアプリのバケット） |
+| `PutBucketOwnershipControls` | `requestParameters.OwnershipControls.Rule.ObjectOwnership` | `"BucketOwnerEnforced"`（10-21、`s3-policy-test-…`） |
+
+- イベントパターン:
+  - バージョニング: `Status` が `["Suspended"]` なら重大、`["Enabled"]` なら注意。
+  - 所有権: `ObjectOwnership` が `["BucketOwnerEnforced"]` なら注意、`[{"anything-but": "BucketOwnerEnforced"}]` なら重大。
+  - 公開のブロック: 4 つのどれかが `true` でない（`false`、または欄が無い。欄を省くと `false` 扱い）なら重大。`$or` で 4 つを並べ、それぞれ `[false]` と `[{"exists": false}]` を見る。4 つとも `[true]` なら注意。重大と注意のパターンが、すべての場合を漏れなく分けるかをテストで確かめる。
+- `userIdentity` には `onBehalfOf`（Identity Center のユーザー ID）も入っていた（SSO の操作）。`principalId` にメールアドレスが入るので、文面には載せない。
+- `invokedBy` は、SSO の操作の記録には欄が無かった（1 段目で空に出た理由）。
+
+### 10.9 ルール A・D の警報の文面（案）
+
+#### 警報の分け方
+
+| 警報 | 拾うもの | 元のログ | 危険度 |
+|---|---|---|---|
+| A-1 ジョブでの解除 | イベントホールドの解除（S3 のイベント `Object Retention Updated` の `event-hold` が `ON` 以外） | S3 のイベント | 重大 |
+| A-2 ジョブのロール以外の保持の変更 | `PutObjectRetention`・`PutObjectLegalHold` が成功し、主体がジョブのロール（`original-bucket-lock-batch`）でない | CloudTrail のデータイベント | 重大 |
+| D-1 版を指定した削除 | `DeleteObject` で `versionId` があり、成功した | CloudTrail のデータイベント | 重大 |
+| D-2 拒否された操作 | 鍵の操作（`PutObjectRetention`・`PutObjectLegalHold`）・版を指定した削除・迂回の試みで、`errorCode` がある | CloudTrail のデータイベント | 記録 |
+
+- **主体で分けるのは、S3 のイベントではできない。** S3 のイベントの `requester` はアカウント ID だけで、主体が分からない（第二弾の [stage2-hourly-report.md](../done/s3-data-protection-2/stage2-hourly-report.md)）。そこで、ジョブのロール以外の主体は、CloudTrail のデータイベントの `userIdentity` で拾う（A-2）。ジョブのロール以外は、バケットポリシーで保持の変更を拒まれるので、A-2 が鳴るのは守りに穴があったときだけ。
+- A-2 は、ジョブのロールの成功（億の単位）を拾わない形にする（`userIdentity.sessionContext.sessionIssuer.arn` が `anything-but` ジョブのロール）。Batch Operations の操作がジョブのロールの主体で記録されるか、欄の名前は、カナリアのジョブで確かめる。
+- A-1 はジョブでの解除の数を数える。解除してよいのはジョブだけで、使うのは意図して消すとき（D13・D35）だけなので、重大のまま鳴らす（「使ったら届く」）。
+
+#### 警報の通知で取れるもの
+
+警報の通知は、EventBridge の `CloudWatch Alarm State Change` を入力の変換で文面にする（4.2）。取れるのは、警報の名前（`detail.alarmName`）・状態になった時刻（`detail.state.timestamp`）・理由（`detail.state.reason`。AWS が書く文で、しきい値を超えたデータポイントの値＝件数が入る）。**誰が・どのオブジェクトかは、通知には出ない**ので、ロググループと Logs Insights のクエリを本文に書く。
+
+#### 文面
+
+**重大（A-1・A-2・D-1）**
+
+```text
+題名: :red_circle: [重大] 保護対象の S3 バケットで、<警報ごとの一文> 
+本文:
+<!subteam^…> 意図した操作かを確認してください。
+*何が起きたか*: <警報ごとの説明>
+*いつから（UTC）*: <state.timestamp>
+*件数*: <state.reason>
+*警報*: `<alarmName>`
+*記録の置き場*: CloudWatch Logs のロググループ `<ロググループ名>`（us-west-2・アカウント 767397804933）
+*なぜ通知が来たか*: この S3 バケットには、消えると取り戻せないデータを置いています。S3 Object Lock で、削除と上書きを防いでいます。<警報ごとの理由>
+次にすること:
+- 操作した人に、意図した操作かを確認する
+- CloudWatch Logs Insights で、ロググループ `<ロググループ名>` に次のクエリを流し、誰が・どのオブジェクトに操作したかを見る: `<クエリ>`
+- この警報は、鳴り続けているあいだは再び通知しません。鳴り止んだかは、警報 `<alarmName>` の状態で確かめる
+```
+
+| 警報 | 題名の一文 | 説明 | 理由 | クエリ（案） |
+|---|---|---|---|---|
+| A-1 | イベントホールドの解除がありました | オブジェクトのイベントホールド（S3 Object Lock）が解除されました | 解除されたオブジェクトは、15 日後に削除できるようになります | `fields @timestamp, detail.bucket.name, detail.object.key, detail.object.version-id \| sort @timestamp desc \| limit 100` |
+| A-2 | 想定外の IAM プリンシパルが、オブジェクトの保持を変更しました | 保持の変更（`PutObjectRetention`・`PutObjectLegalHold`）は、決まったジョブのロールにしか許していません。それ以外の主体の変更が成功しました | 保護の設定に穴がある可能性があります | `fields @timestamp, detail.userIdentity.arn, detail.requestParameters.bucketName, detail.requestParameters.key \| sort @timestamp desc \| limit 100` |
+| D-1 | オブジェクトの古い版が削除されました | 版を指定した削除（`DeleteObject` の `versionId`）が成功しました。この削除は取り消せません | 保護されていない古い版は、権限があれば削除できます | `fields @timestamp, detail.userIdentity.arn, detail.requestParameters.bucketName, detail.requestParameters.key, detail.requestParameters.versionId \| sort @timestamp desc \| limit 100` |
+
+**記録（D-2）**: 題名は `:white_circle: [記録] 保護対象の S3 バケットへのオブジェクトの操作が拒否されました`。メンションを外し、1 行目を「保護が効いて、操作は拒否されました。対応は不要です。繰り返される・心当たりのない IAM プリンシパルの場合は、確認してください。」にする。クエリに `detail.errorCode` を足す。
+
+- 「件数」の欄は、AWS が書く理由の文をそのまま出す（例: `Threshold Crossed: 1 out of the last 1 datapoints [3.0 (18/11/26 02:18:00)] was greater than or equal to the threshold (1.0)`）。英語で読みにくいが、件数（`3.0`）と時刻が入る。入力の変換では数だけを取り出せない。代わりに `detail.state.reasonData` を見るかは、カナリアで確かめる。
+- Logs Insights のクエリは、コンソールの URL に埋めるとリンクにできるが、URL の書き方が文書化されておらず、壊れやすい。数年後も使えるよう、**クエリの文を本文に書く**。
+- `|` は Slack の表示で崩れないかを確かめる（コードの中なので崩れない見込み）。
+
+### 10.10 決めること（A・D）
+
+1. 10.9 の警報の 4 本の分け方でよいか。とくに A-1（ジョブでの解除）を重大のまま鳴らすか。
+2. 「件数」に AWS の英語の文を出すことでよいか。
+3. 警報の 1 本ごとに、文面の表の一文・説明・理由でよいか。
+
