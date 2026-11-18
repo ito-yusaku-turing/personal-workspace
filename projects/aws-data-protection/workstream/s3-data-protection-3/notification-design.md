@@ -287,7 +287,7 @@ cdk-apps にも、SNS のメールの購読（`EmailSubscription`）を作るコ
   - 2 段目で直すこと: `invokedBy` は人の操作では空で、文面に ` `` ` と出る。値が無いときの書き方を考える。「送り元」の行のすぐ後に「Next steps:」が続くのは、Amazon Q Developer の表示の形。
   - **メンションは重要な通知だけに限る**（伊藤）。どれに付けるかは 8 章の 10。
 
-## 10. 通知の文面（2026-11-18、練っている途中）
+## 10. 通知の文面（2026-11-18）
 
 文面の実装は cdk-apps の `apps/original-bucket-audit/lib/notify-stack.ts`（`addBucketConfigRule()` の `RuleTargetInput.fromObject`）。**ここを文面の正本にし、決めたら実装を合わせる。**
 
@@ -312,11 +312,28 @@ cdk-apps にも、SNS のメールの購読（`EmailSubscription`）を作るコ
 |---|---|---|
 | 原本バケット | **保護対象の S3 バケット**（11-18 に決定）。本文で「削除・上書きを防いでいる S3 バケット」と言い換える | 「原本」はこの workstream の語。何を守っているかは本文で説明する |
 | バケット | S3 バケット | 観点 2 |
-| 誰が | 操作した IAM プリンシパル | CloudTrail の `userIdentity` に当たる正式な語 |
+| 誰が | 実行した IAM プリンシパル | CloudTrail の `userIdentity`（API を呼んだ主体）に当たる正式な語 |
 | 送り元 | 送信元 IP アドレス | CloudTrail の `sourceIPAddress` |
 | 設定の操作 | （題名には操作の結果を書く。下の 10.4） | 「設定の操作」では危険度が分からない |
 | エラー | エラーコード（拒否のときだけの文面に出す） | 成功の文面から欄ごと消す |
 | eventName | 操作（API 名） | 値は CloudTrail の名前（`PutBucketPolicy` など）のまま |
+
+口調と語の決まり（2026-11-18、伊藤と決めた）:
+
+- **欄の名前と題名は、堅い語の体言止めにする。** 一覧で先頭の数語だけ見て中身が分かるように。題名は「〜を検知」で終える。
+- **欄の中の説明文と、読み手に頼む文は、です・ます調のままにする。** 漢語を詰めると、数年後の読み手にかえって読みにくい。1 行目の「意図した操作かを確認してください。」も命令の形にしない。
+- **時刻は、何の時刻かで名前を分ける。** 1 件ずつの通知（ルール B など）は操作そのものの時刻なので「発生時刻（UTC）」。警報の通知は警報が `ALARM` になった時刻で、操作はその前の集計の期間に起きているので「検知時刻（UTC）」。「発生時刻」と書くと、その時刻ちょうどでログを絞って最初の操作を取りこぼしうる。
+- ルール B と A・D で、同じ欄は同じ名前にそろえる。
+
+| 欄の名前（決定） | 前の案 |
+|---|---|
+| 発生事象 | 何が起きたか |
+| 発生時刻（UTC）（1 件ずつの通知） | 日時（UTC） |
+| 検知時刻（UTC）（警報） | いつから（UTC） |
+| 判定内容（警報。中身は AWS が書く英語の判定の文） | 件数 |
+| ログの格納先 | 記録の置き場 |
+| 通知の理由 | なぜ通知が来たか |
+| 実行した IAM プリンシパル | 操作した IAM プリンシパル |
 
 ### 10.4 危険度（2026-11-18、伊藤の方針）
 
@@ -364,12 +381,12 @@ cdk-apps にも、SNS のメールの購読（`EmailSubscription`）を作るコ
 |---|---|---|
 | S3 バケット | `requestParameters.bucketName` | |
 | 操作（API 名） | `eventName` | |
-| 操作した IAM プリンシパル | `userIdentity.arn` | 人・ロールの特定 |
+| 実行した IAM プリンシパル | `userIdentity.arn` | 人・ロールの特定 |
 | 種類 | `userIdentity.type` | `AWSService` なら arn が空になる |
 | principalId | `userIdentity.principalId` | ロールのセッション名（SSO ではメールアドレス）まで含む |
 | invokedBy | `userIdentity.invokedBy` | AWS のサービスが代わりに呼んだとき |
 | アクセスキー ID | `userIdentity.accessKeyId` | 同じセッションの、ほかの操作を CloudTrail で引く鍵 |
-| 日時（UTC） | `eventTime` | |
+| 発生時刻（UTC） | `eventTime` | |
 | 送信元 IP アドレス | `sourceIPAddress` | |
 | リージョン・アカウント | `awsRegion`・`recipientAccountId` | どの CloudTrail を見るか |
 | eventID・requestID | `eventID`・`requestID` | その 1 件を CloudTrail・S3 のサーバーアクセスログで引く鍵 |
@@ -381,38 +398,40 @@ cdk-apps にも、SNS のメールの購読（`EmailSubscription`）を作るコ
   - **b. 値の有無でルールを分ける（`{"exists": false}`）。→ 採用（伊藤、11-18）。** 空になるのは実際には `arn`（AWS のサービスが操作したとき）と `invokedBy`（人が操作したとき）で、`userIdentity.type` が `AWSService` かどうかで 2 本に分ければほぼ足りる。値の無いほうの文面に `-` と書く。危険度の 3 本と掛けて、ルール B は 6 本になる。ほかの欄（`accessKeyId` など）が空になる場合は、カナリアや実際の記録で見つけたら足す。
   - c. ~~文字列の外に置いた変数が `null` になるか~~ → 文書に書かれていない。カスタム通知の欄はどれも文字列なので、文字列の外には置けない。使わない。
 
-### 10.6 ルール B の文面（案）
+### 10.6 ルール B の文面（2026-11-18、口調をそろえた）
 
 **重大（成功）**
 
 ```text
-題名: :red_circle: [重大] 保護対象の S3 バケットで、保護を外す・弱める操作が成功しました: <操作>
+題名: :red_circle: [重大] 保護対象の S3 バケットで、保護を外す・弱める操作を検知: <操作>
 本文:
 <!subteam^…> 意図した操作かを確認してください。
 *S3 バケット*: `<bucketName>`
 *操作（API 名）*: `<eventName>`
-*操作した IAM プリンシパル*: `<arn>`
+*実行した IAM プリンシパル*: `<arn>`
 *種類*: <type>　*principalId*: `<principalId>`　*invokedBy*: `<invokedBy>`
 *アクセスキー ID*: `<accessKeyId>`
-*日時（UTC）*: <eventTime>
+*発生時刻（UTC）*: <eventTime>
 *送信元 IP アドレス*: <sourceIPAddress>
 *リージョン・アカウント*: <awsRegion>・<recipientAccountId>
-*なぜ通知が来たか*: この S3 バケットには、消えると取り戻せないデータを置いています。S3 Object Lock・バケットポリシー・バージョニングで、削除と上書きを防いでいます。この操作は、その保護を外す・弱める、またはデータを公開することができます。
+*通知の理由*: この S3 バケットには、消えると取り戻せないデータを置いています。S3 Object Lock・バケットポリシー・バージョニングで、削除と上書きを防いでいます。この操作は、その保護を外す・弱める、またはデータを公開することができます。
 次にすること:
-- 操作した人に、意図した操作かを確認する
-- CloudTrail で eventID `<eventID>`（requestID `<requestID>`）を引き、要求の中身（requestParameters）を見る
+- 実行者に、意図した操作であるかを確認
+- CloudTrail で eventID `<eventID>`（requestID `<requestID>`）を検索し、要求の内容（requestParameters）を確認
 ```
 
 - **対応の手順は通知に書かない**。「意図した操作かを確認してください」に留め、手順書へのリンクは Slack のチャンネルのトピックなどに置く（伊藤、2026-11-18）。
+- 値が無い欄（AWS のサービスが実行したときの `arn`、人が実行したときの `invokedBy`）は、ルールを分けて `-` と書く（10.5）。
+- 「次にすること:」は説明のための書き方で、実際の見出しは Amazon Q Developer が付ける「Next steps:」になる（変えられない）。
 
-**注意（成功）**: 題名を `:large_yellow_circle: [注意] 保護対象の S3 バケットで、保護に関わる設定が変わりました: <操作>` にし、メンションを外す。「なぜ通知が来たか」は「この操作は保護を外しませんが、保護や監視の仕組みに関わります」。次にすることの 1 つ目は「心当たりがなければ、操作した人に確認する」。
+**注意（成功）**: 題名を `:large_yellow_circle: [注意] 保護対象の S3 バケットで、保護に関わる設定の変更を検知: <操作>` にし、メンションを外す。「通知の理由」は「この操作は保護を外しませんが、保護や監視の仕組みに関わります。」。次にすることの 1 つ目は「心当たりがなければ、実行者に確認」。
 
 **記録（拒否）**
 
 ```text
-題名: :white_circle: [記録] 保護対象の S3 バケットへの操作が拒否されました: <操作>
+題名: :white_circle: [記録] 保護対象の S3 バケットへの操作の拒否を検知: <操作>
 本文:
-保護が効いて、操作は拒否されました。対応は不要です。同じ操作が繰り返される・心当たりのない IAM プリンシパルの場合は、確認してください。
+保護が効いて、操作は拒否されました。即時の対応は不要です。同じ操作が繰り返される場合や、心当たりのない IAM プリンシパルの場合は、確認してください。
 *エラーコード*: `<errorCode>`
 （ほかの欄は重大と同じ）
 ```
@@ -442,7 +461,7 @@ us-west-2 の `lookup-events`（ReadOnly）で、実際の記録の `requestPara
 - `userIdentity` には `onBehalfOf`（Identity Center のユーザー ID）も入っていた（SSO の操作）。`principalId` にメールアドレスが入るので、文面には載せない。
 - `invokedBy` は、SSO の操作の記録には欄が無かった（1 段目で空に出た理由）。
 
-### 10.9 ルール A・D の警報の文面（案）
+### 10.9 ルール A・D の警報の文面（2026-11-18）
 
 #### 警報の分け方
 
@@ -466,36 +485,36 @@ us-west-2 の `lookup-events`（ReadOnly）で、実際の記録の `requestPara
 **重大（A-1・A-2・D-1）**
 
 ```text
-題名: :red_circle: [重大] 保護対象の S3 バケットで、<警報ごとの一文> 
+題名: :red_circle: [重大] 保護対象の S3 バケットで、<題名の一文>
 本文:
 <!subteam^…> 意図した操作かを確認してください。
-*何が起きたか*: <警報ごとの説明>
-*いつから（UTC）*: <state.timestamp>
-*件数*: <state.reason>
+*発生事象*: <発生事象の説明>
+*検知時刻（UTC）*: <state.timestamp>
+*判定内容*: <state.reason>
 *警報*: `<alarmName>`
-*記録の置き場*: CloudWatch Logs のロググループ `<ロググループ名>`（us-west-2・アカウント 767397804933）
-*なぜ通知が来たか*: この S3 バケットには、消えると取り戻せないデータを置いています。S3 Object Lock で、削除と上書きを防いでいます。<警報ごとの理由>
+*ログの格納先*: CloudWatch Logs のロググループ `<ロググループ名>`（us-west-2・アカウント 767397804933）
+*通知の理由*: この S3 バケットには、消えると取り戻せないデータを置いています。S3 Object Lock で、削除と上書きを防いでいます。<警報ごとの理由>
 次にすること:
-- 操作した人に、意図した操作かを確認する
-- CloudWatch Logs Insights で、ロググループ `<ロググループ名>` に次のクエリを流し、誰が・どのオブジェクトに操作したかを見る: `<クエリ>`
-- この警報は、鳴り続けているあいだは再び通知しません。鳴り止んだかは、警報 `<alarmName>` の状態で確かめる
+- 実行者に、意図した操作であるかを確認
+- CloudWatch Logs Insights で、ロググループ `<ロググループ名>` に次のクエリを実行し、実行した IAM プリンシパルと対象のオブジェクトを確認: `<クエリ>`。操作は検知時刻より前から続いている場合があるので、検知時刻の数分前から検索する
+- 警報の継続中は再通知しません。終息したかは、警報 `<alarmName>` の状態で確認
 ```
 
-| 警報 | 題名の一文 | 説明 | 理由 | クエリ（案） |
+| 警報 | 題名の一文 | 発生事象の説明 | 理由 | クエリ（案） |
 |---|---|---|---|---|
-| A-1 | イベントホールドの解除がありました | オブジェクトのイベントホールド（S3 Object Lock）が解除されました | 解除されたオブジェクトは、15 日後に削除できるようになります | `fields @timestamp, detail.bucket.name, detail.object.key, detail.object.version-id \| sort @timestamp desc \| limit 100` |
-| A-2 | 想定外の IAM プリンシパルが、オブジェクトの保持を変更しました | 保持の変更（`PutObjectRetention`・`PutObjectLegalHold`）は、決まったジョブのロールにしか許していません。それ以外の主体の変更が成功しました | 保護の設定に穴がある可能性があります | `fields @timestamp, detail.userIdentity.arn, detail.requestParameters.bucketName, detail.requestParameters.key \| sort @timestamp desc \| limit 100` |
-| D-1 | オブジェクトの古い版が削除されました | 版を指定した削除（`DeleteObject` の `versionId`）が成功しました。この削除は取り消せません | 保護されていない古い版は、権限があれば削除できます | `fields @timestamp, detail.userIdentity.arn, detail.requestParameters.bucketName, detail.requestParameters.key, detail.requestParameters.versionId \| sort @timestamp desc \| limit 100` |
+| A-1 | イベントホールドの解除を検知 | オブジェクトのイベントホールド（S3 Object Lock）が解除されました。 | 解除されたオブジェクトは、15 日後に削除できるようになります。 | `fields @timestamp, detail.bucket.name, detail.object.key, detail.object.version-id \| sort @timestamp desc \| limit 100` |
+| A-2 | 想定外の IAM プリンシパルによる保持の変更を検知 | 保持の変更（`PutObjectRetention`・`PutObjectLegalHold`）は、決まったジョブのロールにしか許していません。それ以外の IAM プリンシパルによる変更が成功しました。 | 保護の設定に不備がある可能性があります。 | `fields @timestamp, detail.userIdentity.arn, detail.requestParameters.bucketName, detail.requestParameters.key \| sort @timestamp desc \| limit 100` |
+| D-1 | オブジェクトの古い版の削除を検知 | 版を指定した削除（`DeleteObject` の `versionId`）が成功しました。この削除は取り消せません。 | 保護されていない古い版は、権限があれば削除できます。 | `fields @timestamp, detail.userIdentity.arn, detail.requestParameters.bucketName, detail.requestParameters.key, detail.requestParameters.versionId \| sort @timestamp desc \| limit 100` |
 
-**記録（D-2）**: 題名は `:white_circle: [記録] 保護対象の S3 バケットへのオブジェクトの操作が拒否されました`。メンションを外し、1 行目を「保護が効いて、操作は拒否されました。対応は不要です。繰り返される・心当たりのない IAM プリンシパルの場合は、確認してください。」にする。クエリに `detail.errorCode` を足す。
+**記録（D-2）**: 題名は `:white_circle: [記録] 保護対象の S3 バケットで、オブジェクトの操作の拒否を検知`。メンションを外し、1 行目を「保護が効いて、操作は拒否されました。即時の対応は不要です。同じ操作が繰り返される場合や、心当たりのない IAM プリンシパルの場合は、確認してください。」にする。クエリに `detail.errorCode` を足す。
 
-- 「件数」の欄は、AWS が書く理由の文をそのまま出す（例: `Threshold Crossed: 1 out of the last 1 datapoints [3.0 (18/11/26 02:18:00)] was greater than or equal to the threshold (1.0)`）。英語で読みにくいが、件数（`3.0`）と時刻が入る。入力の変換では数だけを取り出せない。代わりに `detail.state.reasonData` を見るかは、カナリアで確かめる。
+- 「判定内容」の欄は、AWS が書く判定の文をそのまま出す（例: `Threshold Crossed: 1 out of the last 1 datapoints [3.0 (18/11/26 02:18:00)] was greater than or equal to the threshold (1.0)`）。英語で読みにくいが、件数（`3.0`）と時刻が入る。入力の変換では数だけを取り出せない（伊藤、11-18 に了承）。`detail.state.reasonData` で読みやすくできるかは、カナリアで確かめる。
 - Logs Insights のクエリは、コンソールの URL に埋めるとリンクにできるが、URL の書き方が文書化されておらず、壊れやすい。数年後も使えるよう、**クエリの文を本文に書く**。
 - `|` は Slack の表示で崩れないかを確かめる（コードの中なので崩れない見込み）。
 
 ### 10.10 決めること（A・D）
 
-1. 10.9 の警報の 4 本の分け方でよいか。とくに A-1（ジョブでの解除）を重大のまま鳴らすか。
-2. 「件数」に AWS の英語の文を出すことでよいか。
-3. 警報の 1 本ごとに、文面の表の一文・説明・理由でよいか。
+1. ~~10.9 の警報の 4 本の分け方でよいか。A-1（ジョブでの解除）を重大のまま鳴らすか~~ → **4 本に分け、A-1 は重大のまま**（伊藤、11-18）。
+2. ~~「件数」に AWS の英語の文を出すことでよいか~~ → **出す**。欄の名前は「判定内容」（伊藤、11-18）。
+3. ~~警報ごとの題名の一文・説明・理由~~ → 口調と欄の名前を決め、10.6・10.9 に反映した（伊藤、11-18。10.3 の「口調と語の決まり」）。
 
