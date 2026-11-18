@@ -286,3 +286,140 @@ cdk-apps にも、SNS のメールの購読（`EmailSubscription`）を作るコ
   - CloudTrail（4）: Slack の設定の作成（`CreateSlackChannelConfiguration`、呼んだのは `AWSCloudFormation`）は us-west-2 に記録された。us-east-1・us-east-2・ap-northeast-1 には無い。
   - 2 段目で直すこと: `invokedBy` は人の操作では空で、文面に ` `` ` と出る。値が無いときの書き方を考える。「送り元」の行のすぐ後に「Next steps:」が続くのは、Amazon Q Developer の表示の形。
   - **メンションは重要な通知だけに限る**（伊藤）。どれに付けるかは 8 章の 10。
+
+## 10. 通知の文面（2026-11-18、練っている途中）
+
+文面の実装は cdk-apps の `apps/original-bucket-audit/lib/notify-stack.ts`（`addBucketConfigRule()` の `RuleTargetInput.fromObject`）。**ここを文面の正本にし、決めたら実装を合わせる。**
+
+### 10.1 観点（2026-11-18、伊藤）
+
+1. **用語**: この workstream の中でしか使っていない語（例: 原本バケット）は、社内のだれでも分かる語に置き換える。
+2. **正式な名称**: 同じ系統の語は、正式な名称にそろえる（例: 「バケット」より「S3 バケット」）。
+3. **危険度がすぐ分かる**: 通知を見た人が、事態の危険度をすぐに判別できるようにする。
+
+あわせて、数年後に読む人（この workstream を知らない人）が、通知だけで「何が起きたか・なぜ通知が来たか・何をすればよいか」を分かるようにする。
+
+### 10.2 制約
+
+- **入力の変換には条件の分岐が無い。** 値が無い欄は空のまま出る。文面を変えたいとき（成功と拒否、危険度の違い）は、ルールを分ける。危険度ごとに文面を変えるには、**危険度ごとにルールを分ける**（ルールのイベントパターンで eventName・`errorCode` の有無を分ける）。
+- **値はエスケープされない**（[cdk-apps#2614](https://github.com/turingmotors/cdk-apps/pull/2614) のレビュー）。呼び出し側が決められる値（`userAgent`・`errorMessage`）は入れない。
+- 日時は UTC のまま（入力の変換で JST に直せない）。
+- Amazon Q Developer の表示の形（`nextSteps` の前の「Next steps:」、フッター）は変えられない。
+
+### 10.3 用語の置き換え（案）
+
+| 今の語 | 置き換え（案） | 理由 |
+|---|---|---|
+| 原本バケット | **保護対象の S3 バケット**（11-18 に決定）。本文で「削除・上書きを防いでいる S3 バケット」と言い換える | 「原本」はこの workstream の語。何を守っているかは本文で説明する |
+| バケット | S3 バケット | 観点 2 |
+| 誰が | 操作した IAM プリンシパル | CloudTrail の `userIdentity` に当たる正式な語 |
+| 送り元 | 送信元 IP アドレス | CloudTrail の `sourceIPAddress` |
+| 設定の操作 | （題名には操作の結果を書く。下の 10.4） | 「設定の操作」では危険度が分からない |
+| エラー | エラーコード（拒否のときだけの文面に出す） | 成功の文面から欄ごと消す |
+| eventName | 操作（API 名） | 値は CloudTrail の名前（`PutBucketPolicy` など）のまま |
+
+### 10.4 危険度（2026-11-18、伊藤の方針）
+
+- **重大**: 保護を外す・弱める操作、取り返しの付かない操作、**公開につながる操作**。公開は当社にとってより危険なので、重大に入れる（伊藤）。
+- **通知だけ**: 保護を強める、より安全になる方向の操作。
+- 向きが通知から分からない操作（例: `PutBucketPolicy` は強めることも弱めることもできる）は、**重大に倒す**。向きをイベントパターンで分けられるものだけ、安全な向きを通知だけに下げる。
+
+題名の先頭に、色の絵文字と危険度の語を置く。メンションの有無（8 章の 10）と 1 対 1 にする。
+
+| 危険度 | 題名の先頭 | メンション | 当てはまるもの | 読んだ人がすること |
+|---|---|---|---|---|
+| **重大** | `:red_circle: [重大]` | 付ける | 上の「重大」が成功した | すぐ、操作した人に意図を確かめる |
+| **注意** | `:large_yellow_circle: [注意]` | 付けない | 上の「通知だけ」が成功した。ジョブの作成・状態の変更 | 心当たりがなければ確かめる |
+| **記録** | `:white_circle: [記録]` | 付けない | 保護に関わる操作が拒否された（保護が効いた） | 対応は不要。繰り返す・心当たりのない主体なら確かめる |
+
+ルール B の操作の分け方（案）:
+
+| 危険度 | 操作 | 理由 |
+|---|---|---|
+| 重大 | `PutBucketPolicy`・`DeleteBucketPolicy` | 保護を外せる。公開もできる |
+| 重大 | `PutBucketObjectLockConfiguration` | 既定の保持設定を短くも長くもできる（向きが分からない） |
+| 重大 | `PutBucketLifecycle` | 古い版を失効させるルールを足せる |
+| 重大 | `PutBucketVersioning` で `Status` が `Suspended` | バージョニングの停止 |
+| 重大 | `DeleteBucket` | 取り返しが付かない |
+| 重大（公開） | `PutBucketAcl`・`PutBucketOwnershipControls`・`DeleteBucketOwnershipControls` | ACL での公開につながる（所有権の設定で ACL が有効になる） |
+| 重大（公開） | `DeleteBucketPublicAccessBlock`、`PutBucketPublicAccessBlock` で 4 つのどれかが `false` | 公開のブロックを外す |
+| 重大 | `PutBucketReplication`・`PutBucketEncryption`・`DeleteBucketEncryption` | 写しを外のアカウントに送れる・暗号化の鍵を替えられる（向きが分からない） |
+| 重大（監視） | `PutBucketNotification`・`PutBucketInventoryConfiguration`・`DeleteBucketInventoryConfiguration` | データの保護は外さないが、監視の入力を止められる（伊藤、11-18） |
+| 注意 | `PutBucketVersioning` で `Status` が `Enabled` | 強める向き |
+| 注意 | `PutBucketPublicAccessBlock` で 4 つとも `true` | 強める向き |
+| 注意 | `DeleteBucketLifecycle` | 古い版を消すルールも消えるので、保護は弱まらない |
+| 注意 | `DeleteBucketReplication` | 写しが止まる。原本は弱まらない |
+| 注意 | ジョブの `CreateJob`・`UpdateJobStatus`・`UpdateJobPriority` | 伊藤が流すジョブでも鳴る（区分 A の「使ったら届く」） |
+| 記録 | 上のすべてで、`errorCode` があるもの | 保護が効いた |
+
+- バージョニングの `Status`、公開のブロックの 4 つの値の欄の名前（`requestParameters.VersioningConfiguration.Status` など）は、カナリアの CloudTrail の記録で確かめてから、イベントパターンに書く。
+- オブジェクトの ACL（`PutObjectAcl`）での公開は、ルール B（S3 バケットの設定）では拾わない。所有権の設定が `BucketOwnerEnforced` なら ACL は効かないので、所有権の設定の変更（重大）で気づける。**12 本とカナリアは、すべて `BucketOwnerEnforced`**（2026-11-18、ReadOnly で `get-bucket-ownership-controls`）。
+
+### 10.5 載せる欄（2026-11-18、伊藤の方針）
+
+**アラートを見て「まずい」と思った人が、すぐ調べ始められるように、ログを特定する鍵になる欄を載せる。** 値が無い欄は消さずに、空と分かる表記にする。
+
+| 欄 | 値（CloudTrail の記録） | 何に使うか |
+|---|---|---|
+| S3 バケット | `requestParameters.bucketName` | |
+| 操作（API 名） | `eventName` | |
+| 操作した IAM プリンシパル | `userIdentity.arn` | 人・ロールの特定 |
+| 種類 | `userIdentity.type` | `AWSService` なら arn が空になる |
+| principalId | `userIdentity.principalId` | ロールのセッション名（SSO ではメールアドレス）まで含む |
+| invokedBy | `userIdentity.invokedBy` | AWS のサービスが代わりに呼んだとき |
+| アクセスキー ID | `userIdentity.accessKeyId` | 同じセッションの、ほかの操作を CloudTrail で引く鍵 |
+| 日時（UTC） | `eventTime` | |
+| 送信元 IP アドレス | `sourceIPAddress` | |
+| リージョン・アカウント | `awsRegion`・`recipientAccountId` | どの CloudTrail を見るか |
+| eventID・requestID | `eventID`・`requestID` | その 1 件を CloudTrail・S3 のサーバーアクセスログで引く鍵 |
+| エラーコード | `errorCode` | 記録（拒否）の文面だけ |
+
+- `userAgent` は載せない。呼び出し側が自由に決められ、入力の変換でエスケープされないため（10.2）。eventID から引ける。
+- **空のときの表記（`-` や `null`）は、入力の変換だけではできない**。文書には既定値の機能が無く、「If you specify a variable to match a JSON path that doesn't exist in the event, that variable isn't created and won't appear in the output.」とだけある（[eb-transform-target-input](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-transform-target-input.html)、2026-11-18 に読んだ）。1 段目では、文字列の中の `invokedBy` は空で出た。手は次のどれか（10.7 の 4）。
+  - a. 欄の名前に「（空は値なし）」と添える。実装は今のまま。
+  - **b. 値の有無でルールを分ける（`{"exists": false}`）。→ 採用（伊藤、11-18）。** 空になるのは実際には `arn`（AWS のサービスが操作したとき）と `invokedBy`（人が操作したとき）で、`userIdentity.type` が `AWSService` かどうかで 2 本に分ければほぼ足りる。値の無いほうの文面に `-` と書く。危険度の 3 本と掛けて、ルール B は 6 本になる。ほかの欄（`accessKeyId` など）が空になる場合は、カナリアや実際の記録で見つけたら足す。
+  - c. ~~文字列の外に置いた変数が `null` になるか~~ → 文書に書かれていない。カスタム通知の欄はどれも文字列なので、文字列の外には置けない。使わない。
+
+### 10.6 ルール B の文面（案）
+
+**重大（成功）**
+
+```text
+題名: :red_circle: [重大] 保護対象の S3 バケットで、保護を外す・弱める操作が成功しました: <操作>
+本文:
+<!subteam^…> 意図した操作かを確認してください。
+*S3 バケット*: `<bucketName>`
+*操作（API 名）*: `<eventName>`
+*操作した IAM プリンシパル*: `<arn>`
+*種類*: <type>　*principalId*: `<principalId>`　*invokedBy*: `<invokedBy>`
+*アクセスキー ID*: `<accessKeyId>`
+*日時（UTC）*: <eventTime>
+*送信元 IP アドレス*: <sourceIPAddress>
+*リージョン・アカウント*: <awsRegion>・<recipientAccountId>
+*なぜ通知が来たか*: この S3 バケットには、消えると取り戻せないデータを置いています。S3 Object Lock・バケットポリシー・バージョニングで、削除と上書きを防いでいます。この操作は、その保護を外す・弱める、またはデータを公開することができます。
+次にすること:
+- 操作した人に、意図した操作かを確認する
+- CloudTrail で eventID `<eventID>`（requestID `<requestID>`）を引き、要求の中身（requestParameters）を見る
+```
+
+- **対応の手順は通知に書かない**。「意図した操作かを確認してください」に留め、手順書へのリンクは Slack のチャンネルのトピックなどに置く（伊藤、2026-11-18）。
+
+**注意（成功）**: 題名を `:large_yellow_circle: [注意] 保護対象の S3 バケットで、保護に関わる設定が変わりました: <操作>` にし、メンションを外す。「なぜ通知が来たか」は「この操作は保護を外しませんが、保護や監視の仕組みに関わります」。次にすることの 1 つ目は「心当たりがなければ、操作した人に確認する」。
+
+**記録（拒否）**
+
+```text
+題名: :white_circle: [記録] 保護対象の S3 バケットへの操作が拒否されました: <操作>
+本文:
+保護が効いて、操作は拒否されました。対応は不要です。同じ操作が繰り返される・心当たりのない IAM プリンシパルの場合は、確認してください。
+*エラーコード*: `<errorCode>`
+（ほかの欄は重大と同じ）
+```
+
+### 10.7 決めること（文面）
+
+1. ~~10.3 の置き換え、とくに「保護対象の S3 バケット」でよいか~~ → **保護対象の S3 バケット**（伊藤、11-18）。
+2. ~~監視の入力を止める操作を、注意のままにするか、重大に上げるか~~ → **重大**（伊藤、11-18）。
+3. ~~「意図しない操作なら」の行き先~~ → 通知には書かない。手順書はチャンネルのトピックなどに置く（伊藤、11-18）。
+4. ~~空の欄の表記を、10.5 の a・b のどちらにするか~~ → **b**（伊藤、11-18）。
+5. ~~`principalId`・`invokedBy` を外してよいか~~ → 付ける。ログの特定に役立つ欄も足す（伊藤、11-18。10.5）。
