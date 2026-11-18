@@ -142,6 +142,8 @@
   - deploy の経路は案 3（警報で 1 通）。PR 1 では暫定で注意（メンションなし）。
   - **[cdk-apps#2643](https://github.com/turingmotors/cdk-apps/pull/2643) を出した**（ブランチ `original-bucket-alert-catalog`、`5c619b23`）。仕様の正本を cdk-apps の `apps/original-bucket-audit/docs/notifications.md` に置いた。通知の表（`lib/alert-catalog.ts`）からルール 28 本（us-west-2 に 21、us-east-1 に 7）を組み立てる。イベントパターンは、実際の記録 12 件と書き換えた例 19 件で `TestEventPattern` を当て、31 件すべて期待どおり（`scripts/check-alert-patterns.py`）。
   - 起草は git worktree（scratchpad の `cdk-apps-alert`）で行った。`/usr/app/cdk-apps` の作業ツリーには、エージェントが触っていない `package.json`・`package-lock.json` の変更が残っていて、ブランチを切り替えられなかったため。
+  - セルフレビュー（別セッション）の指摘 10 件のうち 9 件を直した（`6c75c871`）。主なもの: us-east-1 の通知の部品も見張る、失敗の通知に前方一致で拾った名前を載せない（エスケープされないため）、S3 バケットの重大は deploy の経路でも重大、記録の文面を「失敗しました」にする、信頼ポリシーからカスタムのバスのルールを除く、`PutDataProtectionPolicy` を見張る（us-west-2 では使えなかった）。パターンの確かめは 36/36。PR の本文も直した。
+  - 分かった限界: トピックを消す・購読をやめる操作の通知は、そのトピック自身を通るので、操作の後には届かないことがある（cdk-apps の docs 10 章）。
   - 次: チームの品評を受けて直す。マージ・deploy の後に PR のチェックリスト（deploy の通知が注意で来る・`UpdateSlackChannelConfiguration` の欄・注意と記録の見え方・us-east-1 から届く）を確かめる。マージしたら、設計の 10 章を「経緯と理由」だけに縮め、仕様は cdk-apps を指す。
 
 ## 関連リンク
