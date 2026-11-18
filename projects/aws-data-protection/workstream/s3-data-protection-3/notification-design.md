@@ -107,7 +107,8 @@ us-east-1（tuscenes-prod）                                                    
 
 - **メールには、注意を要する通知だけを流す。** 宛先は `mlops@turing-motors.com`（コストアノマリーに揃える。Google グループ `mlops1@` を通って配られる）。
 - **Slack には、新しいチャンネル `#aws_security_alert` を作り、注意を要する通知と定期的なモニタリングの情報の両方を流す。** `#aws_cost_monitoring` に倣う。
-- **Slack で注意を要する通知には、メンションを付ける。** 相手は Slack のユーザーグループ `@mlops1`。
+- **Slack で注意を要する通知には、メンションを付ける。** 相手は Slack のユーザーグループ `@mlops1`（ID `S087DHX478B`。Slack での表示は `@mlops1_all`）。
+- **メンションは重要な通知だけに限る**（2026-11-18、伊藤）。注意の通知のうち、どれにメンションを付けるかは 8 章の 10 で決める。
 - **`#aws_security_alert` は公開のチャンネルにする。** エンジニアならだれでも見られるようにする。
 - **どれも伊藤の個人の案で、チームの合意はまだ。** 仕様が固まったら、チームに共有して合意を取る。
 
@@ -219,8 +220,8 @@ cdk-apps にも、SNS のメールの購読（`EmailSubscription`）を作るコ
 - [ ] ルール D のデータイベントが EventBridge に届く。`DeleteObjects` の記録に版の ID が出るか。迂回の要求の欄。
 - [ ] ルール E が us-east-1 で届く。
 - [ ] 警報の `MatchedEvents` が、送り先がロググループのときに出る（下書きの 3.6 の 2 つ目）。
-- [ ] Slack のメンション: ユーザーグループ `@mlops1`（`<!subteam^…>`）が、カスタム通知で効くか。
-- [ ] Amazon Q Developer の設定の変更が、どのリージョンの EventBridge に届くか（ルール C）。
+- [x] Slack のメンション: ユーザーグループ `@mlops1`（`<!subteam^…>`）が、カスタム通知で効くか。→ 効く（11-18、9.1）。
+- [ ] Amazon Q Developer の設定の変更が、どのリージョンの EventBridge に届くか（ルール C）。CloudTrail では、作成（`CreateSlackChannelConfiguration`）は us-west-2 に記録された（11-18、9.1）。EventBridge に届くかは 2 段目で確かめる。
 - [ ] `--authenticate-on-unsubscribe true` で確認したメールの購読が、メールのリンクから外せないこと。
 
 ## 8. 決めること
@@ -235,7 +236,8 @@ cdk-apps にも、SNS のメールの購読（`EmailSubscription`）を作るコ
 | 6 | ~~警報が戻ったとき（OK）にも送るか（I5 の未決）~~ | → **送らない**（11-17、伊藤） |
 | 7 | ~~`#aws_security_alert` を公開にするか、非公開にするか~~ | → **公開**（11-17、伊藤の案。エンジニアならだれでも見られる） |
 | 8 | ~~Slack で注意の通知にメンションする相手~~ | → **`@mlops1`**（11-17、伊藤の案。効くかはカナリアで試す） |
-| 9 | Slack に送る仕組み: Amazon Q Developer か、Lambda ＋ bot token（社内の慣例）か | 4.5 を見て決める |
+| 9 | ~~Slack に送る仕組み: Amazon Q Developer か、Lambda ＋ bot token（社内の慣例）か~~ | → **Amazon Q Developer**（11-17、伊藤。1 段目の試しで、ユーザーグループのメンションも効いた。9.1） |
+| 10 | 注意の通知のうち、どれに `@mlops1` のメンションを付けるか | 重要な通知だけに限る（11-18、伊藤）。線引きはまだ。たたき台: 守りを外す・弱める操作（ホールドの解除、バケットポリシー・Object Lock・バージョニング・レプリケーションの変更、バケットの削除、古い版の削除、通知の仕組みの変更）は付ける。気づく仕組みに関わるが守りは外さない操作（Inventory・通知の設定）と、伊藤が流すジョブの作成・状態の変更は付けない |
 
 ## 9. 次
 
@@ -270,3 +272,10 @@ cdk-apps にも、SNS のメールの購読（`EmailSubscription`）を作るコ
   4. チャンネルの設定の作成（`CreateSlackChannelConfiguration`）が、どのリージョンの CloudTrail に出たか（ルール C の置き場所。7 章）。
   5. 3 で通知が届かなかったら: ルールの `FailedInvocations` のメトリクスと、トピックのポリシーで拒まれていないかを見る。ルールは専用のロールでトピックに発行し、`events.amazonaws.com` からの直接の発行はトピックのポリシーで条件なしに拒む（Copilot の指摘で、`aws:SourceArn` の条件に頼る形から 11-17 に替えた。そのキーが EventBridge から SNS への発行に付くかは文書で確かめられなかった）。ロールでの発行が拒まれていないか（ロールのポリシー・トピックのポリシー）と、ロールの引き受けが信頼ポリシーの条件（ルールの ARN・アカウント）で失敗していないかを見る。DLQ はまだ無いので、落ちても黙って途切れる。
 - 結果で決めること: メンションの書き方（効かなければ、メンバーのユーザー ID を並べる形か、Lambda と bot token か）。
+- **結果（2026-11-18、deploy は 01:18Z。手での発行とカナリアは伊藤が FullAccess で実行）**:
+  - deploy は成功し、入力の変換の `<!subteam^…>` も受け付けられた（1）。
+  - 手での発行（2）: `<!subteam^S087DHX478B>`（Slack の正式な形）と `<@U07M27J3NK1>`（文書にある個人の形）は、メンションとして効いた。`<@!subteam^…>`（Zenn の記法）は効かず、文字のまま出た。**メンションの書き方は `<!subteam^…>` に決まり**（ルールの文面もこの形）。
+  - カナリア（3）: 02:18:33Z の `PutBucketVersioning` が、すぐに届いた。ルールの `Invocations` は 1、`FailedInvocations` は 0。信頼ポリシーの条件の下で、ロールでの発行が通った。入力の変換の後もメンションが残り、`@mlops1_all` として効いた。「誰が」には SSO のロールの arn・type・principalId が出て、本人まで分かる。成功した操作では「エラー」の値は空で、「（無ければ成功した操作）」だけが出る。
+  - CloudTrail（4）: Slack の設定の作成（`CreateSlackChannelConfiguration`、呼んだのは `AWSCloudFormation`）は us-west-2 に記録された。us-east-1・us-east-2・ap-northeast-1 には無い。
+  - 2 段目で直すこと: `invokedBy` は人の操作では空で、文面に ` `` ` と出る。値が無いときの書き方を考える。「送り元」の行のすぐ後に「Next steps:」が続くのは、Amazon Q Developer の表示の形。
+  - **メンションは重要な通知だけに限る**（伊藤）。どれに付けるかは 8 章の 10。
