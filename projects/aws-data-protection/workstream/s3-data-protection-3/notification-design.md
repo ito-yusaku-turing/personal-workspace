@@ -567,3 +567,57 @@ us-west-2 の `lookup-events`（ReadOnly）で、実際の記録の `requestPara
 2. ~~deploy で鳴る通知の多さを、案 1〜3 のどれで扱うか~~ → **案 3**（伊藤、2026-11-18）。deploy の経路（`cdk-hnb659fds-cfn-exec-role-*`）による成功は、1 件ずつ送らず、警報で 1 通（重大・メンションあり）にまとめる。deploy の経路は、GitHub の側のアクセス制御を整える予定（L11）なので、使ったことが 1 通で届けば足りる。ルール B（保護対象の S3 バケットのバケットポリシーを持つスタックの deploy）にも同じ扱いを当てる。
 3. **仕様の正本を cdk-apps に置く**（2026-11-18、伊藤の提案）。ほかのメンバーが保守するため。`apps/original-bucket-audit/docs/notifications.md` に、拾うもの・危険度の基準・文面の決まり・操作の足し方・確かめ方・限界を書き、README からリンクする。workstream の語（ルール A〜E・L 番号・D 番号）は使わない。マージした後、この 10 章は決めた経緯と理由だけにして、仕様は cdk-apps を指す。
 
+### 10.13 ルール C・E の欄（2026-11-18、CloudTrail の記録で確かめた）
+
+`lookup-events`（ReadOnly）で、各操作の最新の 1 件を見た。C は us-west-2、E は us-east-1（IAM の記録は us-west-2 には出ない。0 件）。
+
+#### 対象の欄
+
+| 部品 | 操作 | 対象の欄 | 記録 |
+|---|---|---|---|
+| EventBridge のルール | `PutRule`・`DeleteRule`・`DisableRule` | `requestParameters.name` | あり |
+| | `PutTargets`・`RemoveTargets` | `requestParameters.rule`（**名前の欄が違う**） | あり |
+| CloudWatch の警報 | `PutMetricAlarm` | `requestParameters.alarmName` | あり |
+| | `DeleteAlarms` | `requestParameters.alarmNames`（配列） | あり |
+| | `DisableAlarmActions`・`SetAlarmState` | （記録なし。API では `alarmNames`・`alarmName`） | なし |
+| CloudWatch Logs | `PutRetentionPolicy`・`PutMetricFilter`・`DeleteMetricFilter`・`DeleteLogGroup` | `requestParameters.logGroupName` | あり |
+| SNS | `SetTopicAttributes` | `requestParameters.topicArn` | あり |
+| | `AddPermission`・`RemovePermission`・`DeleteTopic` | （記録なし。API では `topicArn`） | なし |
+| | `Unsubscribe`・`SetSubscriptionAttributes` | （記録なし。API では `subscriptionArn`。トピックの ARN で始まるので前方一致で絞れる見込み） | なし |
+| Amazon Q Developer | `CreateSlackChannelConfiguration` | `requestParameters.ConfigurationName`・`SlackChannelId`（先頭が大文字） | あり |
+| | `UpdateSlackChannelConfiguration`・`DeleteSlackChannelConfiguration` | （記録なし。API では `ChatConfigurationArn`） | なし |
+| 証跡 | `PutEventSelectors` | `requestParameters.trailName`（**名前の欄が違う**） | あり |
+| | `UpdateTrail` | `requestParameters.name` | あり |
+| | `StopLogging` | （記録なし。API では `name`） | なし |
+| IAM のロール | `CreateRole`・`DeleteRole`・`UpdateAssumeRolePolicy`・`PutRolePolicy`・`DeleteRolePolicy`・`AttachRolePolicy`・`DetachRolePolicy` | `requestParameters.roleName` | あり |
+| | `PutRolePermissionsBoundary`・`DeleteRolePermissionsBoundary` | （記録なし。API では `roleName`） | なし |
+| IAM の管理ポリシー | `CreatePolicyVersion`・`DeletePolicy` | `requestParameters.policyArn` | あり |
+| | `SetDefaultPolicyVersion` | （記録なし。API では `policyArn`） | なし |
+
+- **記録の無い操作は、API の文書の名前で書き、テストではなくカナリアでの試しで確かめる**（PR 1 の確かめること）。消す操作（`DeleteTopic`・`StopLogging` など）はカナリアでも試せないので、文書の名前のままにし、限界として文書に書く。
+- 同じ部品でも操作によって欄の名前が違う（ルールの `name` と `rule`、証跡の `name` と `trailName`、警報の `alarmName` と `alarmNames`）。表の 1 行は「操作の組」と「対象の欄」の組にする。
+
+#### 対象の名前
+
+| 部品 | 名前（絞り方） |
+|---|---|
+| ジョブのロール | `original-bucket-lock-batch`（固定） |
+| 通知・監査のスタックのロール | `OriginalBucketNotify-`・`OriginalBucketAudit-`・`OriginalBucketCanary-` で始まる（CDK が後ろに乱数を付ける） |
+| deploy の経路のロール | `cdk-hnb659fds-cfn-exec-role-`・`cdk-hnb659fds-deploy-role-` で始まる（リージョンごとにある: us-west-2・us-east-1・us-east-2・ap-northeast-1）。GitHub Actions の `GithubActions-CdkDeployRole9C8BD064-` で始まるロール（original-bucket-audit の deploy の workflow が使う） |
+| ガードレール | `arn:aws:iam::767397804933:policy/original-bucket-alert-slack-guardrail` |
+| EventBridge のルール・警報・ロググループ・SNS のトピック・Amazon Q Developer の設定 | 名前を `original-bucket-alert` で始める決まりにし、前方一致で絞る（今のルール・トピック・設定はこの形）。ロググループと警報は、これから作るときに合わせる |
+| 証跡 | `original-bucket-audit` |
+
+#### 実行者の欄（10.5 の「空の欄」の分け方を直す）
+
+記録を見ると、実行者の形は 3 つあった。10.5 の「`userIdentity.type` が `AWSService` かどうか」だけでは分けきれない。
+
+| 形 | `type` | `arn` | `invokedBy` | 例 |
+|---|---|---|---|---|
+| 人（SSO など） | `AssumedRole` | あり | **無い** | FullAccess の操作 |
+| AWS のサービスが、ロールを使って代わりに呼ぶ | `AssumedRole` | あり | あり | CloudFormation の deploy（`cloudformation.amazonaws.com`）、SSM（`ssm.amazonaws.com`） |
+| AWS のサービスそのもの | `AWSService` | **無い** | あり | |
+
+- ルールは 3 本に分ける: `invokedBy` が無い（`invokedBy` に `-`）／`invokedBy` があり `type` が `AWSService` でない（両方を出す）／`type` が `AWSService`（`arn` に `-`）。危険度と掛けて、1 件ずつの通知は種類ごとに 3 本 × 危険度。ルールは表から組み立てるので、手で書く量は増えない。
+- **deploy の経路は、`invokedBy` が `cloudformation.amazonaws.com` で、`userIdentity.sessionContext.sessionIssuer.userName` が `cdk-hnb659fds-cfn-exec-role-` で始まる**（記録で確かめた）。2 本目の形の中から、この条件で切り出す。PR 1 では仮に注意へ、PR 2 で警報へ（10.12）。
+
