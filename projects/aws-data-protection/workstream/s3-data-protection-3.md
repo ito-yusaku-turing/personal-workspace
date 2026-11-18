@@ -1,7 +1,7 @@
 # S3 バケットのデータ保護 第三弾（抜け穴の把握と塞ぎ・監視）
 
 - 開始: 2026-11-16
-- 状態: **通知の 1 段目（Slack への経路をカナリアで試す）の PR を出した**（[cdk-apps#2614](https://github.com/turingmotors/cdk-apps/pull/2614)）。マージ・deploy の後に、[notification-design.md](s3-data-protection-3/notification-design.md) の 9.1 の手順で試す
+- 状態: **通知の 1 段目（Slack への経路をカナリアで試す）の PR は Approve 済みで、伊藤のマージ待ち**（[cdk-apps#2614](https://github.com/turingmotors/cdk-apps/pull/2614)）。マージ・deploy の後に、[notification-design.md](s3-data-protection-3/notification-design.md) の 9.1 の手順で試す
 
 第二弾で原本バケット 9 本に Object Lock を入れた。第三弾では、残った抜け穴を台帳にして区分 A（意図して残す）・B（監視する）・C（監視されていない）に分け、塞ぐ・監視を付ける・主体を減らすことで、C をできるだけ無くす。
 
@@ -119,6 +119,10 @@
 - 2026-11-17（夜）: Copilot の 2 回目のレビュー（`66bdba72`）は新しい指摘 0 件で、前の 2 件は解決済み（返信も済み）。見落としとして 1 件（Low）: 「投稿は必ず CloudTrail に残る」は言い過ぎ。`sns:Publish` は SNS のデータイベントで、記録していない（監査の証跡は S3 のオブジェクトのデータイベントだけ）。README・コードの説明・PR の本文・設計の 4.4 を直し（`f64769ac`）、PR にコメントで返した。
   - 2 段目への持ち越し: トピックへの発行を絞るときに、発行の記録（SNS のデータイベント）も考える。
   - 次: 人の承認を得てマージ・deploy し、9.1 の手順で試す。
+
+- 2026-11-18: [cdk-apps#2614](https://github.com/turingmotors/cdk-apps/pull/2614) は安本さんが Approve（11-17）。提案 2 件（ルールのロールの信頼ポリシーに `aws:SourceArn`・`aws:SourceAccount` の条件、Inventory の設定の操作を拾う）は、伊藤の判断でこの PR に取り込んだ（`c69b5dc2`。jest 21 件・`tsc`・`cdk synth` は通過）。PR の本文も直した。安本さんのインラインのコメントへの返信はしていない。9.1 の 3 に、メンションが入力の変換の後も残るかの確認を足した。
+  - 作業ツリーに、エージェントが触っていない `apps/original-bucket-audit/package.json`（`aws-cdk` を `^2.1148.1` に）と `package-lock.json` の変更が残っている（commit していない）。
+  - 次: CI の cdk diff を確かめて、伊藤がマージする。deploy の後に 9.1 の手順で試す。
 
 ## 関連リンク
 

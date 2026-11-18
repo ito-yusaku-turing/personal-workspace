@@ -248,6 +248,8 @@ cdk-apps にも、SNS のメールの購読（`EmailSubscription`）を作るコ
   - チャンネルの設定は、ガードレールを省くと `AdministratorAccess` が既定で付く（aws-cdk-lib の `SlackChannelConfiguration` の既定）。すべてを拒むガードレールを付け、ロールには何も付けない。
   - トピックは、ほかのアカウントからの発行を拒む（CDK がルールの送り先に付ける許可は条件なしのため）。
   - **直したこと**: Amazon Q Developer でも、トピックに `sns:Publish` できる主体は偽の通知を流せる。bot token と違い、トピックのポリシーで「このスタックのルールからだけ」に絞れる。1 段目は手でメンションを試すために絞らず、2 段目で絞る。
+  - レビュー（11-17、安本さん。Approve）の提案 2 件を取り込んだ（11-18、`c69b5dc2`）。ルールの発行のロールの信頼ポリシーに `aws:SourceArn`（このルールの ARN）と `aws:SourceAccount` の条件を付けた（`iam:PassRole` と `events:PutRule`・`events:PutTargets` を持つ主体が、別のルールにこのロールを付けて発行できないように）。拾う操作に `PutBucketInventoryConfiguration`・`DeleteBucketInventoryConfiguration` を足した（監査の入力を止める操作）。
+  - 2 段目への注意（安本さん）: EventBridge は入力の変換で値をエスケープしない。`userAgent`・`errorMessage` のように呼び出し側が決められる値を文面に足すと、JSON が壊れて通知が落ちるか、文面・メンションを差し込まれうる。
 - **伊藤がすること（PR の前）**:
   1. `#aws_security_alert` を公開で作り、Amazon Q Developer（旧 AWS Chatbot）のアプリを招待する。
   2. チャンネルの ID（`C…`）と、ユーザーグループ `@mlops1` の ID（`S…`）を控える。`lib/config.ts` に入れる。→ 済み（11-17。チャンネル `C0CJ6HNC21K`、`@mlops1` は `S087DHX478B`）。
@@ -264,7 +266,7 @@ cdk-apps にも、SNS のメールの購読（`EmailSubscription`）を作るコ
      done
      ```
 
-  3. カナリアで、ルール B を鳴らす。`aws s3api put-bucket-versioning --bucket original-bucket-canary-767397804933 --versioning-configuration Status=Enabled`（もう有効なので、何も変わらない）。通知が来るか、`errorCode` が無いときに「拒否」の欄がどう出るか、を見る。
+  3. カナリアで、ルール B を鳴らす。`aws s3api put-bucket-versioning --bucket original-bucket-canary-767397804933 --versioning-configuration Status=Enabled`（もう有効なので、何も変わらない）。通知が来るか、`errorCode` が無いときに「エラー」の欄がどう出るか、を見る。**メンションが入力の変換の後も残り、`@mlops1` のメンバーに通知が届くか**も見る（`<!subteam^…>` は入力のテンプレートの変数と同じ `<…>` の形で、EventBridge がそのまま残すかは文書に無い。2 の手での発行では確かめられない。安本さんの指摘）。
   4. チャンネルの設定の作成（`CreateSlackChannelConfiguration`）が、どのリージョンの CloudTrail に出たか（ルール C の置き場所。7 章）。
-  5. 3 で通知が届かなかったら: ルールの `FailedInvocations` のメトリクスと、トピックのポリシーで拒まれていないかを見る。ルールは専用のロールでトピックに発行し、`events.amazonaws.com` からの直接の発行はトピックのポリシーで条件なしに拒む（Copilot の指摘で、`aws:SourceArn` の条件に頼る形から 11-17 に替えた。そのキーが EventBridge から SNS への発行に付くかは文書で確かめられなかった）。ロールでの発行が拒まれていないか（ロールのポリシー・トピックのポリシー）を見る。DLQ はまだ無いので、落ちても黙って途切れる。
+  5. 3 で通知が届かなかったら: ルールの `FailedInvocations` のメトリクスと、トピックのポリシーで拒まれていないかを見る。ルールは専用のロールでトピックに発行し、`events.amazonaws.com` からの直接の発行はトピックのポリシーで条件なしに拒む（Copilot の指摘で、`aws:SourceArn` の条件に頼る形から 11-17 に替えた。そのキーが EventBridge から SNS への発行に付くかは文書で確かめられなかった）。ロールでの発行が拒まれていないか（ロールのポリシー・トピックのポリシー）と、ロールの引き受けが信頼ポリシーの条件（ルールの ARN・アカウント）で失敗していないかを見る。DLQ はまだ無いので、落ちても黙って途切れる。
 - 結果で決めること: メンションの書き方（効かなければ、メンバーのユーザー ID を並べる形か、Lambda と bot token か）。
