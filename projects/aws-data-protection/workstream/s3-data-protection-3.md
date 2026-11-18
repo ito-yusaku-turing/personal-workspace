@@ -1,7 +1,7 @@
 # S3 バケットのデータ保護 第三弾（抜け穴の把握と塞ぎ・監視）
 
 - 開始: 2026-11-16
-- 状態: **通知の 2 段目の仕様を固めている。ルール B・A・D の文面が固まった**（[notification-design.md](s3-data-protection-3/notification-design.md) の 10 章、2026-11-18）。次は、ルール C・E の文面を固め、2 段目の PR を作る。チームへの共有はその後
+- 状態: **通知の 2 本目（1 件ずつ送る通知の形の品評）の PR を出した**（[cdk-apps#2643](https://github.com/turingmotors/cdk-apps/pull/2643)、2026-11-18）。チームの品評とマージを待つ。deploy の後に PR のチェックリストで確かめる
 
 第二弾で原本バケット 9 本に Object Lock を入れた。第三弾では、残った抜け穴を台帳にして区分 A（意図して残す）・B（監視する）・C（監視されていない）に分け、塞ぐ・監視を付ける・主体を減らすことで、C をできるだけ無くす。
 
@@ -136,6 +136,13 @@
   - 口調: 欄の名前と題名は堅い体言止め（「〜を検知」）。説明文と頼む文は、です・ます調。警報の時刻は「検知時刻」（操作はその前から起きうる）。
   - 所有権の設定は、12 本とカナリアがすべて `BucketOwnerEnforced`（ReadOnly で確かめた）。
   - 次: ルール C・E の文面を同じ形で起こす。固まったら、2 段目の PR を作る（伊藤）。カナリアで確かめること: Batch Operations の操作がジョブのロールの主体で CloudTrail に記録されるか、警報の `reasonData`。
+
+- 2026-11-18（夕方）: PR の分け方を決めた（伊藤）。固まった領域から順に、PR ごとに品評する。**1. 1 件ずつ送る通知**（S3 バケットの設定・通知の仕組み・IAM）→ **2. 警報でまとめる通知**（ホールドの解除・古い版の削除・ジョブのロール以外の保持の変更・拒否・deploy の経路のまとめ）→ **3. 12 本への横展開と仕上げ**。
+  - 足りない欄の名前を、試し用の資源（`~/runbook/alert-field-probe/alert-field-probe.sh`）で確かめた（設計の 10.13・10.14）。Amazon Q Developer の更新・削除だけは同じチャンネルで試せず、文書の名前のまま。
+  - deploy の経路は案 3（警報で 1 通）。PR 1 では暫定で注意（メンションなし）。
+  - **[cdk-apps#2643](https://github.com/turingmotors/cdk-apps/pull/2643) を出した**（ブランチ `original-bucket-alert-catalog`、`5c619b23`）。仕様の正本を cdk-apps の `apps/original-bucket-audit/docs/notifications.md` に置いた。通知の表（`lib/alert-catalog.ts`）からルール 28 本（us-west-2 に 21、us-east-1 に 7）を組み立てる。イベントパターンは、実際の記録 12 件と書き換えた例 19 件で `TestEventPattern` を当て、31 件すべて期待どおり（`scripts/check-alert-patterns.py`）。
+  - 起草は git worktree（scratchpad の `cdk-apps-alert`）で行った。`/usr/app/cdk-apps` の作業ツリーには、エージェントが触っていない `package.json`・`package-lock.json` の変更が残っていて、ブランチを切り替えられなかったため。
+  - 次: チームの品評を受けて直す。マージ・deploy の後に PR のチェックリスト（deploy の通知が注意で来る・`UpdateSlackChannelConfiguration` の欄・注意と記録の見え方・us-east-1 から届く）を確かめる。マージしたら、設計の 10 章を「経緯と理由」だけに縮め、仕様は cdk-apps を指す。
 
 ## 関連リンク
 
