@@ -518,3 +518,51 @@ us-west-2 の `lookup-events`（ReadOnly）で、実際の記録の `requestPara
 2. ~~「件数」に AWS の英語の文を出すことでよいか~~ → **出す**。欄の名前は「判定内容」（伊藤、11-18）。
 3. ~~警報ごとの題名の一文・説明・理由~~ → 口調と欄の名前を決め、10.6・10.9 に反映した（伊藤、11-18。10.3 の「口調と語の決まり」）。
 
+### 10.11 ルール C・E の文面（案、2026-11-18）
+
+どちらも 1 件ずつ送る通知なので、ルール B と同じ形にする（10.6）。違うのは「対象」の欄と、題名の一文・通知の理由だけ。
+
+#### ルール C（通知の仕組みの変更）
+
+3.3 と第二弾の下書き（[worm-quickwin-design.md](../done/s3-data-protection-2/worm-quickwin-design.md) の 3.4）の部品に、1 段目で増えた部品（Amazon Q Developer の設定）と、警報の作り（メトリクスフィルター）を足す。
+
+| 部品 | 拾う操作 | 対象の欄 |
+|---|---|---|
+| EventBridge のルール | `DeleteRule`・`DisableRule`・`PutRule`・`RemoveTargets`・`PutTargets` | `requestParameters.name`・`rule` |
+| CloudWatch の警報 | `DeleteAlarms`・`DisableAlarmActions`・`PutMetricAlarm`・`SetAlarmState` | `requestParameters.alarmName(s)` |
+| CloudWatch Logs | `DeleteLogGroup`・`PutRetentionPolicy`・`DeleteMetricFilter`・`PutMetricFilter` | `requestParameters.logGroupName` |
+| SNS のトピック | `DeleteTopic`・`SetTopicAttributes`・`AddPermission`・`RemovePermission`・`Unsubscribe`・`SetSubscriptionAttributes`（購読のフィルターで黙らせられる） | `requestParameters.topicArn` |
+| Amazon Q Developer の設定 | `DeleteSlackChannelConfiguration`・`UpdateSlackChannelConfiguration` など（us-west-2 に記録される。9.1） | `requestParameters.chatConfigurationArn` |
+| 証跡（original-bucket-audit） | `StopLogging`・`DeleteTrail`・`UpdateTrail`・`PutEventSelectors`・`PutInsightSelectors` | `requestParameters.name` |
+
+- 欄の名前（とくに `alarmName` と `alarmNames`、Amazon Q Developer の欄）は、記録で確かめてから書く。
+- 危険度: 成功はすべて**重大**（監視を止められる。向きの分かる操作が無いので、重大に倒す）。拒否は**記録**。
+- 題名の一文: `通知の仕組みの変更を検知: <操作>`。通知の理由: 「この部品は、保護対象の S3 バケットへの操作を通知する仕組みの一部です。変更されると、以後の通知が届かなくなる場合があります。」
+- **限界**（下書きのまま）: SNS のトピックそのものを消されると、その通知は届かない。ルール C を消す操作は、C 自身では拾えない場合がある。
+
+#### ルール E（IAM の変更、us-east-1）
+
+3.5 の対象に、1 段目で増えた IAM の部品（ルールの発行のロール、Amazon Q Developer の設定のロール、ガードレールの管理ポリシー）を足す。
+
+| 対象 | 拾う操作 | 対象の欄 |
+|---|---|---|
+| ロール（ジョブのロール `original-bucket-lock-batch`、`cdk-hnb659fds-*`、GitHub Actions の deploy のロール、通知のロール） | `CreateRole`・`DeleteRole`・`UpdateAssumeRolePolicy`・`PutRolePolicy`・`DeleteRolePolicy`・`AttachRolePolicy`・`DetachRolePolicy`・`PutRolePermissionsBoundary`・`DeleteRolePermissionsBoundary` | `requestParameters.roleName` |
+| 管理ポリシー（ガードレール） | `CreatePolicyVersion`・`SetDefaultPolicyVersion`・`DeletePolicy` | `requestParameters.policyArn` |
+
+- 危険度: 成功はすべて**重大**（ロールの信頼関係や権限を広げられる。向きが分からない）。拒否は**記録**。
+- 題名の一文: `保護に関わる IAM ロール・ポリシーの変更を検知: <操作>`。通知の理由: 「この IAM ロール・ポリシーは、保護対象の S3 バケットの保護の解除、または変更の通知に使います。変更されると、保護を外す権限を得られる、または通知が届かなくなる場合があります。」
+- ロール名の欄は前方一致で絞る（`cdk-hnb659fds-` など。CDK が付けるロール名の後ろの乱数のため）。
+
+#### deploy で鳴る通知の多さ（決めること）
+
+ルール C・E の対象は、どれも CDK のスタックで作っている。**このスタックを deploy するたびに、`PutRule`・`PutTargets`・`PutMetricAlarm`・`PutRolePolicy` などが十数件まとめて鳴り、すべてメンション付きの重大になる。** ルール B も、保護対象の S3 バケットのバケットポリシーを持つスタックの deploy で鳴る。
+
+- 案 1: そのまま重大で鳴らす（「使ったら届く」）。deploy は PR のマージの後だけで、頻度は低い。ただし、一度に十数件のメンションが飛ぶ。
+- 案 2: deploy の経路（CloudFormation の実行のロール `cdk-hnb659fds-cfn-exec-role-*`、`invokedBy` が `cloudformation.amazonaws.com`）による成功は、**注意**（メンションなし）に下げる。deploy の経路は PR のレビューとマージを通る（L1）。ただし、GitHub の側の素通り（L11）や、手元からの `cdk deploy` も同じ経路に見えるので、その分はメンションが付かない。
+- 案 3: deploy の経路による成功は、1 件ずつではなく、ルール A・D のように警報で 1 通にまとめる。
+
+### 10.12 決めること（C・E）
+
+1. ルール C・E の成功をすべて重大にすることでよいか。
+2. deploy で鳴る通知の多さを、案 1〜3 のどれで扱うか。
+
