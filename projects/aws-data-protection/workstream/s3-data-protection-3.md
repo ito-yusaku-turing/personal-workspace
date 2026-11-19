@@ -216,6 +216,14 @@
   - pw-1119-rev の再レビュー: 二重の通知は無い。取りこぼし 1 件（`anything-but` は欄が無い記録に当たらないので、実行のロールを CloudFormation を通さずに直接引き受けた操作が ok にも ok-deploy にも当たらない）を直した（`6116381a`、`exists: false` を並べた。47/47）。Slack で `_` が斜体として消えないかは、deploy の後の確かめに足した。pw-1119-rev が `6116381a` を確かめ、指摘は残っていない。
   - 次: graph226 さんの承認を待つ。マージの前に `#aws_security_alert` に、deploy で注意が数十件届くことを知らせる。
 
+- 2026-11-19（続き）: 3 本目（警報でまとめる通知）の準備。#2643 の変更の影響を整理した（deploy の経路のまとめは取りやめ、警報・Logs の操作は入力の行に戻す、警報の通知は CloudTrail の 1 件ずつの形に乗らないので別の型が要る）。
+  - **ジョブの作成・状態の変更は重大**（伊藤。めったに流れない）。
+  - ReadOnly で確かめたこと:
+    - `CreateJob`・`UpdateJobStatus` は管理イベントで、`eventSource` は `s3.amazonaws.com`（source は `aws.s3`）、us-west-2。90 日で 27 件・17 件、`UpdateJobPriority` は 0 件。**どちらの記録にもジョブの ID が無い**（`UpdateJobStatus` の `requestParameters` は `requestedJobStatus` と `Host` だけ、`responseElements` は null）。`CreateJob` の中身（`Description`・`RoleArn` など）は呼び出し側が決める値なので載せない。→ 対象の欄は「載せない（eventID から確認）」になり、#2643 で外した `target.omitted` を戻す必要がある。
+    - 監査の証跡のログ（`original-bucket-audit-logs-…/trail/`）は ReadOnly で読める。11-16・11-18 の一部を見た: **Batch Operations の保持の付与は、CloudTrail では `PutObjectLockRetention`**（API 名の `PutObjectRetention` ではない）。主体は `sessionIssuer.userName` = `original-bucket-lock-batch`、`invokedBy` = `batchoperations.s3.amazonaws.com`。保持の中身は `additionalEventData.objectRetentionInfo.retentionInfo`（`eventHold`・`retainUntilMode`・`eventHoldDuration`）に出る。版を指定しない `DeleteObject` には `versionId` の欄が無い。
+    - → A-1（ホールドの解除）も、S3 のイベントでなく CloudTrail のデータイベント（`eventHold` が `ON` 以外）で拾える見込み。そうすると主体で分けられる（11-19 に「主体で分けない」と決めた前提が変わる）。EventBridge にデータイベントが届くかは、まだ確かめていない（カナリアでの書き込みが要る）。
+    - A-2 で `sessionIssuer.userName` に `anything-but` を使うときは、`{ exists: false }` を並べる（IAM ユーザー・root を落とさない。#2643 の再レビューの教訓）。
+
 ## 関連リンク
 
 - [抜け穴の台帳](s3-data-protection-3/loophole-ledger.md)
