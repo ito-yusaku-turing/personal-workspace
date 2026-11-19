@@ -224,6 +224,16 @@
     - → A-1（ホールドの解除）も、S3 のイベントでなく CloudTrail のデータイベント（`eventHold` が `ON` 以外）で拾える見込み。そうすると主体で分けられる（11-19 に「主体で分けない」と決めた前提が変わる）。EventBridge にデータイベントが届くかは、まだ確かめていない（カナリアでの書き込みが要る）。
     - A-2 で `sessionIssuer.userName` に `anything-but` を使うときは、`{ exists: false }` を並べる（IAM ユーザー・root を落とさない。#2643 の再レビューの教訓）。
 
+- 2026-11-19（続き）: カナリアで確かめた（`~/runbook/alert-event-probe/alert-event-probe.sh`。setup・ops・job は伊藤が FullAccess で実行、読むのはエージェントが ReadOnly で）。受け口のロググループに 13 件届いた。
+  - **CloudTrail のデータイベントは EventBridge に届く**（`AWS API Call via CloudTrail`、操作から数秒）。A-2・D-1・D-2 の土台は成り立つ。
+  - 記録の名前: 保持の変更は `PutObjectLockRetention`、リーガルホールドは `PutObjectLockLegalHold`（API 名と違う）。人による保持の変更・リーガルホールドは、守りのバケットポリシーで `AccessDenied`。
+  - D-1: 版を指定した `DeleteObject` の成功は、`requestParameters.versionId` があり `errorCode` が無い形。削除マーカーの版を消した操作もこの形になる（データは消えない。見分ける欄は CloudTrail に無い）。
+  - D-2: ホールド中の版の削除は `AccessDenied`（`errorMessage` は「object protected by object lock」）。**迂回の試み（`--bypass-governance-retention`）は、`requestParameters`・`additionalEventData` に欄が出ない**。違いは `errorMessage` の文（`s3:BypassGovernanceRetention` … explicit deny）だけ。どちらも拒否なので D-2 で拾えるが、迂回かどうかを文面で分けるなら `errorMessage` で分ける（載せない）。
+  - **`DeleteObjects`（まとめての削除）は、CloudTrail では中身が見えない**: `requestParameters.delete` は空、版を指定していても `versionId` が無く、1 件ずつの拒否も `errorCode` に出ない（応答は 200）。→ D-1・D-2 は `DeleteObjects` の版の削除を拾えない。S3 のイベントの `Object Deleted`（`deletion-type` が `Permanently Deleted`）で拾えるかを、ops2 で確かめる。
+  - **ホールドの解除は、CloudTrail でも S3 のイベントでも拾える**: CloudTrail は `PutObjectLockRetention` で `additionalEventData.objectRetentionInfo.retentionInfo.eventHold` が `OFF`、主体はジョブのロール（`invokedBy` が `batchoperations.s3.amazonaws.com`）。S3 のイベントは `Object Retention Updated` で `object-retention-event-data.event-hold` が `OFF`、`requester` はアカウント ID だけ。→ A-1 を CloudTrail で拾えば、主体で分けられる。人の書き込み（`PutObject`）にも `objectRetentionInfo`（`eventHold: ON`）が付くので、操作の名前で絞る。
+  - S3 のイベントの `Object Deleted` は、削除マーカーの作成（`Delete Marker Created`）と版の削除（`Permanently Deleted`）を分ける。`requester` はアカウント ID だけ。
+  - 受け口（ルール 2 本・ロググループ・ロググループのポリシー）は、ops2 の後に cleanup で消す。
+
 ## 関連リンク
 
 - [抜け穴の台帳](s3-data-protection-3/loophole-ledger.md)
