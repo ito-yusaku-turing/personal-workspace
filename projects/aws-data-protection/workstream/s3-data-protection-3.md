@@ -242,7 +242,7 @@
   - H2: 警報の通知の `state.reason` は `SetAlarmState` で呼び出し側が決められる（未確認・仕様から）。載せない案。
   - H3: A-1 の `eventHold` の条件（`OFF` か、`ON` 以外＋欄なし）は、ジョブでの付与の記録が未採取なので決められない。カナリアで付与のジョブを 1 回流して確かめる。
   - M1: メトリクスフィルターをやめ、`AWS/Events` の `MatchedEvents`（ルールごと）に警報を掛ける案。M2: ジョブの行は `CreateJob` をジョブのロールの `RoleArn` で絞れる／サービスのイベント `JobCreated`・`JobStatusChanged` に `jobId` がある。M3: Logs の `PutResourcePolicy` は `resourceArn` の形もある。M4: `DisableAlarmActions` は通知を止めない。
-  - 伊藤の判断待ち。
+  - 伊藤が決めた（すべて案のとおり。削除マーカーの版の削除は今は重大で流し、後で確かめる。データ保護対象は、ふだん削除の操作が行われないバケットを選んでいる）。設計の資料の 8 章に反映した。次は、ジョブでの付与の記録を採る（`alert-event-probe.sh hold`）。
 
 ## 関連リンク
 
