@@ -30,6 +30,8 @@
 - 層 2: 守りのバケットポリシー（12 本、2026-10-26。迂回の禁止・鍵の操作の禁止は 2026-11-10）
 - 層 3: Object Lock（9 本、2026-11-16。ガバナンス・イベントホールド・解除の後 15 日）
 
+**第三弾の保護対象は、Object Lock を入れた 9 本**（2026-11-19、伊藤）。tuscenes-model・denso-raw・gaming-data-collection は、検討したうえで対象から外した（Object Lock からは 2026-11-10 に外していた）。層 1・層 2 は 12 本に入れたときのまま残っている。
+
 一方で、層 2 を書き換えられる主体（例外の主体・例外を名乗る道）が残り、**起きても人に届く通知がまだ無い**。今の抜け穴は、ほぼすべてが区分 C（監視されていない）にあたる。
 
 第三弾の目的は次の 2 つ。
@@ -137,7 +139,7 @@
   - 所有権の設定は、12 本とカナリアがすべて `BucketOwnerEnforced`（ReadOnly で確かめた）。
   - 次: ルール C・E の文面を同じ形で起こす。固まったら、2 段目の PR を作る（伊藤）。カナリアで確かめること: Batch Operations の操作がジョブのロールの主体で CloudTrail に記録されるか、警報の `reasonData`。
 
-- 2026-11-18（夕方）: PR の分け方を決めた（伊藤）。固まった領域から順に、PR ごとに品評する。**1. 1 件ずつ送る通知**（S3 バケットの設定・通知の仕組み・IAM）→ **2. 警報でまとめる通知**（ホールドの解除・古い版の削除・ジョブのロール以外の保持の変更・拒否・deploy の経路のまとめ）→ **3. 12 本への横展開と仕上げ**。
+- 2026-11-18（夕方）: PR の分け方を決めた（伊藤）。固まった領域から順に、PR ごとに品評する。**1. 1 件ずつ送る通知**（S3 バケットの設定・通知の仕組み・IAM）→ **2. 警報でまとめる通知**（ホールドの解除・古い版の削除・ジョブのロール以外の保持の変更・拒否・deploy の経路のまとめ）→ **3. 12 本への横展開と仕上げ**（→ 11-19 に 9 本へ改めた）。
   - 足りない欄の名前を、試し用の資源（`~/runbook/alert-field-probe/alert-field-probe.sh`）で確かめた（設計の 10.13・10.14）。Amazon Q Developer の更新・削除だけは同じチャンネルで試せず、文書の名前のまま。
   - deploy の経路は案 3（警報で 1 通）。PR 1 では暫定で注意（メンションなし）。
   - **[cdk-apps#2643](https://github.com/turingmotors/cdk-apps/pull/2643) を出した**（ブランチ `original-bucket-alert-catalog`、`5c619b23`）。仕様の正本を cdk-apps の `apps/original-bucket-audit/docs/notifications.md` に置いた。通知の表（`lib/alert-catalog.ts`）からルール 28 本（us-west-2 に 21、us-east-1 に 7）を組み立てる。イベントパターンは、実際の記録 12 件と書き換えた例 19 件で `TestEventPattern` を当て、31 件すべて期待どおり（`scripts/check-alert-patterns.py`）。
@@ -191,6 +193,10 @@
   - **互いに見張るルールは入れない、ケアはここまで**（伊藤、11-19）。Fable の見立て: 配送の遅れで続けて 2 本止めれば抜けられる。同じ権限（FullAccess 相当）にはより静かな道（12 本の `PutBucketPolicy` はまだ通知の対象外、保持の無い古い版の削除）が残る。誤操作は今の形でも届く。
   - Fable が見つけた、docs に無かった同じ種類の穴を 10 章と PR の本文に書いた（`d8cdaa73`）: (A) 両リージョンの発行のロールの変更は us-east-1 の発行のロールで送られるので、それを壊すと黙る。(B) スタックに実行のロールが結び付いている（ReadOnly で確かめた）ので、人の `DeleteStack`・`UpdateStack` は deploy の経路の形になり注意で届く。自分を止める操作の例に `PutRule`・`PutTargets` を足した。
   - 後の候補（11 章の 3）: 通知の部品の変更を deploy の経路以外から拒む SCP（`apps/organization-policy`）。スタックの削除・更新には別に `cloudformation:DeleteStack`・`UpdateStack` の制限が要る。DLQ の PR では、`FailedInvocations` の警報を発行のロールを通らない経路で送る。
+
+- 2026-11-19（続き）: **保護対象を Object Lock を入れた 9 本に絞った**（伊藤）。tuscenes-model・denso-raw・gaming-data-collection の 3 本は、第一弾で選んだ 12 本に入っていたが、11-10 に Object Lock の対象から外した。今回、第三弾の保護対象からも正式に外した。経緯だけ残せばよい（伊藤）。通知の 3 本目の PR は、9 本への展開にする。
+  - 3 本に既に入っているバージョニングと守りのバケットポリシーは、外す作業をしない（決めていない。今は残っている）。
+  - 記録の食い違い: workstream は 3 本目を「12 本への横展開」と書き、[notion-worm-governance-rollout.md](../documents/notion-worm-governance-rollout.md) の 8 章は「2 本目で 9 本に広げる」と書いていた。後者が正しい本数になった。
 
 ## 関連リンク
 
