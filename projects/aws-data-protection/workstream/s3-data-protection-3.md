@@ -213,7 +213,7 @@
   - 3 本目に入れるもの: 警報でまとめる通知（A-1・A-2・D-1・D-2）、警報・Logs の変更の通知、ジョブの作成・状態の変更（伊藤）。A-1 は主体で分けない（伊藤）。
   - `PutDataProtectionPolicy` を伊藤に試してもらった（`~/runbook/alert-field-probe/snsdp-recheck.sh`）。us-west-2・us-east-1 とも `InvalidAction`（このリージョンでは使えない）で、記録も残らない。Get は通り、欄は `resourceArn`（`b8db92d6`）。
   - graph226 さんに返信した（インライン 6 件と全体へのコメント。伊藤の了承の後）。
-  - pw-1119-rev の再レビュー: 二重の通知は無い。取りこぼし 1 件（`anything-but` は欄が無い記録に当たらないので、実行のロールを CloudFormation を通さずに直接引き受けた操作が ok にも ok-deploy にも当たらない）を直した（`6116381a`、`exists: false` を並べた。47/47）。Slack で `_` が斜体として消えないかは、deploy の後の確かめに足した。
+  - pw-1119-rev の再レビュー: 二重の通知は無い。取りこぼし 1 件（`anything-but` は欄が無い記録に当たらないので、実行のロールを CloudFormation を通さずに直接引き受けた操作が ok にも ok-deploy にも当たらない）を直した（`6116381a`、`exists: false` を並べた。47/47）。Slack で `_` が斜体として消えないかは、deploy の後の確かめに足した。pw-1119-rev が `6116381a` を確かめ、指摘は残っていない。
   - 次: graph226 さんの承認を待つ。マージの前に `#aws_security_alert` に、deploy で注意が数十件届くことを知らせる。
 
 ## 関連リンク
