@@ -232,7 +232,9 @@
   - **`DeleteObjects`（まとめての削除）は、CloudTrail では中身が見えない**: `requestParameters.delete` は空、版を指定していても `versionId` が無く、1 件ずつの拒否も `errorCode` に出ない（応答は 200）。→ D-1・D-2 は `DeleteObjects` の版の削除を拾えない。S3 のイベントの `Object Deleted`（`deletion-type` が `Permanently Deleted`）で拾えるかを、ops2 で確かめる。
   - **ホールドの解除は、CloudTrail でも S3 のイベントでも拾える**: CloudTrail は `PutObjectLockRetention` で `additionalEventData.objectRetentionInfo.retentionInfo.eventHold` が `OFF`、主体はジョブのロール（`invokedBy` が `batchoperations.s3.amazonaws.com`）。S3 のイベントは `Object Retention Updated` で `object-retention-event-data.event-hold` が `OFF`、`requester` はアカウント ID だけ。→ A-1 を CloudTrail で拾えば、主体で分けられる。人の書き込み（`PutObject`）にも `objectRetentionInfo`（`eventHold: ON`）が付くので、操作の名前で絞る。
   - S3 のイベントの `Object Deleted` は、削除マーカーの作成（`Delete Marker Created`）と版の削除（`Permanently Deleted`）を分ける。`requester` はアカウント ID だけ。
-  - 受け口（ルール 2 本・ロググループ・ロググループのポリシー）は、ops2 の後に cleanup で消す。
+  - ops2（`DeleteObjects` で削除マーカーの版を消す、成功）: **CloudTrail の `DeleteObjects` は成功しても `delete` が空で、版も対象のキーも出ない**（resources は `ARNPrefix` だけ）。S3 のイベントには `Object Deleted`（`deletion-type` が `Permanently Deleted`、`reason` は `DeleteObject`、版の ID あり）が 1 件ずつ届く。→ `DeleteObjects` での版の削除は、S3 のイベントでしか拾えない（主体はアカウント ID だけ）。D-1 を漏れなくするには、データ保護対象のバケットの EventBridge の有効化（4 本目）が要る。
+  - 削除マーカーの版の削除は、S3 のイベントでは `etag` が無い形だった（2 回とも）。実の版の削除に `etag` が付くかは、消せる版がカナリアに無いので確かめていない。
+  - 受け口（ルール 2 本・ロググループ・ロググループのポリシー）は、cleanup で消す（伊藤に依頼）。
 
 ## 関連リンク
 
