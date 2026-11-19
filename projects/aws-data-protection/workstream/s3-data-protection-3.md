@@ -1,7 +1,7 @@
 # S3 バケットのデータ保護 第三弾（抜け穴の把握と塞ぎ・監視）
 
 - 開始: 2026-11-16
-- 状態: **通知の 2 本目（1 件ずつ送る通知の形）の PR は、Copilot の指摘（IAM のパスを含む ARN）を直した**（[cdk-apps#2643](https://github.com/turingmotors/cdk-apps/pull/2643)、head `3b1d1ecd`）。チームのレビューを待つ。指摘に対応し、マージ・deploy の後に PR のチェックリストで確かめる
+- 状態: **通知の 2 本目（1 件ずつ送る通知の形）の PR は、Copilot の指摘（IAM のパスを含む ARN）を直し、イベントパターンを上限に収まるように分けた**（[cdk-apps#2643](https://github.com/turingmotors/cdk-apps/pull/2643)、head `2700c8b9`）。伊藤がチームのレビューに出す。指摘に対応し、マージ・deploy の後に PR のチェックリストで確かめる
 
 第二弾で原本バケット 9 本に Object Lock を入れた。第三弾では、残った抜け穴を台帳にして区分 A（意図して残す）・B（監視する）・C（監視されていない）に分け、塞ぐ・監視を付ける・主体を減らすことで、C をできるだけ無くす。
 
@@ -156,7 +156,7 @@
     1. チームのレビューの指摘に対応する。直すときは、cdk-apps のブランチ `original-bucket-alert-catalog` を使う。起草に使った worktree は scratchpad（`cdk-apps-alert`）にあり、消えていたら `git -C /usr/app/cdk-apps worktree prune` の後に作り直す（`/usr/app/cdk-apps` の作業ツリーには、エージェントが触っていない `package.json`・`package-lock.json` の変更が残っていて、ブランチを切り替えられない）。パターンを変えたら `scripts/check-alert-patterns.py` を流す（ReadOnly で約 1 分）。
     2. マージ・deploy の後に、PR の「deploy の後に確かめること」を伊藤と確かめる（重大はカナリアの暗号化の設定の入れ直し、us-east-1 はトピックへの手での発行）。`UpdateSlackChannelConfiguration` の欄（`ChatConfigurationArn`）も、その記録で確かめる。
     3. 2 本目（警報でまとめる通知）の前に、CloudTrail のデータイベントが EventBridge に届くかと、Batch Operations の操作の主体を、カナリアで確かめる。2 本目では、警報の操作の通知で対象の欄が空になる nit も直す。
-    4. 3 本目（12 本に広げる）の前に、イベントパターンの上限（2048 文字）の手当てを決める。
+    4. ~~3 本目（12 本に広げる）の前に、イベントパターンの上限（2048 文字）の手当てを決める。~~ → 11-19 に #2643 で分けた。
   - 設計の 10 章（`notification-design.md`）は、マージしたら「経緯と理由」だけに縮め、仕様は cdk-apps の `docs/notifications.md` を指す。
   - 試しのスクリプトは `~/runbook/alert-field-probe/alert-field-probe.sh`（git 管理外）。
 
@@ -169,6 +169,14 @@
   - Copilot のコメントに返信した（伊藤の了承の後）。
   - 設計の 10 章（`notification-design.md`）の実行者の欄の記述は古いまま。マージの後に 10 章を縮めるときに合わせて消す。
   - 次: チームのレビューを受けて直す。マージ・deploy の後に PR のチェックリストを確かめる（実行者の欄がロール名で出ることも見る）。
+
+- 2026-11-19（続き）: **イベントパターンの上限（2048 文字）は、引き上げを申請せず、ルールを分けて収めると決めた**（伊藤。展開先はこの後も広がりうる）。PR がまだレビューに出す前だったので、3 本目ではなく [cdk-apps#2643](https://github.com/turingmotors/cdk-apps/pull/2643) に入れた（`2700c8b9`）。
+  - 前提: 1 件の操作で通知はちょうど 1 通。`$or` の条件は機械的に分けない（公開のブロックの 2 つを同時に外すと、2 つの条件に一致する）。
+  - 1 段目（手で書く）: 定義の行を、操作の名前が重ならない行に分けた。`s3-critical` → `s3-critical-ops`（操作の名前だけで拾う）と `s3-critical-dir`（向きの条件）。`notify-critical` → `notify-critical-input`（証跡・ルール・警報・Logs）と `notify-critical-output`（SNS・Amazon Q Developer）。危険度・題名・理由は同じ。
+  - 2 段目（自動）: 定義の行に `partition`（区切ってよい一覧。1 件の操作が値を 1 つだけ持つもの＝S3 バケットの名前）を宣言でき、組み立てで予算（上限 − 100 = 1,948 文字）に収まるように宣言の順に詰めて区切る。名前には区切りが 1 つでも `-p1` を付ける。区切れない行・値 1 つで超える・名前が 64 文字を超える、のどれでも `cdk synth` が止まる。
+  - 測った値: 分ける前は `s3-critical` が 1 本で 1,841（12 本＋カナリアで 2,186）、`notify-critical` が 1,865。分けた後の最大は `s3-critical-dir` の 1,471。区切りが 2 つになるのは、`s3-critical-dir` が合わせて約 18 本、`s3-warning` が約 29 本、`s3-critical-ops` が約 34 本。
+  - ルールは us-west-2 が 35 本、us-east-1 が 28 本。jest 39 件、パターンの確かめ 42/42。PR の本文と docs の 5.1 も直した。
+  - 次: 伊藤がチームのレビューに出す。マージ・deploy の後に PR のチェックリストを確かめる。
 
 ## 関連リンク
 
