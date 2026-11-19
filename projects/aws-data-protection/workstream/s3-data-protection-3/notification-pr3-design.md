@@ -28,6 +28,7 @@
 | 保持の変更・リーガルホールドの記録の名前 | `PutObjectLockRetention`・`PutObjectLockLegalHold`（API 名と違う） |
 | ジョブの操作の主体 | `sessionIssuer.userName` = `original-bucket-lock-batch`、`invokedBy` = `batchoperations.s3.amazonaws.com` |
 | ホールドの解除の記録 | CloudTrail: `additionalEventData.objectRetentionInfo.retentionInfo.eventHold` が `OFF`。S3 のイベント: `Object Retention Updated` で `object-retention-event-data.event-hold` が `OFF`（主体はアカウント ID だけ） |
+| ジョブでのホールドの付与 | `PutObjectLockRetention` の成功に `objectRetentionInfo.retentionInfo.eventHold: "ON"`（`eventHoldDuration` も）が付く（2026-11-19、`alert-event-probe.sh hold`。監査の証跡のログで確かめた） |
 | 人の書き込み（`PutObject`） | `objectRetentionInfo`（`eventHold: ON`）が付く。操作の名前で絞る必要がある |
 | 版を指定した削除の成功 | `DeleteObject` で `requestParameters.versionId` があり、`errorCode` が無い。削除マーカーの版を消した操作は `responseElements.x-amz-delete-marker` が `"true"`・`additionalEventData.objectSize` が 0 で見分けられる（Fable の指摘。実の版の削除の記録は未採取。今日の版は 12-04 に消せるようになる） |
 | ホールド中の版の削除 | `AccessDenied`。`errorMessage` は「object protected by object lock」 |
@@ -48,12 +49,12 @@ EventBridge のルール original-bucket-alert-<警報>（CloudTrail のデー�
   └─▶ CloudWatch Logs のロググループ original-bucket-alert-<警報>（調べるための置き場。保存は短く）
 ```
 
-- **警報は、EventBridge が出すルールごとの一致の件数（`AWS/Events` の `MatchedEvents`）に掛ける**（Fable の M1、伊藤が了承）。メトリクスフィルターは使わない。ロググループやそのリソースポリシーを壊されても、警報は鳴る（失うのは調べるための記録だけ）。D-1 のように元が 2 つあるときは、ルール 2 本の指標を metric math で足す。1 分の粒度と遅れは、起草の前に確かめる。
+- **警報は、EventBridge が出すルールごとの一致の件数（`AWS/Events` の `MatchedEvents`）に掛ける**（Fable の M1、伊藤が了承）。1 分の粒度で数えられることを、カナリアの受け口のルールで確かめた（11-19。08:36 の 8 件・08:37 の 1 件・08:41 の 2 件が、操作の数と合った）。遅れは測っていない。メトリクスフィルターは使わない。ロググループやそのリソースポリシーを壊されても、警報は鳴る（失うのは調べるための記録だけ）。D-1 のように元が 2 つあるときは、ルール 2 本の指標を metric math で足す。1 分の粒度と遅れは、起草の前に確かめる。
 - **件数が跳ねても、通知は 1 通**（11-18 に決めた）。ALARM のあいだは送り直さず、OK に戻っても送らない。期間は 1 分、評価は 1 回、データが無いときは「超えていない」とみなす。静かな 1 分の後に OK に戻るので、次の操作はまた届く。
 - 警報の状態の変化を拾うルール: `source` が `aws.cloudwatch`、`detail-type` が `CloudWatch Alarm State Change`、`detail.alarmName` が警報の名前の完全一致、`detail.state.value` が `ALARM`。
 - 警報の通知は、Amazon Q Developer の既定の警報の表示ではなく、EventBridge の入力の変換でカスタム通知にする（メンションを入れるため）。
 - 部品の名前は、すべて `original-bucket-alert-` で始める。発行のロールの信頼ポリシー（前方一致）と、通知の仕組みの変更の見張り（5 章）にそのまま入る。
-- ロググループへ書くには、CloudWatch Logs のリソースポリシーで `events.amazonaws.com` に書き込みを許す。CDK の `targets.CloudWatchLogGroup` がカスタムリソース（Lambda）で作る版があるかは synth で確かめ、作るなら `logs.ResourcePolicy` で名前（`original-bucket-alert-…`）を明示する（Fable の M3）。
+- ロググループへ書くには、CloudWatch Logs のリソースポリシーで `events.amazonaws.com` に書き込みを許す。**CDK の `targets.CloudWatchLogGroup` は使わない。** 今の aws-cdk-lib（2.260.0）では、ルールごとにカスタムリソース（`LogGroupResourcePolicy`。Lambda で `PutResourcePolicy` を呼ぶ）を作るため（ソースで確かめた、11-19）。Lambda を使わない方針に外れ、ポリシーの名前もこちらで決められない。代わりに、`logs.ResourcePolicy`（名前は `original-bucket-alert-events`）を 1 つ置き、ルールの送り先はロググループの ARN を返すだけの小さな送り先で付ける。
 - 費用: ロググループの取り込みは、正当なジョブで 1 億件を解除すると約 100 GB（約 $50）。めったに起きないので許容する（11-18）。保存期間は短くする。
 
 ## 4. 警報の分け方（案）
@@ -67,7 +68,7 @@ EventBridge のルール original-bucket-alert-<警報>（CloudTrail のデー�
 
 - **A-1 と A-2 は重ならない**（主体がジョブのロールか、そうでないかで分ける）。ジョブのロールのホールドの付与（`eventHold` が `ON`）は拾わない（億の単位で出る）。
 - **A-2 の「ジョブのロールでない」は、`anything-but` に `{ "exists": false }` を並べる。** `sessionIssuer` の無い IAM ユーザー・root の記録を落とさないため（#2643 の再レビューの教訓）。`sessionIssuer.userName` は IAM に登録された名前がそのまま残るので、大文字・小文字の心配は無い。
-- **A-1 の `eventHold` の条件**: `["OFF"]` だと、欄の無い成功した変更が A-1 にも A-2 にも当たらず黙る。「`ON` 以外＋欄なし」だと、ジョブでの付与の記録に欄が無かった場合に億の単位で鳴る。**ジョブでの付与の記録を、カナリアで採ってから決める**（Fable の H3。`alert-event-probe.sh hold`）。
+- **A-1 の `eventHold` の条件**: `["OFF"]` だと、欄の無い成功した変更が A-1 にも A-2 にも当たらず黙る。「`ON` 以外＋欄なし」だと、ジョブでの付与の記録に欄が無かった場合に億の単位で鳴る。→ **「`ON` 以外＋欄なし」にする。** ジョブでの付与の記録に `eventHold: "ON"` が付くことを確かめた（11-19）ので、付与で鳴ることはない。成功した保持の変更には、解除・付与とも欄が付いていた。
 - **D-1 の対象**: 削除マーカーの版の削除も入る（データは消えない）。CloudTrail では `x-amz-delete-marker` で見分けられる見込みだが、**今は分けずに重大で流す**（伊藤。データ保護対象は、ふだん削除の操作が行われないバケットを選んでいる）。12-04 以降に実の版の削除の記録を採ってから見直す。
 - D-1 の件数は、同じ削除が 2 つの元から数えられるので「おおよそ」になる。
 - **D-2 で迂回かどうかを分けるか**: `errorMessage` で分けられるが、`errorMessage` は通知に載せない。分けないで、Logs Insights のクエリで `errorMessage` を見る形にする（案）。
@@ -134,8 +135,4 @@ EventBridge のルール original-bucket-alert-<警報>（CloudTrail のデー�
 5. **CloudWatch Logs のリソースポリシーの変更を見張る**（2 つの形）。
 6. **警報はメトリクスフィルターでなく `AWS/Events` の `MatchedEvents` に掛ける。判定内容は載せない。ジョブはすべて重大。`DisableAlarmActions` は戻さない。**
 
-起草の前に確かめること:
-
-- ジョブでのホールドの付与の記録（A-1 の条件。`alert-event-probe.sh hold`）。
-- `MatchedEvents` の 1 分の粒度と遅れ。
-- CDK の `targets.CloudWatchLogGroup` が作るリソースポリシーの形（synth）。
+起草の前に確かめること: 済んだ（11-19）。ジョブでの付与の記録・`MatchedEvents` の 1 分の粒度・CDK の送り先の作り（3・4 章）。`MatchedEvents` の遅れは測っていない。
