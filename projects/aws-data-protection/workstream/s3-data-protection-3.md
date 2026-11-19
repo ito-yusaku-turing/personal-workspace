@@ -236,6 +236,14 @@
   - 削除マーカーの版の削除は、S3 のイベントでは `etag` が無い形だった（2 回とも）。実の版の削除に `etag` が付くかは、消せる版がカナリアに無いので確かめていない。
   - 受け口（ルール 2 本・ロググループ・ロググループのポリシー）は、cleanup で消す（伊藤に依頼）。
 
+- 2026-11-19（続き）: 3 本目の設計の案（[notification-pr3-design.md](s3-data-protection-3/notification-pr3-design.md)）を書き、Fable に意見をもらった。
+  - 決めること 1〜5 は、おおむね案に賛成（1 は理由を直す: 2 で (a) を採れば 4 本目で EventBridge の有効化は結局要る）。
+  - H1: 削除マーカーの版の削除は、CloudTrail の `responseElements.x-amz-delete-marker: "true"`（と `additionalEventData.objectSize: 0`）で見分けられる（エージェントが probe の記録で確かめた。実の版の削除の記録は未採取。12-04 に今日の版が消せるようになる）。
+  - H2: 警報の通知の `state.reason` は `SetAlarmState` で呼び出し側が決められる（未確認・仕様から）。載せない案。
+  - H3: A-1 の `eventHold` の条件（`OFF` か、`ON` 以外＋欄なし）は、ジョブでの付与の記録が未採取なので決められない。カナリアで付与のジョブを 1 回流して確かめる。
+  - M1: メトリクスフィルターをやめ、`AWS/Events` の `MatchedEvents`（ルールごと）に警報を掛ける案。M2: ジョブの行は `CreateJob` をジョブのロールの `RoleArn` で絞れる／サービスのイベント `JobCreated`・`JobStatusChanged` に `jobId` がある。M3: Logs の `PutResourcePolicy` は `resourceArn` の形もある。M4: `DisableAlarmActions` は通知を止めない。
+  - 伊藤の判断待ち。
+
 ## 関連リンク
 
 - [抜け穴の台帳](s3-data-protection-3/loophole-ledger.md)
