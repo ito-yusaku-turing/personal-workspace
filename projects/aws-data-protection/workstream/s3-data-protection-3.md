@@ -1,7 +1,7 @@
 # S3 バケットのデータ保護 第三弾（抜け穴の把握と塞ぎ・監視）
 
 - 開始: 2026-11-16
-- 状態: **通知の 2 本目（[cdk-apps#2643](https://github.com/turingmotors/cdk-apps/pull/2643)、head `605d36d8`）はチームのレビュー（graph226 さん）を受けて、ルールを成否と deploy の経路だけで分ける形に直した**（21 本）。deploy の経路は注意で流す（案 2）。次は返信の下書きを伊藤に見せて投稿し、承認とマージを待つ。並行して 3 本目（警報でまとめる通知）を準備する
+- 状態: **通知の 2 本目（[cdk-apps#2643](https://github.com/turingmotors/cdk-apps/pull/2643)、head `6116381a`）はチームのレビュー（graph226 さん）を受けて、ルールを成否と deploy の経路だけで分ける形に直した**（21 本）。deploy の経路は注意で流す（案 2）。返信は投稿済み。承認とマージを待つ。並行して 3 本目（警報でまとめる通知）を準備する
 
 第二弾で原本バケット 9 本に Object Lock を入れた。第三弾では、残った抜け穴を台帳にして区分 A（意図して残す）・B（監視する）・C（監視されていない）に分け、塞ぐ・監視を付ける・主体を減らすことで、C をできるだけ無くす。
 
@@ -211,7 +211,10 @@
   - M1: Amazon Q Developer の endpoint は us-east-2・us-west-2・eu-west-1・ap-southeast-1 にあり、us-east-1 には無い（ReadOnly で確かめた）。us-east-2 から設定を消すと届かない。docs の限界に書き、SCP の候補の対象に入れた。
   - docs は、操作の一覧の正本を `alert-catalog.ts` にして縮めた。「今の大きさ」と「この後の予定」は PR の本文へ。jest 32 件、パターンの確かめ 46/46。PR の本文も直した。
   - 3 本目に入れるもの: 警報でまとめる通知（A-1・A-2・D-1・D-2）、警報・Logs の変更の通知、ジョブの作成・状態の変更（伊藤）。A-1 は主体で分けない（伊藤）。
-  - 次: graph226 さんへの返信（下書きを伊藤に見せる）。マージの前に `#aws_security_alert` に、deploy で注意が数十件届くことを知らせる。
+  - `PutDataProtectionPolicy` を伊藤に試してもらった（`~/runbook/alert-field-probe/snsdp-recheck.sh`）。us-west-2・us-east-1 とも `InvalidAction`（このリージョンでは使えない）で、記録も残らない。Get は通り、欄は `resourceArn`（`b8db92d6`）。
+  - graph226 さんに返信した（インライン 6 件と全体へのコメント。伊藤の了承の後）。
+  - pw-1119-rev の再レビュー: 二重の通知は無い。取りこぼし 1 件（`anything-but` は欄が無い記録に当たらないので、実行のロールを CloudFormation を通さずに直接引き受けた操作が ok にも ok-deploy にも当たらない）を直した（`6116381a`、`exists: false` を並べた。47/47）。Slack で `_` が斜体として消えないかは、deploy の後の確かめに足した。
+  - 次: graph226 さんの承認を待つ。マージの前に `#aws_security_alert` に、deploy で注意が数十件届くことを知らせる。
 
 ## 関連リンク
 
