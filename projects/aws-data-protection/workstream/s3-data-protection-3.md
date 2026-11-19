@@ -1,7 +1,7 @@
 # S3 バケットのデータ保護 第三弾（抜け穴の把握と塞ぎ・監視）
 
 - 開始: 2026-11-16
-- 状態: **通知の 2 本目（1 件ずつ送る通知の形）の PR は、セルフレビューと本文の清書を終えた**（[cdk-apps#2643](https://github.com/turingmotors/cdk-apps/pull/2643)、head `0301d649`）。2026-11-19 に伊藤がチームのレビューに出す。指摘に対応し、マージ・deploy の後に PR のチェックリストで確かめる
+- 状態: **通知の 2 本目（1 件ずつ送る通知の形）の PR は、Copilot の指摘（IAM のパスを含む ARN）を直した**（[cdk-apps#2643](https://github.com/turingmotors/cdk-apps/pull/2643)、head `3b1d1ecd`）。チームのレビューを待つ。指摘に対応し、マージ・deploy の後に PR のチェックリストで確かめる
 
 第二弾で原本バケット 9 本に Object Lock を入れた。第三弾では、残った抜け穴を台帳にして区分 A（意図して残す）・B（監視する）・C（監視されていない）に分け、塞ぐ・監視を付ける・主体を減らすことで、C をできるだけ無くす。
 
@@ -159,6 +159,16 @@
     4. 3 本目（12 本に広げる）の前に、イベントパターンの上限（2048 文字）の手当てを決める。
   - 設計の 10 章（`notification-design.md`）は、マージしたら「経緯と理由」だけに縮め、仕様は cdk-apps の `docs/notifications.md` を指す。
   - 試しのスクリプトは `~/runbook/alert-field-probe/alert-field-probe.sh`（git 管理外）。
+
+- 2026-11-19: [cdk-apps#2643](https://github.com/turingmotors/cdk-apps/pull/2643) の Copilot のレビュー（`0301d649`）の指摘 1 件（High）を直した（`3b1d1ecd`）。
+  - 指摘: 管理ポリシーの ARN（`policyArn`）を、成功した操作の通知にそのまま載せていた。IAM のパスには引用符やバックスラッシュも使え、入力の変換はエスケープしないので、パスに `"` を含むポリシーをジョブのロールに付けると、重大の通知が落ちる。
+  - 同じ種類の穴をもう 1 つ見つけた: 実行者の欄の `userIdentity.arn`。IAM ユーザーの ARN にはユーザーのパスが入る。
+  - 直し方: IAM の行をロールの操作（`iam-role-critical`、ロール名だけを載せる）と管理ポリシーの操作（`iam-policy-critical`、対象の欄は「-（eventID から確認）」）に分けた。実行者は、ロール名（`sessionIssuer.userName`）か IAM ユーザー名（`userName`）と、実行者のアカウント（`accountId`）で載せる。IAM ユーザー用にルールを分ける案は、パターンが大きくなり 2048 文字の上限に近づくのでやめた。ルールは us-east-1 が 14 本から 21 本になった。
+  - jest 32 件・`tsc`・`cdk synth`・prettier は通過。パターンの確かめは 40/40（足した例: ガードレールをほかのロールに付ける・パスに引用符を含むポリシー・IAM ユーザーの操作・対象外の管理ポリシー）。パターンの最大は 1,865 文字のまま。PR の本文も直した。
+  - worktree は今回のセッションの scratchpad に作り直した（`cdk-apps-alert`。`node_modules` は `/usr/app/cdk-apps` からのシンボリックリンク）。
+  - Copilot のコメントへの返信は、起草して伊藤に見せた（投稿はまだ）。
+  - 設計の 10 章（`notification-design.md`）の実行者の欄の記述は古いまま。マージの後に 10 章を縮めるときに合わせて消す。
+  - 次: チームのレビューを受けて直す。マージ・deploy の後に PR のチェックリストを確かめる（実行者の欄がロール名で出ることも見る）。
 
 ## 関連リンク
 
