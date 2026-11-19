@@ -245,6 +245,13 @@
   - 伊藤が決めた（すべて案のとおり。削除マーカーの版の削除は今は重大で流し、後で確かめる。データ保護対象は、ふだん削除の操作が行われないバケットを選んでいる）。設計の資料の 8 章に反映した。次は、ジョブでの付与の記録を採る（`alert-event-probe.sh hold`）。
   - 起草の前の確かめが済んだ: ジョブでの付与の記録に `eventHold: "ON"` が付く（A-1 は「`ON` 以外＋欄なし」）。`MatchedEvents` は 1 分の粒度で数えられる。CDK の `targets.CloudWatchLogGroup` は Lambda のカスタムリソースでポリシーを作るので使わない。3 本目は #2643 のマージの後に起草する。カナリアの受け口は伊藤が cleanup 済み。
 
+- 2026-11-19（セッションの終わり）: 引き継ぎ。
+  - [cdk-apps#2643](https://github.com/turingmotors/cdk-apps/pull/2643)（head `e0544458`）: graph226 さんの承認待ち（code owner は `*` の行で mlops-1 か mlops-3 のどちらか 1 件で足りる見込み。ルールの `require_extra_approval_for_unattributed_changes` の意味は未確認）。マージの前に `#aws_security_alert` に「deploy で注意が数十件届く」と知らせる。deploy の後は PR のチェックリスト（`_` の表示を含む）を伊藤と確かめる。
+  - 3 本目: 設計は [notification-pr3-design.md](s3-data-protection-3/notification-pr3-design.md) の 8 章で固まった。#2643 のマージの後に、新しいブランチで起草する。
+  - 12-04 以降: カナリアの `alert-probe/20261119T083637Z/a.txt`（版 `VHQ6LcQ.50EP6Q1Ebxd2TYITqiK6HKUn`）が消せるようになる。ホールドを外して実の版の削除の記録を採り、削除マーカーの版の削除と見分けられるか（`x-amz-delete-marker`）を確かめる（伊藤に依頼。今はホールドを付け直してある）。
+  - カナリアの受け口は cleanup 済み（ReadOnly で確かめた）。レポートの置き場の `alert-event-probe/` に試しのファイル 8 件が残っている（残してよい）。
+  - エージェントの AWS は ReadOnly だけ。書き込みは `~/runbook/` にスクリプトを用意して伊藤に頼む。
+
 ## 関連リンク
 
 - [抜け穴の台帳](s3-data-protection-3/loophole-ledger.md)
