@@ -16,6 +16,8 @@ AWS から取った一次情報は、その時点の写しなので git では�
   - [workstream/aws-resource-inventory/analyze/](./workstream/aws-resource-inventory/analyze/README.md): 一次情報を集計するスクリプト（IAM・スタック・競合の判定）
 - [workstream/vercel-accounts.md](./workstream/vercel-accounts.md): **Vercel のアカウントの棚卸しと SSO 化の検討**。チーム turing-inc（Pro）。SSO・2FA・料金、共有アカウントをなくす方法、全プロジェクトのデプロイの経路を調べた
 - [workstream/supabase-db-access.md](./workstream/supabase-db-access.md): **Supabase の DB への接続経路の把握とセキュリティ強化**（vercel-accounts.md からの派生）。psql などで直接つなぐ経路は MFA が効かないので、経路を洗い出し、Network Restrictions などで固める
+  - [workstream/supabase-db-access/db-routes.md](./workstream/supabase-db-access/db-routes.md): リポジトリから洗い出した、DB に直接つないでいる経路（2026-11-20）。drivers-app-dev のパスワードが追跡済みのファイルにある
+  - [workstream/supabase-db-access/security-measures.md](./workstream/supabase-db-access/security-measures.md): 一般的な施策と Supabase で使えるもの（Temporary access など）の調査、選択肢の比べと考察（2026-11-20）
 
 ## workstream/done/ — 完了した作業記録
 

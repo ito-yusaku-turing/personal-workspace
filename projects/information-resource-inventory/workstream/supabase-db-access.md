@@ -1,7 +1,7 @@
 # Supabase の DB への接続経路の把握とセキュリティ強化
 
 - 開始: 2026-11-09
-- 状態: **起票した**（2026-11-09）。次は、各プロジェクトの Network Restrictions・SSL Enforcement の設定と、DB に直接つないでいる経路を洗い出す
+- 状態: **リポジトリからの洗い出しと施策の調査を終えた**（2026-11-20）。次は方針の検討と、リポジトリから分からない経路（Vercel・Databricks・各プロジェクトの設定）の把握
 - 所属: project:information-resource-inventory
 - 派生元: [vercel-accounts.md](./vercel-accounts.md)（Vercel・Supabase の MFA の必須化の作業）。Supabase のアカウントの棚卸しは [done/supabase-accounts.md](./done/supabase-accounts.md)
 
@@ -29,24 +29,33 @@ Supabase の組織（`dhazyhuzuwitqasezcvr`、Pro）の各プロジェクトに�
 
 公式の [Production checklist](https://supabase.com/docs/guides/security/production-checklist) が DB について勧めているのは、RLS・SSL Enforcement・Network Restrictions の 3 つ。
 
+## 調べた結果
+
+- [supabase-db-access/db-routes.md](./supabase-db-access/db-routes.md): リポジトリから洗い出した、DB に直接つないでいる経路（2026-11-20）
+- [supabase-db-access/security-measures.md](./supabase-db-access/security-measures.md): 一般的な施策と Supabase で使えるものの調査、選択肢の比べ、考察と進め方の案（2026-11-20）
+
+要点:
+
+- **drivers-app-dev のパスワードが、drivers-app3 の `.env.example` に入っている**（private のリポジトリ、2025-09 から。まだ変えられていない）。
+- backend-prod の資格情報は GitHub secrets・Secrets Manager・開発者の手元の 3 か所にある。ほとんどの経路が `postgres` でつなぎ、接続元の IP は固定でない。
+- Supabase に Temporary access（JIT。PAT で入る）が加わった（プレビュー）。ただし**ロールのパスワードでの接続は残る**ので、いまの穴を塞げるのはパスワードの変更だけ。
+- 接続ログは既定で無効。共有の pooler 経由は接続元の IP が残らない。
+
 ## 設計判断と理由
 
-（まだ無い）
-
-案（エージェントの提案。まだ決めていない）:
-
-1. Network Restrictions で、接続元を決まった IP（CI・踏み台・オフィスなど）に絞る。
-2. 人は DB のパスワードを持たず、ダッシュボードの SQL Editor（MFA を経る）か CLI を使う。
-3. `postgres` のパスワードは、メンバーを外すたびに変える。アプリには専用のロールを使う。
-4. 閉じた経路が要るなら PrivateLink。ただし Team プランへの変更が要る。
+（まだ無い。考察と進め方の案は [security-measures.md の「考察」](./supabase-db-access/security-measures.md#考察)）
 
 ## 進捗チェックリスト
 
 - [x] 公式の手段を調べる（2026-11-09）
 - [ ] 組織のプロジェクトを API で取り直す（前回の一覧は [done/supabase-accounts.md](./done/supabase-accounts.md)）
 - [ ] 各プロジェクトの Network Restrictions・SSL Enforcement の設定を取る（Management API の `network-restrictions`・`ssl-enforcement`。手元の PAT で読めるかは未確認）
-- [ ] DB に直接つないでいる経路をリポジトリから洗い出す（接続文字列・`DATABASE_URL`・`SUPABASE_DB_PASSWORD`・`5432` / `6543`・GitHub の secrets）
-- [ ] 経路ごとに、接続元の IP（固定か）・ロール・パスワードの持ち主を表にする
+- [x] DB に直接つないでいる経路をリポジトリから洗い出す（2026-11-20、[db-routes.md](./supabase-db-access/db-routes.md)）
+- [x] 一般的な施策を調べ、考察する（2026-11-20、[security-measures.md](./supabase-db-access/security-measures.md)）
+- [ ] drivers-app-dev のパスワードの件を、drivers-app の担当の人に伝える
+- [ ] リポジトリから分からない経路を埋める（Vercel の環境変数、Databricks の Connection、`BACKEND_PROD_USER` と Secrets Manager の接続先）
+- [ ] 経路ごとに、接続元の IP（固定か）・ロール・パスワードの持ち主を表にする（リポジトリから分かる分は db-routes.md にある）
+- [ ] 各プロジェクトの `log_connections`・Postgres のバージョン・LOGIN を持つロールの一覧を取る
 - [ ] DB のパスワードを知っている人・置いてある所を把握する（外した人が知っていたか）
 - [ ] 方針を決める（Network Restrictions の許可リスト、パスワードの変更、ロールの分け方）
 - [ ] 担当の人と合意を取ってから設定する
@@ -54,8 +63,9 @@ Supabase の組織（`dhazyhuzuwitqasezcvr`、Pro）の各プロジェクトに�
 
 ## 次セッションへの引き継ぎ
 
-- 起票しただけ。まず「把握」から始める。
-- 調査用の Supabase の PAT（`~/.config/supabase/pat`）は 2026-11-12 ごろに切れる。組織の設定を読む権限を付けていないので、プロジェクトの設定が読めるかを最初に試す。GET だけを送る。
+- 2026-11-20: リポジトリからの洗い出しと、施策の調査・考察を終えた。方針はまだ決めていない。伊藤さんが考察を読んで、進め方を決める段階。
+- 調査用の Supabase の PAT（`~/.config/supabase/pat`）は 2026-11-12 ごろに切れたはず。設定を API で読むなら、作り直す（プロジェクトの設定を読む権限を付ける）。GET だけを送る。
+- drivers-app-dev のパスワードの件は、まだ誰にも伝えていない。
 - Network Restrictions を入れると、許可していない所からの接続はすぐに切られる。Edge Functions や、IP が固定でない CI・開発者の手元が止まるおそれがある。経路を把握し終えるまで設定は変えない。
 - Pro のままでは PrivateLink は使えない。
 
