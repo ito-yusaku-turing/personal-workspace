@@ -280,6 +280,7 @@
   - 低: docs・PR の本文の SCP の説明は、SCP の結論が出てから台帳に合わせる。チェックリストに `--region us-west-2` を付け、trail-critical-denied では対象が出ないことを添える。文 1 に警報と SNS の購読を足す。
   - 台帳の SCP の節に、例外の訂正・2 つの穴・L12 の注を書いた。文 1 に警報と購読を足した。
   - 伊藤が決めた: deploy のロールの引き受けを GitHub Actions のロールだけに絞る（手元からの `cdk deploy` はむしろ止めたい）。小さな SCP の 5 つ目の文として台帳に足した。ReadOnly で 90 日の `AssumeRole` を数え、止まる人（FullAccess の 6 名、227 件）を台帳に書いた。入れる前に知らせる。PR の本文のチェックリストに `--region us-west-2` と、証跡の「記録」に対象が出ない旨を足した。
+  - PR の本文の「後の PR」の 2 を、台帳の 5 つの文に合わせて書き直した（手元からの `cdk deploy` が止まること、90 日で 227 件・6 名、`cdk diff`・`synth` は未確認）。同じことをコメントで知らせた（https://github.com/turingmotors/cdk-apps/pull/2643#issuecomment-7030385290 。名前は書かず件数だけ）。docs/notifications.md の 10 章の SCP の説明は、SCP の PR で合わせる。pw-1120-selfreview に再レビューを頼み、本文の書き直しも対象に足した（返事待ち）。
 - 2026-11-20（セッションの終わり）: 引き継ぎ。
   - #2643（head `dc2fa31b`）: graph226 さんの再レビューを待つ。変更点のコメントは投稿済み。マージの前に `#aws_security_alert` へ「今回の deploy では通知は届かない／守りのポリシーを入れ直す deploy では重大が 9 件」と知らせる。deploy の後は PR のチェックリスト（書き込み系は伊藤）。
   - 3 本目: 範囲を決める（A-2 を外すか、D-1・D-2 を入れるか。`DeleteObjects` を拾うには 9 本の EventBridge の有効化が要る）。決まったら #2643 のマージの後すぐに起草する。
