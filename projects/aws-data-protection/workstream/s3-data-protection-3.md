@@ -267,13 +267,18 @@
   - ReadOnly で、過去 90 日の 9 本とカナリアへの対象の操作を数えた: 75 件、どれも守りを入れる作業（deploy・Object Lock の有効化）。ふだんの運用の操作は 0 件。守りのポリシーを入れ直す deploy では、9 本分の重大が一度に届く。
   - commit `20b2ae43` を push した（伊藤の指示）。PR の本文を書き直し、末尾に変更履歴を付けた。変更点の説明のコメントを投稿した（graph226 さんにメンション。https://github.com/turingmotors/cdk-apps/pull/2643#issuecomment-7029345836 ）。リモートの pw-1120-selfreview にレビューと、今回の判断の評価を頼んだ。
   - pw-1120-selfreview の結果（`20b2ae43`）: 高なし。判断はおおむね妥当（部品・IAM を外す、証跡を残す、9 本に広げる、いずれも賛成）。jest 31・パターン 27/27 を再現、deploy で変わるのは OriginalBucketNotify だけ（ルールと発行のロールの入れ替え。チャンネルの設定は変わらない）、NotifyIamStack は未 deploy で消し残しなし、証跡の名前は大文字小文字を区別（すり抜けなしの見込み）。
-    - 中1: 小さな SCP に、ジョブのロールの `iam:PassRole` を L2 に絞る文（L5。外した IAM の通知はもともと PassRole＋CreateJob の道を拾っていなかった）と、`stack/OriginalBucket*` の更新・削除を GitHub Actions の deploy のロール以外から拒む文（L10）を入れる。入れないなら台帳に残すと書く。
+    - 中1: 小さな SCP に、ジョブのロールの `iam:PassRole` を L2 に絞る文（L5。外した IAM の通知はもともと PassRole＋CreateJob の道を拾っていなかった）と、`stack/OriginalBucket*` の更新・削除を GitHub Actions の deploy のロール以外から拒む文（L10）を入れる（→ 例外は GitHub Actions のロールではなく CDK の deploy のロール `cdk-hnb659fds-deploy-role-*` が正しい。2 回目の確かめで訂正）。入れないなら台帳に残すと書く。
     - 中2: 空白でいちばん大きいのは、A-1 が入るまでホールドの解除がどこにも届かないこと（変更前から）。今回で T3 の「黙らせる」手数が 1 つ減る（DisableRule 1 本）が許容。A-1 は #2643 のマージ後すぐ出す。A-1 はジョブ経由に限らず、どの主体の解除も拾うこと。SCP の着手の目安の日付を台帳に書く。
     - 中3: 監査ログのバケット（L13）が対象外。`s3-critical-ops` に足すか、残すと決めて docs の限界に書く。
     - 低: 台帳の L12・設計の資料の食い違い、要件 9・10 からの逸脱の記録。マージ前の `#aws_security_alert` への知らせを「今回の deploy では届かない／守りのポリシーを入れ直す deploy では重大が 9 件」に差し替える。check-alert-patterns.py の不要な `iam.amazonaws.com`、docs 9 章に証跡の確かめ方が無い。
     - deploy の後の確かめに足す: ルール 8 本が ENABLED で送り先が正しい、トピックの購読が残る、ReadOnly で `stop-logging` → trail-critical-denied が届く、ReadOnly で 9 本のどれかに `put-bucket-versioning` → 記録が届く、IsLogging が True のまま。
   - 伊藤が決めた: 中3（ログのバケット）は限界として書く。SCP の着手の目安は 2026-11-27（来週中）。セルフレビューの直しを commit `dc2fa31b` で push した（docs に監査ログのバケットの限界、証跡と 9 本の実地の確かめ方。スクリプトの不要な IAM の行を消した。jest 31、パターン 27/27）。PR の本文の限界とチェックリストを差し替えた（マージ前の知らせの中身、ルール・購読・9 本・証跡の確かめ、IsLogging）。
   - personal-workspace の資料を直した: 台帳に「小さな SCP」の節（4 つの文、着手の目安、要件 9・10 からの逸脱）を足し、L5・L10・L12・L13 を直した。notification-design.md と notification-pr3-design.md の冒頭に 11-20 の見直しを書き、3 本目の範囲 2（警報・Logs の変更）を取りやめにした。
+- 2026-11-20（続き）: pw-1120-selfreview に `dc2fa31b`・PR の本文・`9b3d9a1` を確かめてもらった。前回の指摘への対応は入っている。新しい指摘:
+  - 中1: 「スタック」の文の例外は、CDK の deploy のロール（`cdk-hnb659fds-deploy-role-*`）が正しい（GitHub Actions のロールのままだと deploy も止まる）。deploy のロールはアカウントの root を信頼するので、引き受けられる主体はだれでも例外に入れる。引き受けを GitHub Actions のロールに絞るかは要決定。
+  - 中2: 文 1〜3 の例外（cfn-exec-role）は、ほかのスタックの更新・作成で迂回できる。SCP の後も、L7・L10 の残りが塞がるまでは T3 に開く。
+  - 低: docs・PR の本文の SCP の説明は、SCP の結論が出てから台帳に合わせる。チェックリストに `--region us-west-2` を付け、trail-critical-denied では対象が出ないことを添える。文 1 に警報と SNS の購読を足す。
+  - 台帳の SCP の節に、例外の訂正・2 つの穴・L12 の注を書いた。文 1 に警報と購読を足した。
 - 2026-11-20（セッションの終わり）: 引き継ぎ。
   - #2643（head `dc2fa31b`）: graph226 さんの再レビューを待つ。変更点のコメントは投稿済み。マージの前に `#aws_security_alert` へ「今回の deploy では通知は届かない／守りのポリシーを入れ直す deploy では重大が 9 件」と知らせる。deploy の後は PR のチェックリスト（書き込み系は伊藤）。
   - 3 本目: 範囲を決める（A-2 を外すか、D-1・D-2 を入れるか。`DeleteObjects` を拾うには 9 本の EventBridge の有効化が要る）。決まったら #2643 のマージの後すぐに起草する。
