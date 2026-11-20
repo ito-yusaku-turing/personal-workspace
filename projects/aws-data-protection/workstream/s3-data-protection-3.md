@@ -1,7 +1,7 @@
 # S3 バケットのデータ保護 第三弾（抜け穴の把握と塞ぎ・監視）
 
 - 開始: 2026-11-16
-- 状態: **通知の 2 本目（[cdk-apps#2643](https://github.com/turingmotors/cdk-apps/pull/2643)）は 11-20 07:18 UTC にマージし、deploy が通った**（ルール 8 本・ENABLED、ReadOnly の確かめは済み）。伊藤が Slack に届くかの確かめ（重大・注意・記録 9 本・証跡）を流す。次は 3 本目（ホールドの解除とジョブ）の範囲を決めて起草し、小さな SCP に 11-27 までに着手する
+- 状態: **通知の 2 本目（[cdk-apps#2643](https://github.com/turingmotors/cdk-apps/pull/2643)）は 11-20 に deploy し、確かめで見つかった証跡の拒否の取りこぼしを直しの PR [cdk-apps#2690](https://github.com/turingmotors/cdk-apps/pull/2690) に出した**（レビュー待ち。deploy の後に stop-logging の拒否を流し直す）。次は 3 本目（ホールドの解除とジョブ）の範囲を決めて起草し、小さな SCP に 11-27 までに着手する
 
 第二弾で原本バケット 9 本に Object Lock を入れた。第三弾では、残った抜け穴を台帳にして区分 A（意図して残す）・B（監視する）・C（監視されていない）に分け、塞ぐ・監視を付ける・主体を減らすことで、C をできるだけ無くす。
 
@@ -296,6 +296,10 @@
 - 2026-11-20（マージと deploy）: 07:18 UTC にマージ（`54f41c38`）。`original-bucket-audit-deploy`（run 44693992349）は success。`OriginalBucketNotify` は発行のロールと 8 本のルールを作り、1 本目のルール `BucketConfigRule` とその発行のロールを消した。Canary・LockBatch はメタデータだけ、Audit は変更なし。
   - ReadOnly で確かめた: ルールはちょうど 8 本で、すべて ENABLED。送り先は 8 本ともトピック `original-bucket-alert-slack` と `AlertPublishRole`。購読は Amazon Q Developer（https）が残っている。`trail-critical-ok` のパターンに `PutInsightSelectors` は無い。
   - 残り（伊藤）: チェックリストの Slack での確かめ。重大（カナリアの暗号化の入れ直し）、注意（カナリアのバージョニング）、記録（9 本への拒否 9 通）、証跡（ReadOnly で stop-logging の拒否）、その後の `IsLogging`。拒否される呼び出しも書き込み系の API なので、伊藤に流してもらう。
+  - Slack での確かめ（伊藤、08:20 UTC ごろ）: 重大・注意・記録（9 本）は期待どおり届いた。**記録（監査の証跡）は届かなかった。** 拒否された CloudTrail の操作の記録は `requestParameters` が `null`（`resources` も空）で、`trail-critical-denied` の名前の条件に一致しないため。確認スクリプトの拒否の例は成功の記録を書き換えて作っていて、`requestParameters` が残っていたので見落とした。`IsLogging` は `true` のまま。
+  - 直し（伊藤の判断で 3 本目と混ぜず、小さな PR にした）: [cdk-apps#2690](https://github.com/turingmotors/cdk-apps/pull/2690)（ブランチ `original-bucket-alert-trail-denied`、`2ff6925d`）。`AlertGroup.deniedMatch` を足し、証跡の失敗は操作の名前だけで拾う（us-west-2 のどの証跡も。過去 90 日の失敗は 2 件）。拒否の例は実際の記録を伏せ字にして置いた。jest 31・確認スクリプト 28/28・cdk diff は `trail-critical-denied` の 1 本だけ。
+  - **3 本目への注意**: 確認スクリプトの失敗の例は、成功の記録を書き換えて作らない。実際の拒否の記録を ReadOnly で起こして使う（サービスによって、拒否の記録に何が残るかが違う）。
+  - 注意: ReadOnly で `cdk diff` を流すと、assets のバケットへの `s3:PutObject` を試みて拒否される（差分は template から出る）。害は無いが、書き込みの試みが CloudTrail に残る。
 
 ## 関連リンク
 
