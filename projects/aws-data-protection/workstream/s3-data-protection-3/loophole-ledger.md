@@ -83,11 +83,15 @@
 |---|---|---|---|
 | 通知の部品 | 名前が `original-bucket-alert` で始まるルール・SNS のトピックと購読・発行のロール・Amazon Q Developer の設定・CloudWatch の警報（3 本目で足すもの）の変更・削除 | deploy の経路（cfn-exec-role） | L12 |
 | 監査の証跡 | `original-bucket-audit` の停止・削除・変更 | deploy の経路 | L12 |
+| deploy のロール | `cdk-hnb659fds-deploy-role-*` の `sts:AssumeRole` | GitHub Actions の deploy のロール | L10・L6 |
 | ジョブのロール | `original-bucket-lock-batch` の信頼・権限の変更。`iam:PassRole` は L2（完全削除用の権限の持ち主）に絞る | deploy の経路（ロールの変更）、L2（PassRole） | L5 |
 | スタック | `stack/OriginalBucket*` の `UpdateStack`・`DeleteStack`・`CreateChangeSet`・`ExecuteChangeSet` | **CDK の deploy のロール（`cdk-hnb659fds-deploy-role-*`）**。CloudFormation を呼ぶのは GitHub Actions のロールではなく、そこから引き受けるこのロール（2026-11-20、セルフレビューが ReadOnly で確かめた。11-19 の 4 スタックの CreateChangeSet はすべてこのロール） | L10（このアプリの分） |
 
 - **例外の穴（2026-11-20、セルフレビュー）**:
-  - deploy のロールの信頼は `arn:aws:iam::767397804933:root`（ExternalId が無いことだけ）。`sts:AssumeRole` を持つ主体（FullAccess など）は、だれでも引き受けて「スタック」の文の例外に入れる。塞ぐなら、deploy のロールの引き受けを GitHub Actions の deploy のロール（`GithubActions-CdkDeployRole9C8BD064-*`）以外から拒む。ただし、FullAccess の人の手元の `cdk deploy` や、ほかの主体（TernMapPipelineReleaseRole など）が止まる（L8 に近い。要決定）。引き受けている主体の内訳は STS の記録（us-east-1 の見込み）で確かめる。塞がないなら、deploy のロールを引き受けられる主体には L10 が残る。
+  - deploy のロールの信頼は `arn:aws:iam::767397804933:root`（ExternalId が無いことだけ）。`sts:AssumeRole` を持つ主体（FullAccess など）は、だれでも引き受けて「スタック」の文の例外に入れる。
+  - **決定（2026-11-20、伊藤）: deploy のロール（`cdk-hnb659fds-deploy-role-*`）の引き受けを、GitHub Actions の deploy のロール（`GithubActions-CdkDeployRole9C8BD064-*`）以外から拒む文を、小さな SCP に入れる。** 手元からの `cdk deploy` は、むしろ止めたほうがよい（deploy は PR を通す）。L6（X1）の一部も塞がる。
+  - 止まるもの（2026-11-20、ReadOnly で 90 日の `AssumeRole` を数えた。使われていたのは us-west-2 のロールだけ、us-east-1 のロールは 0 件）: GitHub Actions 3,452 件のほかに、FullAccess 227 件（masahiro.yasumoto 112・yusaku.ito 78・kohei.iwamasa 19・takafumi.watanabe 8・akira.kamio 6・shintaro.inuzuka 4。直近は 11-20）。入れる前に、この人たちに知らせる。TernMapPipelineReleaseRole などは deploy のロールを引き受けず、CloudFormation を直接呼んでいる（中2 の迂回の側）。
+  - 確かめること: 手元の `cdk diff`・`cdk synth` の lookup が止まるか（lookup のロールは別。3-5 の「手元の `cdk diff` が止まるか」と合わせて見る）。
   - 文 1〜3 の例外「deploy の経路（cfn-exec-role）」は、ほかのアプリのスタックの更新（L10 の残り）と CreateStack（L7）で迂回できる。たとえば、ほかのスタックに `AWS::IAM::RolePolicy`（ジョブのロールを指定）や `AWS::SNS::TopicPolicy`（通知のトピックを指定）を足して deploy する。90 日では、FullAccess・TernMapPipelineReleaseRole・TeamE2E も CloudFormation を直接使っている。塞ぐのは手順 D・D20。`iam:PassRole` の文は、この迂回の影響を受けない見込み（Batch のジョブを作る CloudFormation の資源は無い）。
   - したがって、小さな SCP の後も、L7・L10 の残りが塞がるまでは、標的型の乗っ取り（T3）には開く。
 - 入れるまでのあいだ、L5・L12 は C のまま（空白）。いちばん大きい空白は、3 本目（A-1）が入るまでホールドの解除がどこにも届かないこと。3 本目は #2643 のマージの後すぐに出す。
