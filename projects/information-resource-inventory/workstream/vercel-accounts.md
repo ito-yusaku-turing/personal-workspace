@@ -1,7 +1,7 @@
 # Vercel のアカウントの棚卸しと SSO 化の検討
 
 - 開始: 2026-11-05
-- 状態: **経理への申請用に、Vercel の予算を見積もった**（2026-11-13。現状 $407、計画 $755〜815、上振れの上限 約 $1,030（40 席）。[documents/vercel-supabase-budget.md](../documents/vercel-supabase-budget.md)）。Supabase は申請の対象から外した。次は伊藤が経理に相談する（月 $1,050）。そのあと席を足し、jadd_studio3・fleet-ops を Git 連携に移して共有アカウントを消す
+- 状態: **経理への申請用に、Vercel の予算を見積もった**（2026-11-13。現状 $407、計画 $755〜815、上振れの上限 約 $1,030（40 席）。[documents/vercel-supabase-budget.md](../documents/vercel-supabase-budget.md)）。Supabase は申請の対象から外した。次は伊藤が経理に相談する（月 $1,050）。そのあと席を足し、jadd_studio3・fleet-ops を Git 連携に移して共有アカウントを消す。並行して jadd_studio3 の切り替えの準備を始めた（2026-11-20。やることと注意点を整理。次は設定の確かめと小さなプロジェクトでの試し）
 - 所属: project:information-resource-inventory
 
 Vercel のアカウント（組織・チームのメンバーと、その権限）を棚卸しし、社の IdP（Okta / Google Workspace）による SSO に寄せられるかを検討する。
@@ -395,6 +395,67 @@ fleet-ops（Git 連携はつながっている）:
 - [ ] 本番以外を組まない設定の書き方（`git.deploymentEnabled` で main だけを有効にできるか。だめなら `ignoreCommand`）
 - [ ] 古いコミットのデプロイが、あとから終わって新しいものを上書きしないか
 - [ ] ダッシュボードのチームの設定で、チームにいない作者を自動でメンバーに足す、または承認を求める動きになっていないか（足されると有料の席が増える。API では見えなかった）
+- [ ] `git.deploymentEnabled` を `{"**": false, "main": true}` にしたとき、main だけがデプロイされ、`feature/x` のように `/` を含むブランチが止まるか（下記「切り替えの準備」）
+- [ ] 既存のプロジェクトに Git のリポジトリをつないだ直後に、デプロイが自動で走るか
+- [ ] Instant Rollback のあと、`vercel promote` かダッシュボードの操作で、本番ドメインの自動割り当てが戻るか
+
+### jadd_studio3 の切り替えの準備（2026-11-20）
+
+予算が通る前に進めておく。jadd_studio3 の現物（main `0297b96f`）と Vercel の公式の文書で確かめた。上の「どこで何を操作するか」を、具体的な作業に落としたもの。
+
+#### いまの形（現物）
+
+- `deploy.yml`: main への push → `setup-node-modules`（node_modules のキャッシュ。PR の CI へのキャッシュの供給元を兼ねる）→ `vercel@51.7.0` → `vercel pull --environment=production` → `vercel build --prod`（`SKIP_NPM_CI=1`）→ `vercel deploy --prebuilt --prod --archive=tgz`。
+- `vercel.json`: `installCommand` は `SKIP_NPM_CI=1` なら `npm ci` を飛ばす。`crons` が 5 本。`git` の設定は無い。
+- `package.json` に `engines` が無い。Node は `.nvmrc` の 24.22.1 で、GitHub Actions だけがこれを使っている。
+- コードは `VERCEL_ENV`・`VERCEL`・`VERCEL_PROJECT_PRODUCTION_URL` を読む。どれも Git 連携でも同じように入る。
+- `.gitattributes`（LFS）・`.gitmodules`・`.vercelignore` は無い。`.git` は 87MB。
+
+#### 公式の文書で分かったこと（2026-11-20）
+
+- **Git 連携は、既定で全ブランチをデプロイする**（未指定のブランチは `true`）。`git.deploymentEnabled` は minimatch の glob が使え、複数のルールに当たるときは**一つでも `true` があればデプロイ**される（[Git configuration](https://vercel.com/docs/project-configuration/git-configuration)）。main だけを残す公式の例は無い。
+- `ignoreCommand` は、終了コード **0 でスキップ**（`CANCELED` になる）、1 で続行。スキップしてもデプロイの数と同時ビルドの枠を使う（[project settings](https://vercel.com/docs/project-configuration/project-settings)）。
+- **Node は major しか選べない**。プロジェクト設定か `package.json` の `engines.node`（こちらが優先）で決まり、patch は Vercel が上げる。新規の既定は 26.x（[Node.js versions](https://vercel.com/docs/functions/runtimes/node-js/node-js-versions)）。
+- キューに積まれた古いコミットのビルドは、新しいコミットが来るとスキップされる。ただし、**on-demand の同時ビルドが既定で有効（全部すぐに並列で組む）** で、その場合に古いビルドが後から終わって本番を上書きするかは書かれていない（[Managing builds](https://vercel.com/docs/builds/managing-builds)）。"Prioritize production builds" の設定もある。
+- **Instant Rollback をすると、本番ドメインの自動割り当てが止まる**。以降の main への push は本番に出ない。`vercel promote` かダッシュボードの Promote で戻す（[Instant Rollback](https://vercel.com/docs/instant-rollback)）。
+- Vercel for GitHub は、既定でコミットに Commit Status と `deployment_status` を付ける。**デプロイの失敗が GitHub で見えるようになる**（いまは Actions のタブを見に行かないと分からない）。bot のコメントはダッシュボードで止められる。`github.silent` は非推奨（[Vercel for GitHub](https://vercel.com/docs/git/vercel-for-github)）。
+- つないだ直後に自動でデプロイが走るかと、Pro のプレビューの Deployment Protection の既定は、書かれていない。
+
+#### やること
+
+**1. 予算の前にできる確かめ（Vercel・GitHub。伊藤）**
+
+- jadd-studio3 の Settings で、Node.js Version（24.x のはず）・Build Machine（Turbo）・同時ビルドの設定・Deployment Protection を見る。
+- Vercel の GitHub App が `turingmotors/jadd_studio3` を読めるかを見る（組織の管理者）。
+- 小さなプロジェクトで「試して確かめること」を試す。席の数に関係ないので、予算の前にできる。
+
+**2. jadd_studio3 の PR（作者は席のある人。merge は切り替えの当日）**
+
+| ファイル | 変更 | 理由 |
+|---|---|---|
+| `vercel.json` | `installCommand` を消すか `npm ci` にする。`git.deploymentEnabled` で main 以外を止める（書き方は試してから決める。だめなら `ignoreCommand` で `VERCEL_ENV` が production 以外をスキップ） | `SKIP_NPM_CI` を使わなくなる。止めないと作業ブランチの push ごとにプレビューを組む |
+| `package.json` | `"engines": { "node": "24.x" }` を足す | 未指定だとプロジェクト設定に頼る。ダッシュボードで変えられても、リポジトリに記録が残らない |
+| `.github/workflows/deploy.yml` | 消す | |
+| キャッシュを作るワークフロー（新しいファイル） | main への push で `setup-node-modules` だけを走らせる | PR の CI が main のキャッシュに当たるように。`ci.yml` に `push` を足すと、lint の `origin/main...HEAD` などが push で壊れるので、ファイルを分ける |
+| `docs/general/deployment.md` | 1（全体像・成否の見方を Vercel と Commit Status に）・4（`vercel pull` の記述。再デプロイは Vercel の Redeploy）・6（Instant Rollback の注意）・7（失敗の通知の項）を直す | |
+| `docs/general/supply-chain-security.md` | 表の `deploy.yml` を外す | |
+
+**3. 切り替えの当日（間を空けずに続けて行う）**
+
+1. Vercel（Owner）: jadd-studio3 → Settings → Git で `turingmotors/jadd_studio3` をつなぐ。Production Branch は `main`。
+2. 2 の PR を merge する。そのコミットには `deploy.yml` が無いので Actions は動かず、Git 連携だけがデプロイする。1 と 2 の間にほかの merge が入ると、二重にデプロイされる。
+3. デプロイのログ（Node 24.x、`npm ci`、postinstall の `prisma generate`・`assets:place`）、本番の画面、cron が動いていることを確かめる。作業ブランチに push してプレビューが組まれないことも見る。
+4. GitHub の secrets `VERCEL_TOKEN`・`VERCEL_ORG_ID`・`VERCEL_PROJECT_ID` を消す。
+5. 共有アカウント `jaddstudio3-deployment-4700` をチームから外し、アカウントを消す（トークンも消える）。
+
+#### 注意すること
+
+- **プレビューを止め忘れると**、書き込み権限のある 56 名の作業ブランチの push ごとに Turbo でビルドが走り、料金が増える。席の無い作者のブランチには bot のコメントが付く。プレビューは Preview の環境変数で動く。
+- **ビルドが Vercel の上に移る**。Node の patch は固定できない（`.nvmrc` は CI と devbox だけに効く）。ネイティブの依存（lz4・roaring・sharp）は、実行する環境と同じ所で組むぶん素直になる。ビルドの料金は月 +$40〜100（Turbo のまま。「費用の見積もり」）。
+- **作者の照合は、Vercel につないだ GitHub のアカウントで行う**。GitHub をつないでいないメンバー（kento-1989・takuyayamashita・yuyaiwasaki-8105）と devin の bot は、切り替えの前に通るかを確かめる。squash merge の作者は PR を作った人で、merge を押した人ではない。
+- **切り戻しに Instant Rollback を使うと**、その後の merge が本番に出なくなる。revert の PR で切り戻すいまの手順（`deployment.md` の 6）を基本にし、Instant Rollback を使ったら Promote で戻すことを手順に書く。
+- **再デプロイの仕方が変わる**。いまは `NEXT_PUBLIC_*` などを変えたあと「`Deploy to Vercel` を再実行」している。切り替えたあとは Vercel のダッシュボードの Redeploy で、Vercel の席が要る。
+- 同時ビルドが並列のとき、古いビルドが新しいものを上書きしないかは未確認。気になるなら "Prioritize production builds" を見たうえで、on-demand の並列を切る。
 
 ## 設計判断と理由
 
@@ -432,6 +493,8 @@ fleet-ops（Git 連携はつながっている）:
 - [ ] 2FA を必須にする（共有アカウントを消してから。2027-01-20 の前後）
 
 ## 次セッションへの引き継ぎ
+
+**2026-11-20**: 予算を待つ間に、jadd_studio3 の切り替えの準備を始めた。やることと注意点は「jadd_studio3 の切り替えの準備（2026-11-20）」にある。次は、伊藤がダッシュボードで jadd-studio3 の設定（Node・Build Machine・同時ビルド・Deployment Protection）を見ることと、小さなプロジェクトでの試し。jadd_studio3 の PR はまだ作っていない（作るなら作業ブランチで。merge は切り替えの当日）。
 
 **2026-11-13 の締め**:
 
