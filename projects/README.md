@@ -11,7 +11,7 @@
 
 注力している順に並べる。1件は `- [<project-id>/workstream/<名前>.md](./<同じパス>): 一言メモ` の1行にする。状態そのものは各 workstream の `- 状態:` 行に書き、ここには写さない。
 
-- [aws-data-protection/workstream/s3-data-protection-3.md](./aws-data-protection/workstream/s3-data-protection-3.md): 第三弾。抜け穴の台帳（区分 A・B・C）と、通知・手順 D・掃除・検知
+- [aws-data-protection/workstream/s3-data-protection-3.md](./aws-data-protection/workstream/s3-data-protection-3.md): 「S3 バケット操作監視」案件（第三弾）。抜け穴の台帳（区分 A・B・C）と、通知・手順 D・掃除・検知
 - [privileged-access/workstream/apex-privileges.md](./privileged-access/workstream/apex-privileges.md): 権限の頂点の群の把握と管理。CorpIT に 1 回目の聞き取りをした。次は止めてある循環の詳細を聞く
 - [tern-ios-auth/workstream/tern-backend-api.md](./tern-ios-auth/workstream/tern-backend-api.md):
 - [m2m-auth/workstream/m2m-auth.md](./m2m-auth/workstream/m2m-auth.md):

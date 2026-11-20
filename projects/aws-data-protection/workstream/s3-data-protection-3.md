@@ -1,4 +1,6 @@
-# S3 バケットのデータ保護 第三弾（抜け穴の把握と塞ぎ・監視）
+# S3 バケット操作監視（S3 バケットのデータ保護 第三弾。抜け穴の把握と塞ぎ・監視）
+
+> 通称は「S3 バケット操作監視」案件（2026-11-20 に伊藤が「第三弾」から改めた）。ロードの指示もこの名前で来る。ファイル名とフォルダ名は、リンクを保つため `s3-data-protection-3` のまま。
 
 - 開始: 2026-11-16
 - 状態: **通知の 2 本目（[cdk-apps#2643](https://github.com/turingmotors/cdk-apps/pull/2643)）と直し（[cdk-apps#2690](https://github.com/turingmotors/cdk-apps/pull/2690)）を 11-20 に deploy し、Slack での確かめ（重大・注意・記録 9 本・証跡の拒否）をすべて終えた**。次は 3 本目（ホールドの解除とジョブ）の範囲を決めて起草し、小さな SCP に 11-27 までに着手する
@@ -300,6 +302,10 @@
   - 直し（伊藤の判断で 3 本目と混ぜず、小さな PR にした）: [cdk-apps#2690](https://github.com/turingmotors/cdk-apps/pull/2690)（ブランチ `original-bucket-alert-trail-denied`、`2ff6925d`）。`AlertGroup.deniedMatch` を足し、証跡の失敗は操作の名前だけで拾う（us-west-2 のどの証跡も。過去 90 日の失敗は 2 件）。拒否の例は実際の記録を伏せ字にして置いた。jest 31・確認スクリプト 28/28・cdk diff は `trail-critical-denied` の 1 本だけ。
   - セルフレビュー（nit 5）を受けて `6ae10fb9`: 失敗の通知の理由を証跡を問わない文にした（`failedReason`。us-west-2 の証跡は 3 本: original-bucket-audit・Control Tower・garuda-index-access）。docs 2 章の表、確認スクリプトに名前の残る失敗・一致してはいけない失敗の例（31/31）。拒否でない失敗で名前を載せない点は見送り。PR 本文と変更履歴を整理した。
   - 2026-11-20 09:11 UTC に [cdk-apps#2690](https://github.com/turingmotors/cdk-apps/pull/2690) をマージ（LGTM: graph226 さん、`2a23ef77`）。deploy（run 44708668853）は success で、変わったのは `trail-critical-denied` だけ（パターンは eventName 4 つと errorCode だけ）。09:17 UTC に伊藤が ReadOnly で stop-logging → 「記録」が新しい題名・理由の文で届いた（eventID c2bdac58-…）。`IsLogging` は `true` のまま。**これで 2 本目の deploy の後の確かめはすべて済んだ。**
+  - **2026-11-20 のセッションの終わり。次のセッションで最初にやること**:
+    1. 3 本目（ホールドの解除とジョブ）の範囲を決める。A-2 を外すか、D-1・D-2 を入れるか、DeleteObjects のために 9 本で EventBridge を有効にするか（[notification-pr3-design.md](s3-data-protection-3/notification-pr3-design.md)）。決めたら起草する。失敗の例は実際の拒否の記録から作る（下の注意）。
+    2. 小さな SCP（`apps/organization-policy`）の設計に 11-27 までに着手する。管理アカウントの SCP の確認、例外をロール名の前方一致で書くと偽装できる件（台帳の「例外の穴」の高 1）の決め方を含む。
+    3. 予定: 11-28 にカナリアの default.txt の確認、12-04 に a.txt の削除の試し（伊藤）。`AUDIT_TARGET_BUCKETS` を 9 本に広げる PR を作るときは、重大が 18 通ほど届くことを告知に入れる。
   - **3 本目への注意**: 確認スクリプトの失敗の例は、成功の記録を書き換えて作らない。実際の拒否の記録を ReadOnly で起こして使う（サービスによって、拒否の記録に何が残るかが違う）。
   - 注意: ReadOnly で `cdk diff` を流すと、assets のバケットへの `s3:PutObject` を試みて拒否される（差分は template から出る）。害は無いが、書き込みの試みが CloudTrail に残る。
 

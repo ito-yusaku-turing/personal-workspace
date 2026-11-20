@@ -1,12 +1,12 @@
 # project:aws-data-protection 目録
 
-tuscenes-prod（767397804933）の S3 原本バケットを、消失や破壊から守る案件。第一弾（バージョニング、2026-10-20 完了）と第二弾（権限設計のアップグレードと WORM の導入、仕上げ中）、第三弾（抜け穴の把握と塞ぎ・監視、2026-11-16 起票）、そこから切り出した AWS アカウントの手当てを扱う。作業先は主に cdk-apps（`/usr/app/cdk-apps`）。
+tuscenes-prod（767397804933）の S3 原本バケットを、消失や破壊から守る案件。第一弾（バージョニング、2026-10-20 完了）と第二弾（権限設計のアップグレードと WORM の導入、仕上げ中）、第三弾（通称「S3 バケット操作監視」。抜け穴の把握と塞ぎ・監視、2026-11-16 起票）、そこから切り出した AWS アカウントの手当てを扱う。作業先は主に cdk-apps（`/usr/app/cdk-apps`）。
 
 2026-10-26 に `~/docs`（`workstream/` の一部と `security/`）から移した。ファイルを追加・移動・削除したら、この目録も同じコミットで更新する（ルールは personal-workspace の `AGENTS.md`「projects/（案件ごとの資料）」）。
 
 ## workstream/ — 進行中の作業記録
 
-- [workstream/s3-data-protection-3.md](./workstream/s3-data-protection-3.md): **S3 バケットのデータ保護 第三弾（抜け穴の把握と塞ぎ・監視）**。残った抜け穴を区分 A（意図して残す）・B（監視する）・C（監視されていない）に分け、通知・手順 D・掃除・検知で C を減らす（2026-11-16 起票）
+- [workstream/s3-data-protection-3.md](./workstream/s3-data-protection-3.md): **S3 バケット操作監視**（通称。S3 バケットのデータ保護 第三弾。抜け穴の把握と塞ぎ・監視）。残った抜け穴を区分 A（意図して残す）・B（監視する）・C（監視されていない）に分け、通知・手順 D・掃除・検知で C を減らす（2026-11-16 起票）
   - [workstream/s3-data-protection-3/loophole-ledger.md](./workstream/s3-data-protection-3/loophole-ledger.md): **抜け穴の台帳**（2026-11-16、案）。L1〜L21 の今の区分と第三弾の後の目標、手当て、決めること
   - [workstream/s3-data-protection-3/notification-design.md](./workstream/s3-data-protection-3/notification-design.md): **通知の設計**（2026-11-17、案）。柱 1。ルール A〜E・見張り・ログのバケットの守りと台帳への当てはめ、11-04 の下書きからの差分、決めること
   - [workstream/s3-data-protection-3/notification-pr3-design.md](./workstream/s3-data-protection-3/notification-pr3-design.md): **通知の 3 本目の PR の設計**（2026-11-19、案）。警報でまとめる通知（A-1・A-2・D-1・D-2）・警報と Logs の変更・ジョブの操作。カナリアで確かめた記録の形と、決めること
