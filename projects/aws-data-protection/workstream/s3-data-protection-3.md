@@ -1,7 +1,7 @@
 # S3 バケットのデータ保護 第三弾（抜け穴の把握と塞ぎ・監視）
 
 - 開始: 2026-11-16
-- 状態: **通知の 2 本目（[cdk-apps#2643](https://github.com/turingmotors/cdk-apps/pull/2643)、head `dc2fa31b`）は 11-20 に範囲を見直した**（通知の部品と IAM を外し、監査の証跡を残し、9 本に広げた。ルール 21 本 → 8 本）。graph226 さんの再レビューを待つ。次は 3 本目（ホールドの解除とジョブ）の範囲を決めて起草し、小さな SCP に 11-27 までに着手する
+- 状態: **通知の 2 本目（[cdk-apps#2643](https://github.com/turingmotors/cdk-apps/pull/2643)、head `70fbb7f1`）は 11-20 に graph226 さんの Approve を得て、Low の指摘を直した**。伊藤がマージ前に `#aws_security_alert` へ告知してマージ・deploy し、チェックリストを確かめる。次は 3 本目（ホールドの解除とジョブ）の範囲を決めて起草し、小さな SCP に 11-27 までに着手する
 
 第二弾で原本バケット 9 本に Object Lock を入れた。第三弾では、残った抜け穴を台帳にして区分 A（意図して残す）・B（監視する）・C（監視されていない）に分け、塞ぐ・監視を付ける・主体を減らすことで、C をできるだけ無くす。
 
@@ -288,6 +288,9 @@
   - 3 本目: 範囲を決める（A-2 を外すか、D-1・D-2 を入れるか。`DeleteObjects` を拾うには 9 本の EventBridge の有効化が要る）。決まったら #2643 のマージの後すぐに起草する。
   - 小さな SCP: 台帳の節の 4 つの文で、2026-11-27 までに着手する。設計では、例外を名前の前方一致でなく ARN の完全一致にするか、例外のロールの信頼・権限の変更を拒む文（L8・L9）を前倒しするかを決める（セルフレビューの高 1）。先に、管理アカウントの SCP の今の文と、`chatbot:*` のリソース単位の対応を確かめる。
   - 起草の worktree は scratchpad の `cdk-apps-alert`（消えていたら作り直す）。
+
+- 2026-11-20（Approve の後）: graph226 さんが `dc2fa31b` を Approve（Low 3 件・お任せ）。Copilot の 2 件と合わせて、`70fbb7f1` で直した: `PutInsightSelectors` を証跡の通知から外した（記録を止めないので誤報になる）。docs の証跡のコマンドに `--region us-west-2` を足した。再試行の記述を正した（`RetryPolicy` を書かなくても既定の再試行は効く。失われるのは再試行できない失敗と、再試行を尽くしたもの）。範囲を絞ったときの名残を消した（docs 10 章の「後の PR」・SCP の検討中の記述・12 本のテストなど）。これで、前に「SCP の PR で直す」としていた docs 10 章は片付いた。jest 30・synth・確認スクリプト 27/27。PR 本文と変更履歴を直し、4 スレッドに返信し、[まとめのコメント](https://github.com/turingmotors/cdk-apps/pull/2643#issuecomment-7032867084)を投稿した。
+  - **申し送り**: `AUDIT_TARGET_BUCKETS` を 9 本に広げる deploy では、重大が 18 通ほど届く見込み（graph226 さん。10/26 にカナリアへ AuditStack を入れたとき、`PutBucketNotification`・`PutBucketInventoryConfiguration` が 1 通ずつ出た）。広げる PR の告知に入れる。
 
 ## 関連リンク
 
