@@ -1,7 +1,7 @@
 # S3 バケットのデータ保護 第三弾（抜け穴の把握と塞ぎ・監視）
 
 - 開始: 2026-11-16
-- 状態: **通知の 2 本目（[cdk-apps#2643](https://github.com/turingmotors/cdk-apps/pull/2643)、head `cef893b0`）は 11-20 に graph226 さんの Approve を得て、Low の指摘と仕上げのセルフレビュー（低 3）を直した**。伊藤がマージ前に `#aws_security_alert` へ告知してマージ・deploy し、チェックリストを確かめる。次は 3 本目（ホールドの解除とジョブ）の範囲を決めて起草し、小さな SCP に 11-27 までに着手する
+- 状態: **通知の 2 本目（[cdk-apps#2643](https://github.com/turingmotors/cdk-apps/pull/2643)）は 11-20 07:18 UTC にマージし、deploy が通った**（ルール 8 本・ENABLED、ReadOnly の確かめは済み）。伊藤が Slack に届くかの確かめ（重大・注意・記録 9 本・証跡）を流す。次は 3 本目（ホールドの解除とジョブ）の範囲を決めて起草し、小さな SCP に 11-27 までに着手する
 
 第二弾で原本バケット 9 本に Object Lock を入れた。第三弾では、残った抜け穴を台帳にして区分 A（意図して残す）・B（監視する）・C（監視されていない）に分け、塞ぐ・監視を付ける・主体を減らすことで、C をできるだけ無くす。
 
@@ -293,6 +293,9 @@
   - 仕上げのセルフレビュー（pw-1120-selfreview）: マージしてよい、低 3。`cef893b0` で docs 2 章の SCP の置き場（10 章を指す参照が空になっていた）と、`PutInsightSelectors` を拾わない理由のコメントを足した。チェックリストに `describe-rule` の確かめを足し、[コメント](https://github.com/turingmotors/cdk-apps/pull/2643#issuecomment-7032986868)で 7 章の訂正とあわせて知らせた。
   - チェックリストの「記録（9 本）」を、9 本すべてに ReadOnly で拒否される操作をして 9 通届くかを見る形にした（伊藤。1 本だけでは、残り 8 本の名前が入ったかを実地に確かめられない）。
   - **申し送り**: `AUDIT_TARGET_BUCKETS` を 9 本に広げる deploy では、重大が 18 通ほど届く見込み（graph226 さん。10/26 にカナリアへ AuditStack を入れたとき、`PutBucketNotification`・`PutBucketInventoryConfiguration` が 1 通ずつ出た）。広げる PR の告知に入れる。
+- 2026-11-20（マージと deploy）: 07:18 UTC にマージ（`54f41c38`）。`original-bucket-audit-deploy`（run 44693992349）は success。`OriginalBucketNotify` は発行のロールと 8 本のルールを作り、1 本目のルール `BucketConfigRule` とその発行のロールを消した。Canary・LockBatch はメタデータだけ、Audit は変更なし。
+  - ReadOnly で確かめた: ルールはちょうど 8 本で、すべて ENABLED。送り先は 8 本ともトピック `original-bucket-alert-slack` と `AlertPublishRole`。購読は Amazon Q Developer（https）が残っている。`trail-critical-ok` のパターンに `PutInsightSelectors` は無い。
+  - 残り（伊藤）: チェックリストの Slack での確かめ。重大（カナリアの暗号化の入れ直し）、注意（カナリアのバージョニング）、記録（9 本への拒否 9 通）、証跡（ReadOnly で stop-logging の拒否）、その後の `IsLogging`。拒否される呼び出しも書き込み系の API なので、伊藤に流してもらう。
 
 ## 関連リンク
 
