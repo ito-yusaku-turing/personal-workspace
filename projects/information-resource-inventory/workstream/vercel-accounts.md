@@ -378,7 +378,7 @@ jadd_studio3:
 3. **Vercel**（Owner）: jadd-studio3 → Settings → Git で `turingmotors/jadd_studio3` をつなぐ。Production Branch は `main`。
 4. 3 の直後に 2 の PR を merge する。push のときは、push したコミットにあるワークフローが動くので、`deploy.yml` を消したコミットでは Actions が動かず、Git 連携だけがデプロイする。3 と 4 の間にほかの merge が入ると二重にデプロイされるので、続けて行う。
 5. デプロイと本番の画面を確かめる。
-6. **GitHub**: secrets の `VERCEL_TOKEN`・`VERCEL_ORG_ID`・`VERCEL_PROJECT_ID` を消す。
+6. **GitHub**（リポジトリの admin）: [Actions の secrets](https://github.com/turingmotors/jadd_studio3/settings/secrets/actions) の Repository secrets から `VERCEL_TOKEN`・`VERCEL_ORG_ID`・`VERCEL_PROJECT_ID` を消す。
 7. **Vercel**（Owner）: 共有アカウント `jaddstudio3-deployment-4700` をチームから外し、アカウントも消す。
 
 fleet-ops（Git 連携はつながっている）:
@@ -445,7 +445,7 @@ fleet-ops（Git 連携はつながっている）:
 1. Vercel（Owner）: jadd-studio3 → Settings → Git で `turingmotors/jadd_studio3` をつなぐ。Production Branch は `main`。
 2. 2 の PR を merge する。そのコミットには `deploy.yml` が無いので Actions は動かず、Git 連携だけがデプロイする。1 と 2 の間にほかの merge が入ると、二重にデプロイされる。
 3. デプロイのログ（Node 24.x、`npm ci`、postinstall の `prisma generate`・`assets:place`）、本番の画面、cron が動いていることを確かめる。作業ブランチに push してプレビューが組まれないことも見る。
-4. GitHub の secrets `VERCEL_TOKEN`・`VERCEL_ORG_ID`・`VERCEL_PROJECT_ID` を消す。
+4. GitHub（リポジトリの admin）: [Settings → Secrets and variables → Actions](https://github.com/turingmotors/jadd_studio3/settings/secrets/actions) の Repository secrets から `VERCEL_TOKEN`・`VERCEL_ORG_ID`・`VERCEL_PROJECT_ID` を消す（2026-11-20 に伊藤が画面で 3 つがあることを確かめた）。消したあと、Environment（`copilot`・`Preview`・`Production`）にも `VERCEL_*` が無いことを見る。
 5. 共有アカウント `jaddstudio3-deployment-4700` をチームから外し、アカウントを消す（トークンも消える）。
 
 #### 注意すること
