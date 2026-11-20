@@ -4,19 +4,20 @@
 - 前提の PR: [cdk-apps#2643](https://github.com/turingmotors/cdk-apps/pull/2643)（1 件ずつ送る通知の形。レビュー中）。3 本目は #2643 のマージの後に、新しいブランチで起こす
 - 仕様の正本は cdk-apps の `apps/original-bucket-audit/docs/notifications.md` と `lib/alert-catalog.ts`。この資料は 3 本目の起草までの設計と、決めることを置く
 - 元の設計: [notification-design.md](notification-design.md) の 3.1・3.4・10.9〜10.10。ここで変えたところは、各節に書く
+- **2026-11-20 の見直し（伊藤）で、前提が変わった**: #2643 から通知の部品と IAM ロールの変更の通知を外した（監査の証跡の行 `trail-critical` だけ残す）。そのため、1 章の範囲 2（警報・Logs の変更を `notify-critical-input` に戻す）と 5 章のその部分は取りやめ。9 本への展開は #2643 に入れたので、3 本目の対象は最初から 9 本とカナリア。A-1 は、ジョブ経由に限らず、どの主体による解除も拾う（CloudTrail のデータイベントで拾うので満たす見込み）。A-2・D-1・D-2 を入れるかは要決定。経緯は [s3-data-protection-3.md](../s3-data-protection-3.md) の 2026-11-20 の項
 
 ## 1. 範囲
 
 | # | 中身 | 形 |
 |---|---|---|
 | 1 | オブジェクトの操作を、警報でまとめて送る（A-1・A-2・D-1・D-2） | 新しい形（警報） |
-| 2 | CloudWatch の警報・Logs の変更の通知。#2643 で外した 8 操作を、`notify-critical-input` の行に戻す（新しい部品の分も足す） | 今の形（1 件ずつ） |
+| 2 | ~~CloudWatch の警報・Logs の変更の通知~~（2026-11-20 に取りやめ。通知の部品は見張らない） | — |
 | 3 | S3 Batch Operations のジョブの作成・状態の変更の通知（重大。伊藤、11-19） | 今の形（1 件ずつ）。新しい行 |
 
 範囲の外（決まったこと）:
 
 - deploy の経路を警報でまとめることは、しない（11-19、案 2。#2643 で決定にした）。
-- 対象はカナリアだけ。データ保護対象の 9 本への展開は 4 本目。
+- ~~対象はカナリアだけ。データ保護対象の 9 本への展開は 4 本目。~~ → 2026-11-20: 9 本への展開は #2643 に入れた。3 本目の対象は 9 本とカナリア。4 本目は無くなる見込み。
 
 ## 2. カナリアで確かめたこと（2026-11-19）
 
@@ -76,7 +77,7 @@ EventBridge のルール original-bucket-alert-<警報>（CloudTrail のデー�
 
 ## 5. 1 件ずつの通知に足すもの
 
-**通知の仕組みの変更（`notify-critical-input`）**
+**通知の仕組みの変更（`notify-critical-input`）**（2026-11-20 に取りやめ。この行は #2643 から消えた）
 
 - 戻す: `PutMetricAlarm`・`DeleteAlarms`・`SetAlarmState`（CloudWatch の警報）、`DeleteLogGroup`・`PutRetentionPolicy`（CloudWatch Logs）。メトリクスフィルターは使わないので、`PutMetricFilter`・`DeleteMetricFilter` は要らない。source に `aws.cloudwatch`・`aws.logs`。
 - 足す: CloudWatch Logs のリソースポリシーの `PutResourcePolicy`・`DeleteResourcePolicy`。`requestParameters` は `policyName` の形と `resourceArn`（ロググループ単位）の形があるので、両方を `$or` で拾う（Fable の M3）。消されると調べるための記録が止まる（警報は 3 章の形なので止まらない）。
